@@ -1,48 +1,54 @@
-# Wikipedia-Blame
+# React + TypeScript + Vite
 
-A tool for finding when specific text first appeared in Wikipedia articles, similar to git blame functionality.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Project Overview
+Currently, two official plugins are available:
 
-Wikipedia-Blame is a React-based single-page application that helps users identify when specific text was first added to Wikipedia articles.
-By leveraging the Wikipedia API, it searches through revision history to pinpoint the exact revision where text first appeared.
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-### Features
+## Expanding the ESLint configuration
 
-- Search for text across all revisions of a Wikipedia article
-- Support for both English and Japanese Wikipedia
-- Efficient search algorithm using randomized sampling with fallback to exhaustive search
-- Direct links to the specific revision where text first appeared
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-## Technical Stack
+```js
+export default tseslint.config({
+  extends: [
+    // Remove ...tseslint.configs.recommended and replace with this
+    ...tseslint.configs.recommendedTypeChecked,
+    // Alternatively, use this for stricter rules
+    ...tseslint.configs.strictTypeChecked,
+    // Optionally, add this for stylistic rules
+    ...tseslint.configs.stylisticTypeChecked,
+  ],
+  languageOptions: {
+    // other options...
+    parserOptions: {
+      project: ['./tsconfig.node.json', './tsconfig.app.json'],
+      tsconfigRootDir: import.meta.dirname,
+    },
+  },
+})
+```
 
-- React with TypeScript
-- Vite for build tooling
-- Wikipedia API integration
-- GitHub Pages for hosting
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-## Project Structure
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
 
-- **Components**: UI elements (SearchForm, ResultView, LanguageSelector, etc.)
-- **API Services**: Wikipedia API integration
-- **Utilities**: Search algorithms and text processing
-- **Types**: TypeScript type definitions
-
-## Development Roadmap
-
-1. Project Setup - Initialize React app with TypeScript and Vite
-2. Core Components - Create basic UI components
-3. API Integration - Implement Wikipedia API service
-4. Search Algorithm - Implement efficient revision search
-5. Styling - Add minimal, clean styling
-6. Language Support - Add support for Japanese Wikipedia
-7. Testing & Refinement - Test functionality and fix issues
-8. Deployment - Set up GitHub Pages deployment
-
-## Future Extensions
-
-- Find first addition/deletion of text
-- User selection to search further
-- Find last occurrence of text
-- Visual highlighting of changes
-- Support for additional Wikipedia languages
+export default tseslint.config({
+  plugins: {
+    // Add the react-x and react-dom plugins
+    'react-x': reactX,
+    'react-dom': reactDom,
+  },
+  rules: {
+    // other rules...
+    // Enable its recommended typescript rules
+    ...reactX.configs['recommended-typescript'].rules,
+    ...reactDom.configs.recommended.rules,
+  },
+})
+```
