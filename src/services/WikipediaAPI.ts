@@ -38,7 +38,7 @@ export const WikipediaAPI = {
 			);
 		}
 		const revIdsStr = revIds.join('|');
-		const url = `https://${lang}.wikipedia.org/w/api.php?action=query&prop=revisions&revids=${revIdsStr}&rvprop=content|timestamp|user&formatversion=2&format=json&origin=*`;
+		const url = `https://${lang}.wikipedia.org/w/api.php?action=query&prop=revisions&revids=${revIdsStr}&rvprop=content&formatversion=2&format=json&origin=*`;
 
 		try {
 			const response = await fetch(url);
