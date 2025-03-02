@@ -29,7 +29,7 @@ export function ResultView({ result }: ResultViewProps) {
 
 	return (
 		<div className="result-view success">
-			<h3>A Occurrence Found</h3>
+			<h3>An Occurrence Found</h3>
 			<div className="result-details">
 				<p>
 					<strong>Article:</strong> {result.pageTitle}
