@@ -3,7 +3,7 @@ import './App.css';
 import { SearchForm } from './components/SearchForm';
 import { ResultView } from './components/ResultView';
 import { WikipediaAPI } from './services/WikipediaAPI';
-import { findFirstOccurrence } from './utils/RevisionFinder';
+import { findOneOccurrence } from './utils/RevisionFinder';
 import { SearchResult, WikiLanguage } from './types';
 
 function App() {
@@ -35,8 +35,8 @@ function App() {
 			// Fetch all revisions for the page
 			const revisions = await WikipediaAPI.getAllRevisions(pageTitle, language);
 
-			// Find the first occurrence of the target text
-			const firstRevisionId = await findFirstOccurrence(
+			// Find one occurrence of the target text
+			const firstRevisionId = await findOneOccurrence(
 				targetText,
 				revisions,
 				language
@@ -75,7 +75,7 @@ function App() {
 		<div className="app">
 			<header>
 				<h1>Wikipedia Blame</h1>
-				<p>Find the first occurrence of text in a Wikipedia article</p>
+				<p>Find an occurrence of text in a Wikipedia article</p>
 			</header>
 			<main>
 				<SearchForm onSearch={handleSearch} isLoading={searchResult.loading} />
