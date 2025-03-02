@@ -11,7 +11,7 @@ export const WikipediaAPI = {
 		revId: number,
 		lang: WikiLanguage = 'en'
 	): Promise<string | null> {
-		const url = `https://${lang}.wikipedia.org/w/api.php?action=query&prop=revisions&revids=${revId}&rvprop=content&formatversion=2&format=json&origin=*`;
+		const url = `https://${lang}.wikipedia.org/w/api.php?action=query&prop=revisions&revids=${revId}&rvprop=content&formatversion=2&format=json&origin=*&rvslots=main`;
 		try {
 			const response = await fetch(url);
 			const data = await response.json();
@@ -38,7 +38,7 @@ export const WikipediaAPI = {
 			);
 		}
 		const revIdsStr = revIds.join('|');
-		const url = `https://${lang}.wikipedia.org/w/api.php?action=query&prop=revisions&revids=${revIdsStr}&rvprop=content&formatversion=2&format=json&origin=*`;
+		const url = `https://${lang}.wikipedia.org/w/api.php?action=query&prop=revisions&revids=${revIdsStr}&rvprop=content&formatversion=2&format=json&origin=*&rvslots=main`;
 
 		try {
 			const response = await fetch(url);
