@@ -1,34 +1,89 @@
 import { useState } from 'react';
-import reactLogo from './assets/react.svg';
-import viteLogo from '/vite.svg';
 import './App.css';
+import { SearchForm } from './components/SearchForm';
+import { ResultView } from './components/ResultView';
+import { WikipediaAPI } from './services/WikipediaAPI';
+import { findFirstOccurrence } from './utils/RevisionFinder';
+import { SearchResult, WikiLanguage } from './types';
 
 function App() {
-	const [count, setCount] = useState(0);
+	const [searchResult, setSearchResult] = useState<SearchResult>({
+		pageTitle: '',
+		targetText: '',
+		revisionId: null,
+		loading: false,
+		error: null,
+		language: 'en',
+	});
+
+	const handleSearch = async (
+		pageTitle: string,
+		targetText: string,
+		language: WikiLanguage
+	) => {
+		setSearchResult((prev) => ({
+			...prev,
+			pageTitle,
+			targetText,
+			language,
+			loading: true,
+			error: null,
+			revisionId: null,
+		}));
+
+		try {
+			// Fetch all revisions for the page
+			const revisions = await WikipediaAPI.getAllRevisions(pageTitle, language);
+
+			// Find the first occurrence of the target text
+			const firstRevisionId = await findFirstOccurrence(
+				targetText,
+				revisions,
+				language
+			);
+
+			if (firstRevisionId) {
+				// Fetch additional details about the revision
+				const revisionText = await WikipediaAPI.getRevisionText(
+					firstRevisionId,
+					language
+				);
+
+				setSearchResult((prev) => ({
+					...prev,
+					revisionId: firstRevisionId,
+					loading: false,
+				}));
+			} else {
+				setSearchResult((prev) => ({
+					...prev,
+					revisionId: null,
+					loading: false,
+				}));
+			}
+		} catch (error) {
+			setSearchResult((prev) => ({
+				...prev,
+				loading: false,
+				error:
+					error instanceof Error ? error.message : 'An unknown error occurred',
+			}));
+		}
+	};
 
 	return (
-		<>
-			<div>
-				<a href="https://vite.dev" target="_blank">
-					<img src={viteLogo} className="logo" alt="Vite logo" />
-				</a>
-				<a href="https://react.dev" target="_blank">
-					<img src={reactLogo} className="logo react" alt="React logo" />
-				</a>
-			</div>
-			<h1>Vite + React</h1>
-			<div className="card">
-				<button onClick={() => setCount((count) => count + 1)}>
-					count is {count}
-				</button>
-				<p>
-					Edit <code>src/App.tsx</code> and save to test HMR
-				</p>
-			</div>
-			<p className="read-the-docs">
-				Click on the Vite and React logos to learn more
-			</p>
-		</>
+		<div className="app">
+			<header>
+				<h1>Wikipedia Blame</h1>
+				<p>Find the first occurrence of text in a Wikipedia article</p>
+			</header>
+			<main>
+				<SearchForm onSearch={handleSearch} isLoading={searchResult.loading} />
+				{(searchResult.loading ||
+					searchResult.revisionId !== null ||
+					searchResult.error) && <ResultView result={searchResult} />}
+			</main>
+		</div>
 	);
 }
 
