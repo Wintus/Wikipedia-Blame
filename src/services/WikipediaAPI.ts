@@ -6,11 +6,27 @@
  * TODO: rename effect-ful functions as `fetch*`.
  */
 
-import { WikiLanguage, RevisionResult, WikipediaResponse } from '../types';
+import { WikiLanguage, RevisionResult } from '../types';
 
 type Revision<Slot extends string> = {
 	revid: number;
 	slots: { [key in Slot]: { content: string } };
+};
+
+type WikipediaPage = {
+	pageid: number;
+	title: string;
+	revisions?: ReadonlyArray<Revision>;
+};
+
+type WikipediaResponse = {
+	query?: {
+		pages?: ReadonlyArray<WikipediaPage>;
+	};
+	continue?: {
+		continue?: string;
+		rvcontinue?: string;
+	};
 };
 
 const getPageRevisions = <Slot extends string = 'main'>(

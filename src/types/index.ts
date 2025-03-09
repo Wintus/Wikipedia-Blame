@@ -18,25 +18,3 @@ export type SearchResult = {
 	loading: boolean;
 	error: string | null;
 };
-
-export type WikipediaRevision = {
-	revid: number;
-	timestamp?: string;
-	user?: string;
-	content?: string;
-};
-
-export type WikipediaPage = {
-	pageid: number;
-	title: string;
-	revisions?: ReadonlyArray<WikipediaRevision>;
-};
-
-export type WikipediaResponse = {
-	query?: {
-		pages?: ReadonlyArray<WikipediaPage>;
-	};
-	continue?: {
-		rvcontinue?: string;
-	};
-};
