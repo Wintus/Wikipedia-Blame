@@ -2,8 +2,6 @@
  * Service for interacting with the Wikipedia API
  *
  * note: `rvcontentformat-main=text/plain` is unavailable for regular pages
- *
- * TODO: rename effect-ful functions as `fetch*`.
  */
 
 import { WikiLanguage, RevisionResult } from '../types';
@@ -45,7 +43,7 @@ const convert = (revision: Revision<'main'>): RevisionResult => ({
  * Precondition: The number of revision IDs cannot exceed 50 due to API limitations.
  * Precondition: The revision IDs is assumed of a single page.
  */
-export async function getRevisionTexts(
+export async function fetchRevisionTexts(
 	revIds: ReadonlyArray<number>,
 	lang: WikiLanguage = 'en'
 ): Promise<ReadonlyArray<RevisionResult>> {
@@ -73,7 +71,7 @@ export async function getRevisionTexts(
  *
  * TODO: consider to use pageids instead of titles
  */
-export async function getAllRevisions(
+export async function fetchAllRevisions(
 	pageTitle: string,
 	lang: WikiLanguage = 'en'
 ): Promise<ReadonlyArray<number>> {
