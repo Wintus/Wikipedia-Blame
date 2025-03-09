@@ -13,8 +13,8 @@ export type SearchResult = {
 	language: WikiLanguage;
 	pageTitle: string;
 	targetText: string;
-	revisionId: number | null;
 	loading: boolean;
+	revisionId: number | null;
 	error: string | null;
 };
 
@@ -22,7 +22,7 @@ export const defaultSearchResult = {
 	language: 'en',
 	pageTitle: '',
 	targetText: '',
-	revisionId: null,
 	loading: false,
+	revisionId: null,
 	error: null,
 } as const satisfies SearchResult;

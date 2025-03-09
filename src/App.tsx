@@ -44,8 +44,8 @@ function App() {
 
 			setSearchResult((prev) => ({
 				...prev,
-				revisionId: foundRevisionId,
 				loading: false,
+				revisionId: foundRevisionId,
 			}));
 		} catch (error) {
 			setSearchResult((prev) => ({
