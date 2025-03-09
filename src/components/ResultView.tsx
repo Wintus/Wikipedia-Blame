@@ -42,16 +42,6 @@ export function ResultView({ result }: ResultViewProps) {
 				<p>
 					<strong>Revision ID:</strong> {result.revisionId}
 				</p>
-				{result.timestamp && (
-					<p>
-						<strong>Timestamp:</strong> {result.timestamp}
-					</p>
-				)}
-				{result.author && (
-					<p>
-						<strong>Author:</strong> {result.author}
-					</p>
-				)}
 				<a
 					href={revisionUrl}
 					target="_blank"
