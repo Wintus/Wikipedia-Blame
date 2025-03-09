@@ -56,7 +56,8 @@ export async function getRevisionTexts(
 	try {
 		const response = await fetch(url);
 		const data = await response.json();
-		const revisions = getPageRevisions(data).map((rev: Revision) => ({
+		const revisions =
+			getPageRevisions(data).map((rev: Revision) => ({
 				rev: rev.revid,
 				text: getContent(rev) ?? '',
 			})) ?? [];

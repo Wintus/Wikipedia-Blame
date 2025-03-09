@@ -1,4 +1,4 @@
-import { WikipediaAPI } from '../services/WikipediaAPI';
+import { getRevisionTexts } from '../services/WikipediaAPI';
 import { WikiLanguage } from '../types';
 
 /**
@@ -29,12 +29,10 @@ export async function findOneOccurrence(
 	const sampledRevs = shuffleArray(revList).slice(0, sampleSize);
 
 	// Fetch revisions in parallel and check for target text
-	const results = await Promise.all(
-		sampledRevs.map(async (rev) => {
-			const text = await WikipediaAPI.getRevisionText(rev, lang);
-			return text?.includes(targetText) ? rev : null;
-		})
-	);
+	const revisionResults = await getRevisionTexts(sampledRevs, lang);
+	const results = revisionResults.map(async ({ rev, text }) => {
+		return text?.includes(targetText) ? rev : null;
+	});
 
 	// Return a revision where the target text appears
 	const found = results.find((rev) => rev !== null);
@@ -56,12 +54,10 @@ export async function exhaustiveSearch(
 	const batchSize = 50;
 	for (let i = 0; i < revList.length; i += batchSize) {
 		const batch = revList.slice(i, i + batchSize);
-		const results = await Promise.all(
-			batch.map(async (rev) => {
-				const text = await WikipediaAPI.getRevisionText(rev, lang);
-				return text?.includes(targetText) ? rev : null;
-			})
-		);
+		const revisionResults = await getRevisionTexts(batch, lang);
+		const results = revisionResults.map(async ({ rev, text }) => {
+			return text?.includes(targetText) ? rev : null;
+		});
 
 		const found = results.find((rev) => rev !== null);
 		if (found) return found;
