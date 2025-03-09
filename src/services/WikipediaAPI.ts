@@ -62,6 +62,8 @@ export const WikipediaAPI = {
 
 	/**
 	 * Fetches all revisions of a Wikipedia page in batches of 500.
+	 *
+	 * TODO: consider to use pageids instead of titles
 	 */
 	async getAllRevisions(
 		pageTitle: string,
