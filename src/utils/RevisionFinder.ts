@@ -31,10 +31,7 @@ export async function findOneOccurrence(
 
 	// Fetch revisions and check for target text
 	const found = await batchSearch(targetText, sampledRevs, fetcher);
-	if (found) return found;
-
-	// If not found in the sample, proceed with batch search
-	return await batchSearch(targetText, revList, fetcher);
+	return found ?? await batchSearch(targetText, revList, fetcher);
 }
 
 function* batches<T>(
