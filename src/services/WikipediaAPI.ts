@@ -2,6 +2,8 @@
  * Service for interacting with the Wikipedia API
  *
  * note: `rvcontentformat-main=text/plain` is unavailable for regular pages
+ *
+ * TODO: rename effect-ful functions as `fetch*`.
  */
 
 import { WikiLanguage, RevisionResult, WikipediaResponse } from '../types';
