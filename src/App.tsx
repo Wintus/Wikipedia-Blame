@@ -57,6 +57,11 @@ function App() {
 		}
 	};
 
+	const resultShown =
+		searchResult.loading ||
+		searchResult.revisionId !== null ||
+		searchResult.error;
+
 	return (
 		<div className="app">
 			<header>
@@ -65,9 +70,7 @@ function App() {
 			</header>
 			<main>
 				<SearchForm onSearch={handleSearch} isLoading={searchResult.loading} />
-				{(searchResult.loading ||
-					searchResult.revisionId !== null ||
-					searchResult.error) && <ResultView result={searchResult} />}
+				{resultShown && <ResultView result={searchResult} />}
 			</main>
 		</div>
 	);
