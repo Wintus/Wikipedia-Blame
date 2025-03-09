@@ -17,25 +17,6 @@ const getContent = (revision): string | undefined =>
 	revision?.slots?.main?.content;
 
 /**
- * Fetches the text content of a Wikipedia revision using formatversion=2.
- */
-export async function getRevisionText(
-	revId: number,
-	lang: WikiLanguage = 'en'
-): Promise<string | null> {
-	const url = `https://${lang}.wikipedia.org/w/api.php?action=query&prop=revisions&revids=${revId}&rvprop=ids|content&formatversion=2&format=json&origin=*&rvslots=main`;
-	try {
-		const response = await fetch(url);
-		const data = await response.json();
-		const revision = getPageRevisions(data)[0];
-		return getContent(revision) ?? null;
-	} catch (error) {
-		console.error('Error fetching revision text:', error);
-		return null;
-	}
-}
-
-/**
  * Fetches the text content of multiple Wikipedia revisions using formatversion=2.
  *
  * Precondition: The number of revision IDs cannot exceed 50 due to API limitations.
