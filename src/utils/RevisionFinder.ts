@@ -20,10 +20,7 @@ function sampling(
 	minCount: number = 5,
 	samplingRatio: number = 0.1
 ): ReadonlyArray<number> {
-	const sampleSize = Math.max(
-		minCount,
-		Math.floor(array.length * samplingRatio)
-	);
+	const sampleSize = Math.max(minCount, array.length * samplingRatio); // let it cast to integer
 	return shuffleArray(array).slice(0, sampleSize);
 }
 
