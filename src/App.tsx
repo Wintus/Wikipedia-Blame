@@ -48,19 +48,13 @@ function App() {
 					foundRevisionId,
 					language
 				);
-
-				setSearchResult((prev) => ({
-					...prev,
-					revisionId: foundRevisionId,
-					loading: false,
-				}));
-			} else {
-				setSearchResult((prev) => ({
-					...prev,
-					revisionId: null,
-					loading: false,
-				}));
 			}
+
+			setSearchResult((prev) => ({
+				...prev,
+				revisionId: foundRevisionId,
+				loading: false,
+			}));
 		} catch (error) {
 			setSearchResult((prev) => ({
 				...prev,
