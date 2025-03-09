@@ -1,18 +1,18 @@
 # Wikipedia-Blame
 
-A tool for finding when specific text first appeared in Wikipedia articles, similar to git blame functionality.
+A tool for finding when specific text appeared in Wikipedia articles, similar to git blame functionality.
 
 ## Project Overview
 
-Wikipedia-Blame is a React-based single-page application that helps users identify when specific text was first added to Wikipedia articles.
-By leveraging the Wikipedia API, it searches through revision history to pinpoint the exact revision where text first appeared.
+Wikipedia-Blame is a React-based single-page application that helps users identify when specific text was added to Wikipedia articles.
+By leveraging the Wikipedia API, it searches through revision history to pinpoint the exact revision where text appeared.
 
 ### Features
 
 - Search for text across all revisions of a Wikipedia article
 - Support for both English and Japanese Wikipedia
 - Efficient search algorithm using randomized sampling with fallback to exhaustive search
-- Direct links to the specific revision where text first appeared
+- Direct links to the specific revision where text appeared
 
 ## Technical Stack
 
@@ -41,8 +41,8 @@ By leveraging the Wikipedia API, it searches through revision history to pinpoin
 
 ## Future Extensions
 
-- Find first addition/deletion of text
+- Find first/last addition/deletion of text
 - User selection to search further
-- Find last occurrence of text
+- Find first/last occurrence of text
 - Visual highlighting of changes
 - Support for additional Wikipedia languages

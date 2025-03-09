@@ -36,22 +36,22 @@ function App() {
 			const revisions = await WikipediaAPI.getAllRevisions(pageTitle, language);
 
 			// Find one occurrence of the target text
-			const firstRevisionId = await findOneOccurrence(
+			const foundRevisionId = await findOneOccurrence(
 				targetText,
 				revisions,
 				language
 			);
 
-			if (firstRevisionId) {
+			if (foundRevisionId) {
 				// Fetch additional details about the revision
 				const revisionText = await WikipediaAPI.getRevisionText(
-					firstRevisionId,
+					foundRevisionId,
 					language
 				);
 
 				setSearchResult((prev) => ({
 					...prev,
-					revisionId: firstRevisionId,
+					revisionId: foundRevisionId,
 					loading: false,
 				}));
 			} else {
