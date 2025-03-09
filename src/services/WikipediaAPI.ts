@@ -11,6 +11,11 @@ type Revision<Slot extends string = 'main'> = {
 	slots: { [key in Slot]: { content: string } };
 };
 
+const getPageRevisions = (data): ReadonlyArray<Revision> =>
+	data?.query?.pages?.[0]?.revisions ?? [];
+const getContent = (revision): string | undefined =>
+	revision?.slots?.main?.content;
+
 /**
  * Fetches the text content of a Wikipedia revision using formatversion=2.
  */
@@ -22,9 +27,8 @@ export async function getRevisionText(
 	try {
 		const response = await fetch(url);
 		const data = await response.json();
-		return (
-			data?.query?.pages?.[0]?.revisions?.[0]?.slots?.main?.content ?? null
-		);
+		const revision = getPageRevisions(data)[0];
+		return getContent(revision) ?? null;
 	} catch (error) {
 		console.error('Error fetching revision text:', error);
 		return null;
@@ -52,10 +56,9 @@ export async function getRevisionTexts(
 	try {
 		const response = await fetch(url);
 		const data = await response.json();
-		const revisions =
-			data?.query?.pages?.[0]?.revisions.map((rev: Revision) => ({
+		const revisions = getPageRevisions(data).map((rev: Revision) => ({
 				rev: rev.revid,
-				text: rev.slots.main.content,
+				text: getContent(rev) ?? '',
 			})) ?? [];
 		return revisions;
 	} catch (error) {
