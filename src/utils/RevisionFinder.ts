@@ -30,9 +30,9 @@ export async function findOneOccurrence(
 
 	// Fetch revisions in parallel and check for target text
 	const revisionResults = await getRevisionTexts(sampledRevs, lang);
-	const results = revisionResults.map(async ({ rev, text }) => {
-		return text?.includes(targetText) ? rev : null;
-	});
+	const results = revisionResults.map(({ rev, text }) =>
+		text?.includes(targetText) ? rev : null
+	);
 
 	// Return a revision where the target text appears
 	const found = results.find((rev) => rev !== null);
@@ -55,9 +55,9 @@ export async function exhaustiveSearch(
 	for (let i = 0; i < revList.length; i += batchSize) {
 		const batch = revList.slice(i, i + batchSize);
 		const revisionResults = await getRevisionTexts(batch, lang);
-		const results = revisionResults.map(async ({ rev, text }) => {
-			return text?.includes(targetText) ? rev : null;
-		});
+		const results = revisionResults.map(({ rev, text }) =>
+			text?.includes(targetText) ? rev : null
+		);
 
 		const found = results.find((rev) => rev !== null);
 		if (found) return found;
