@@ -6,16 +6,17 @@
 
 import { WikiLanguage, RevisionResult, WikipediaResponse } from '../types';
 
-type Revision<Slot extends string = 'main'> = {
+type Revision<Slot extends string> = {
 	revid: number;
 	slots: { [key in Slot]: { content: string } };
 };
 
-const getPageRevisions = (data): ReadonlyArray<Revision> =>
-	data?.query?.pages?.[0]?.revisions ?? [];
+const getPageRevisions = <Slot extends string = 'main'>(
+	data
+): ReadonlyArray<Revision<Slot>> => data?.query?.pages?.[0]?.revisions ?? [];
 const getContent = (revision): string | undefined =>
 	revision?.slots?.main?.content;
-const convert = (revision: Revision): RevisionResult => ({
+const convert = (revision: Revision<'main'>): RevisionResult => ({
 	rev: revision.revid,
 	text: getContent(revision) ?? '',
 });
@@ -76,7 +77,7 @@ export async function getAllRevisions(
 			const response = await fetch(url.toString());
 			const data: WikipediaResponse = await response.json();
 
-			const pageRevs = getPageRevisions(data);
+			const pageRevs = getPageRevisions<never>(data);
 			for (const rev of pageRevs) {
 				revisions.push(rev.revid);
 			}
