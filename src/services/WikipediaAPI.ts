@@ -1,9 +1,9 @@
-import {
-	WikiLanguage,
-	Revision,
-	RevisionResult,
-	WikipediaResponse,
-} from '../types';
+import { WikiLanguage, RevisionResult, WikipediaResponse } from '../types';
+
+type Revision<Slot extends string = 'main'> = {
+	revid: number;
+	slots: { [key in Slot]: { content: string } };
+};
 
 /**
  * Service for interacting with the Wikipedia API
@@ -16,11 +16,13 @@ export const WikipediaAPI = {
 		revId: number,
 		lang: WikiLanguage = 'en'
 	): Promise<string | null> {
-		const url = `https://${lang}.wikipedia.org/w/api.php?action=query&prop=revisions&revids=${revId}&rvprop=content&formatversion=2&format=json&origin=*&rvslots=main`;
+		const url = `https://${lang}.wikipedia.org/w/api.php?action=query&prop=revisions&revids=${revId}&rvprop=ids|content&formatversion=2&format=json&origin=*&rvslots=main`;
 		try {
 			const response = await fetch(url);
 			const data = await response.json();
-			return data?.query?.pages?.[0]?.revisions?.[0]?.content ?? null;
+			return (
+				data?.query?.pages?.[0]?.revisions?.[0]?.slots?.main?.content ?? null
+			);
 		} catch (error) {
 			console.error('Error fetching revision text:', error);
 			return null;
@@ -43,7 +45,7 @@ export const WikipediaAPI = {
 			);
 		}
 		const revIdsStr = revIds.join('|');
-		const url = `https://${lang}.wikipedia.org/w/api.php?action=query&prop=revisions&revids=${revIdsStr}&rvprop=content&formatversion=2&format=json&origin=*&rvslots=main`;
+		const url = `https://${lang}.wikipedia.org/w/api.php?action=query&prop=revisions&revids=${revIdsStr}&rvprop=ids|content&formatversion=2&format=json&origin=*&rvslots=main`;
 
 		try {
 			const response = await fetch(url);
@@ -51,7 +53,7 @@ export const WikipediaAPI = {
 			const revisions =
 				data?.query?.pages?.[0]?.revisions.map((rev: Revision) => ({
 					rev: rev.revid,
-					text: rev.content,
+					text: rev.slots.main.content,
 				})) ?? [];
 			return revisions;
 		} catch (error) {
