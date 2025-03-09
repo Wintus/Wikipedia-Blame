@@ -59,7 +59,7 @@ function App() {
 
 	const resultShown =
 		searchResult.loading ||
-		searchResult.revisionId !== null ||
+		searchResult.revisionId != null ||
 		searchResult.error;
 
 	return (
