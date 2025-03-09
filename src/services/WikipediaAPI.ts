@@ -64,7 +64,7 @@ export const WikipediaAPI = {
 	): Promise<ReadonlyArray<number>> {
 		const revisions: number[] = [];
 		try {
-			let continueParam: string | null = null;
+			let continueParam: string | null;
 			do {
 				const url = new URL(`https://${lang}.wikipedia.org/w/api.php`);
 				url.searchParams.append('action', 'query');
