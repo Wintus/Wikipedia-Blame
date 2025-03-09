@@ -30,11 +30,9 @@ type WikipediaResponse = {
 const getPageRevisions = <Slot extends string = 'main'>(
 	data
 ): ReadonlyArray<Revision<Slot>> => data?.query?.pages?.[0]?.revisions ?? [];
-const getContent = (revision): string | undefined =>
-	revision?.slots?.main?.content;
 const convert = (revision: Revision<'main'>): RevisionResult => ({
 	rev: revision.revid,
-	text: getContent(revision) ?? '',
+	text: revision?.slots?.main?.content ?? '',
 });
 
 /**
