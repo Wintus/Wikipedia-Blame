@@ -1,4 +1,9 @@
-import { WikiLanguage, RevisionResult, WikipediaResponse } from '../types';
+import {
+	WikiLanguage,
+	Revision,
+	RevisionResult,
+	WikipediaResponse,
+} from '../types';
 
 /**
  * Service for interacting with the Wikipedia API
@@ -44,7 +49,7 @@ export const WikipediaAPI = {
 			const response = await fetch(url);
 			const data = await response.json();
 			const revisions =
-				data?.query?.pages?.[0]?.revisions.map((rev: any) => ({
+				data?.query?.pages?.[0]?.revisions.map((rev: Revision) => ({
 					rev: rev.revid,
 					text: rev.content,
 				})) ?? [];
