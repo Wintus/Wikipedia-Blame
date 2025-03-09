@@ -12,14 +12,9 @@ export function shuffleArray<T>(array: ReadonlyArray<T>): ReadonlyArray<T> {
 	return shuffled;
 }
 
-const detectorMaker =
-	(targetText: string) =>
-	({ rev, text }: RevisionResult): string | null =>
-		text?.includes(targetText) ? rev : null;
-
 /**
  * Finds an occurrence of a target string in a set of revisions.
- * Starts with a randomized sampling approach, then falls back to a full batch search if necessary.
+ * Starts with a randomized sampling approach, then falls back to a full batch search exhaustively if necessary.
  */
 export async function findOneOccurrence(
 	targetText: string,
@@ -34,24 +29,23 @@ export async function findOneOccurrence(
 	const sampleSize = Math.max(5, Math.floor(revList.length * 0.1));
 	const sampledRevs = shuffleArray(revList).slice(0, sampleSize);
 
-	// Fetch revisions in parallel and check for target text
-	const revisionResults = await fetcher(sampledRevs);
-	const detector = detectorMaker(targetText);
-	const results = revisionResults.map(detector);
-
-	// Return a revision where the target text appears
-	const found = results.find((rev) => rev != null);
+	// Fetch revisions and check for target text
+	const found = await batchSearch(targetText, sampledRevs, fetcher);
 	if (found) return found;
 
-	// If not found in the sample, proceed with exhaustive search
-	return await exhaustiveSearch(targetText, revList, fetcher);
+	// If not found in the sample, proceed with batch search
+	return await batchSearch(targetText, revList, fetcher);
 }
 
+const detectorMaker =
+	(targetText: string) =>
+	({ rev, text }: RevisionResult): string | null =>
+		text?.includes(targetText) ? rev : null;
+
 /**
- * Performs an exhaustive search by fetching revisions in batches of 50.
- * Used as a fallback if randomized sampling does not find the target text.
+ * Performs a batch search by fetching revisions in batches of 50.
  */
-export async function exhaustiveSearch(
+export async function batchSearch(
 	targetText: string,
 	revList: ReadonlyArray<number>,
 	fetcher: (
