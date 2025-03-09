@@ -39,7 +39,7 @@ export async function findOneOccurrence(
 	const results = revisionResults.map(detector);
 
 	// Return a revision where the target text appears
-	const found = results.find((rev) => rev !== null);
+	const found = results.find((rev) => rev != null);
 	if (found) return found;
 
 	// If not found in the sample, proceed with exhaustive search
@@ -62,7 +62,7 @@ export async function exhaustiveSearch(
 		const detector = detectorMaker(targetText);
 		const results = revisionResults.map(detector);
 
-		const found = results.find((rev) => rev !== null);
+		const found = results.find((rev) => rev != null);
 		if (found) return found;
 	}
 	return null;
