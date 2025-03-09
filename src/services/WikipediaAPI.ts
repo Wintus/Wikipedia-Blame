@@ -15,6 +15,10 @@ const getPageRevisions = (data): ReadonlyArray<Revision> =>
 	data?.query?.pages?.[0]?.revisions ?? [];
 const getContent = (revision): string | undefined =>
 	revision?.slots?.main?.content;
+const convert = (revision: Revision): RevisionResult => ({
+	rev: revision.revid,
+	text: getContent(revision) ?? '',
+});
 
 /**
  * Fetches the text content of multiple Wikipedia revisions using formatversion=2.
@@ -37,11 +41,7 @@ export async function getRevisionTexts(
 	try {
 		const response = await fetch(url);
 		const data = await response.json();
-		const revisions =
-			getPageRevisions(data).map((rev: Revision) => ({
-				rev: rev.revid,
-				text: getContent(rev) ?? '',
-			})) ?? [];
+		const revisions = getPageRevisions(data).map(convert) ?? [];
 		return revisions;
 	} catch (error) {
 		console.error('Error fetching revision texts:', error);
