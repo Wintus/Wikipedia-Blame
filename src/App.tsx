@@ -2,7 +2,11 @@ import { useState } from 'react';
 import './App.css';
 import { SearchForm } from './components/SearchForm';
 import { ResultView } from './components/ResultView';
-import { fetchAllRevisions, fetchRevisionTexts } from './services/WikipediaAPI';
+import {
+	getBaseUrl,
+	fetchAllRevisions,
+	fetchRevisionTexts,
+} from './services/WikipediaAPI';
 import { findOneOccurrence } from './utils/RevisionFinder';
 import { defaultSearchResult, SearchResult, WikiLanguage } from './types';
 
@@ -25,15 +29,17 @@ function App() {
 			revisionId: null,
 		}));
 
+		const baseUrl = getBaseUrl(language);
+
 		try {
 			// Fetch all revisions for the page
-			const revisions = await fetchAllRevisions(pageTitle, language);
+			const revisions = await fetchAllRevisions(baseUrl, pageTitle);
 
 			// Find one occurrence of the target text
 			const foundRevisionId = await findOneOccurrence(
 				targetText,
 				revisions,
-				(revIds) => fetchRevisionTexts(revIds, language)
+				(revIds) => fetchRevisionTexts(baseUrl, revIds)
 			);
 
 			setSearchResult((prev) => ({

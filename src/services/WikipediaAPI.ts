@@ -27,6 +27,9 @@ type WikipediaResponse = {
 	};
 };
 
+export const getBaseUrl = (lang: WikiLanguage): string =>
+	`https://${lang}.wikipedia.org/w/api.php`;
+
 const getPageRevisions = <Slot extends string = 'main'>(
 	data
 ): ReadonlyArray<Revision<Slot>> => data?.query?.pages?.[0]?.revisions ?? [];
@@ -42,8 +45,8 @@ const convert = (revision: Revision<'main'>): RevisionResult => ({
  * Precondition: The revision IDs is assumed of a single page.
  */
 export async function fetchRevisionTexts(
-	revIds: ReadonlyArray<number>,
-	lang: WikiLanguage = 'en'
+	baseUrl: string,
+	revIds: ReadonlyArray<number>
 ): Promise<ReadonlyArray<RevisionResult>> {
 	if (revIds.length > 50) {
 		throw new Error(
@@ -51,7 +54,7 @@ export async function fetchRevisionTexts(
 		);
 	}
 	const revIdsStr = revIds.join('|');
-	const url = `https://${lang}.wikipedia.org/w/api.php?action=query&prop=revisions&revids=${revIdsStr}&rvprop=ids|content&formatversion=2&format=json&origin=*&rvslots=main`;
+	const url = `${baseUrl}/api.php?action=query&prop=revisions&revids=${revIdsStr}&rvprop=ids|content&formatversion=2&format=json&origin=*&rvslots=main`;
 
 	try {
 		const response = await fetch(url);
@@ -70,14 +73,14 @@ export async function fetchRevisionTexts(
  * TODO: consider to use pageids instead of titles
  */
 export async function fetchAllRevisions(
-	pageTitle: string,
-	lang: WikiLanguage = 'en'
+	baseUrl: string,
+	pageTitle: string
 ): Promise<ReadonlyArray<number>> {
 	const revisions: number[] = [];
 	try {
 		let continueParam: string | null;
 		do {
-			const url = new URL(`https://${lang}.wikipedia.org/w/api.php`);
+			const url = new URL(`/api.php`, baseUrl);
 			url.searchParams.append('action', 'query');
 			url.searchParams.append('prop', 'revisions');
 			url.searchParams.append('titles', pageTitle);
