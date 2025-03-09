@@ -23,7 +23,7 @@ getRevisionUrl(revId: number, lang: WikiLanguage = 'en'): string
 function shuffleArray<T>(array: ReadonlyArray<T>): ReadonlyArray<T>
 
 // Main search function with sampling approach
-async function findFirstOccurrence(
+async function findOneOccurrence(
   targetText: string,
   revList: ReadonlyArray<number>,
   lang: WikiLanguage = 'en'
@@ -50,14 +50,14 @@ async function exhaustiveSearch(
 - Used TypeScript types instead of interfaces for consistency
 
 ## Implementation Progress
-- Core functionality for finding first text occurrence implemented
+- Core functionality for finding one text occurrence implemented
 - Basic UI with search form and results display
 - CSS styling with CSS variables for theming and responsive design
 - Error handling for API calls and search process
 
 ## Future Work
 - Implement tests using real Wikipedia endpoints (with mocking)
-- Add functionality to find first addition/deletion of text
+- Add functionality to find first/last addition/deletion of text
 - Add user selection to search further
-- Implement find last occurrence of text
+- Implement find first/last occurrence of text
 - Add visual highlighting of changes
