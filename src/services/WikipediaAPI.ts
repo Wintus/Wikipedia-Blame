@@ -28,7 +28,7 @@ type WikipediaResponse = {
 };
 
 export const getBaseUrl = (lang: WikiLanguage): string =>
-	`https://${lang}.wikipedia.org/w/api.php`;
+	`https://${lang}.wikipedia.org/w/`;
 
 const getPageRevisions = <Slot extends string = 'main'>(
 	data
@@ -80,7 +80,7 @@ export async function fetchAllRevisions(
 	try {
 		let continueParam: string | null;
 		do {
-			const url = new URL(`/api.php`, baseUrl);
+			const url = new URL('./api.php', baseUrl);
 			url.searchParams.append('action', 'query');
 			url.searchParams.append('prop', 'revisions');
 			url.searchParams.append('titles', pageTitle);
