@@ -10,11 +10,19 @@ export type RevisionResult = {
 };
 
 export type SearchResult = {
+	language: WikiLanguage;
 	pageTitle: string;
 	targetText: string;
 	revisionId: number | null;
-	timestamp?: string;
-	author?: string;
 	loading: boolean;
 	error: string | null;
 };
+
+export const defaultSearchResult = {
+	language: 'en',
+	pageTitle: '',
+	targetText: '',
+	revisionId: null,
+	loading: false,
+	error: null,
+} as const satisfies SearchResult;

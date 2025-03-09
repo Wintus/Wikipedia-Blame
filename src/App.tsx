@@ -4,17 +4,11 @@ import { SearchForm } from './components/SearchForm';
 import { ResultView } from './components/ResultView';
 import { getAllRevisions, getRevisionTexts } from './services/WikipediaAPI';
 import { findOneOccurrence } from './utils/RevisionFinder';
-import { SearchResult, WikiLanguage } from './types';
+import { defaultSearchResult, SearchResult, WikiLanguage } from './types';
 
 function App() {
-	const [searchResult, setSearchResult] = useState<SearchResult>({
-		pageTitle: '',
-		targetText: '',
-		revisionId: null,
-		loading: false,
-		error: null,
-		language: 'en',
-	});
+	const [searchResult, setSearchResult] =
+		useState<SearchResult>(defaultSearchResult);
 
 	const handleSearch = async (
 		pageTitle: string,
