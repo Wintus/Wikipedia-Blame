@@ -2,7 +2,7 @@ import { useState } from 'react';
 import './App.css';
 import { SearchForm } from './components/SearchForm';
 import { ResultView } from './components/ResultView';
-import { WikipediaAPI } from './services/WikipediaAPI';
+import { getAllRevisions } from './services/WikipediaAPI';
 import { findOneOccurrence } from './utils/RevisionFinder';
 import { SearchResult, WikiLanguage } from './types';
 
@@ -33,7 +33,7 @@ function App() {
 
 		try {
 			// Fetch all revisions for the page
-			const revisions = await WikipediaAPI.getAllRevisions(pageTitle, language);
+			const revisions = await getAllRevisions(pageTitle, language);
 
 			// Find one occurrence of the target text
 			const foundRevisionId = await findOneOccurrence(
