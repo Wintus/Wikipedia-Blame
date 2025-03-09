@@ -76,9 +76,9 @@ export async function getAllRevisions(
 			const response = await fetch(url.toString());
 			const data: WikipediaResponse = await response.json();
 
-			const page = data?.query?.pages?.[0];
-			if (page?.revisions) {
-				revisions.push(...page.revisions.map((rev) => rev.revid));
+			const pageRevs = getPageRevisions(data);
+			for (const rev of pageRevs) {
+				revisions.push(rev.revid);
 			}
 
 			continueParam = data?.continue?.rvcontinue ?? null;
