@@ -107,13 +107,3 @@ export async function getAllRevisions(
 	}
 	return revisions;
 }
-
-/**
- * Gets the URL for a specific revision
- */
-export function getRevisionUrl(
-	revId: number,
-	lang: WikiLanguage = 'en'
-): string {
-	return `https://${lang}.wikipedia.org/w/index.php?oldid=${revId}`;
-}
