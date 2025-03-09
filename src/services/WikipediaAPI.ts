@@ -63,9 +63,8 @@ export const WikipediaAPI = {
 		lang: WikiLanguage = 'en'
 	): Promise<ReadonlyArray<number>> {
 		const revisions: number[] = [];
-		let continueParam: string | null = null;
-
 		try {
+			let continueParam: string | null = null;
 			do {
 				const url = new URL(`https://${lang}.wikipedia.org/w/api.php`);
 				url.searchParams.append('action', 'query');
@@ -88,12 +87,10 @@ export const WikipediaAPI = {
 
 				continueParam = data?.continue?.rvcontinue ?? null;
 			} while (continueParam);
-
-			return revisions;
 		} catch (error) {
 			console.error('Error fetching all revisions:', error);
-			return [];
 		}
+		return revisions;
 	},
 
 	/**
