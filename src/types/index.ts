@@ -4,6 +4,11 @@
 
 export type WikiLanguage = 'en' | 'ja';
 
+export type Revision = {
+	revid: number;
+	content: string;
+};
+
 export type RevisionResult = {
 	rev: number;
 	text: string;
