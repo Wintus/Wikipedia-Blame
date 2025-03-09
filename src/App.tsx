@@ -2,7 +2,7 @@ import { useState } from 'react';
 import './App.css';
 import { SearchForm } from './components/SearchForm';
 import { ResultView } from './components/ResultView';
-import { getAllRevisions } from './services/WikipediaAPI';
+import { getAllRevisions, getRevisionTexts } from './services/WikipediaAPI';
 import { findOneOccurrence } from './utils/RevisionFinder';
 import { SearchResult, WikiLanguage } from './types';
 
@@ -39,7 +39,7 @@ function App() {
 			const foundRevisionId = await findOneOccurrence(
 				targetText,
 				revisions,
-				language
+				(revIds) => getRevisionTexts(revIds, language)
 			);
 
 			setSearchResult((prev) => ({

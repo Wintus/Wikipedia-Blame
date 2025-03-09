@@ -1,5 +1,4 @@
-import { getRevisionTexts } from '../services/WikipediaAPI';
-import { RevisionResult, WikiLanguage } from '../types';
+import { RevisionResult } from '../types';
 
 /**
  * Fisher-Yates shuffle (non-destructive shuffle)
@@ -25,7 +24,9 @@ const detectorMaker =
 export async function findOneOccurrence(
 	targetText: string,
 	revList: ReadonlyArray<number>,
-	lang: WikiLanguage = 'en'
+	fetcher: (
+		revIds: ReadonlyArray<number>
+	) => Promise<ReadonlyArray<RevisionResult>>
 ): Promise<number | null> {
 	if (revList.length === 0) return null;
 
@@ -34,7 +35,7 @@ export async function findOneOccurrence(
 	const sampledRevs = shuffleArray(revList).slice(0, sampleSize);
 
 	// Fetch revisions in parallel and check for target text
-	const revisionResults = await getRevisionTexts(sampledRevs, lang);
+	const revisionResults = await fetcher(sampledRevs);
 	const detector = detectorMaker(targetText);
 	const results = revisionResults.map(detector);
 
@@ -43,7 +44,7 @@ export async function findOneOccurrence(
 	if (found) return found;
 
 	// If not found in the sample, proceed with exhaustive search
-	return await exhaustiveSearch(revList, targetText, lang);
+	return await exhaustiveSearch(targetText, revList, fetcher);
 }
 
 /**
@@ -51,17 +52,20 @@ export async function findOneOccurrence(
  * Used as a fallback if randomized sampling does not find the target text.
  */
 export async function exhaustiveSearch(
-	revList: ReadonlyArray<number>,
 	targetText: string,
-	lang: WikiLanguage = 'en'
+	revList: ReadonlyArray<number>,
+	fetcher: (
+		revIds: ReadonlyArray<number>
+	) => Promise<ReadonlyArray<RevisionResult>>
 ): Promise<number | null> {
 	const batchSize = 50;
 	for (let i = 0; i < revList.length; i += batchSize) {
 		const batch = revList.slice(i, i + batchSize);
-		const revisionResults = await getRevisionTexts(batch, lang);
+		// Fetch revisions in parallel and check for target text
+		const revisionResults = await fetcher(batch);
 		const detector = detectorMaker(targetText);
 		const results = revisionResults.map(detector);
-
+		// Return a revision where the target text appears
 		const found = results.find((rev) => rev != null);
 		if (found) return found;
 	}
