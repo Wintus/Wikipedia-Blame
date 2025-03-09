@@ -13,6 +13,21 @@ export function shuffleArray<T>(array: ReadonlyArray<T>): ReadonlyArray<T> {
 }
 
 /**
+ * Helper function to perform randomized sampling
+ */
+function sampling(
+	array: ReadonlyArray<unknown>,
+	minCount: number = 5,
+	samplingRatio: number = 0.1
+): ReadonlyArray<number> {
+	const sampleSize = Math.max(
+		minCount,
+		Math.floor(array.length * samplingRatio)
+	);
+	return shuffleArray(array).slice(0, sampleSize);
+}
+
+/**
  * Finds an occurrence of a target string in a set of revisions.
  * Starts with a randomized sampling approach, then falls back to a full batch search exhaustively if necessary.
  */
@@ -24,14 +39,11 @@ export async function findOneOccurrence(
 	) => Promise<ReadonlyArray<RevisionResult>>
 ): Promise<number | null> {
 	if (revList.length === 0) return null;
-
-	// Randomized sampling: 10% of the list or at least 5 revisions
-	const sampleSize = Math.max(5, Math.floor(revList.length * 0.1));
-	const sampledRevs = shuffleArray(revList).slice(0, sampleSize);
-
+	// Randomized sampling
+	const sampledRevs = sampling(revList);
 	// Fetch revisions and check for target text
 	const found = await batchSearch(targetText, sampledRevs, fetcher);
-	return found ?? await batchSearch(targetText, revList, fetcher);
+	return found ?? (await batchSearch(targetText, revList, fetcher));
 }
 
 function* batches<T>(
