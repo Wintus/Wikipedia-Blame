@@ -1,5 +1,5 @@
 import { getRevisionTexts } from '../services/WikipediaAPI';
-import { WikiLanguage } from '../types';
+import { RevisionResult, WikiLanguage } from '../types';
 
 /**
  * Fisher-Yates shuffle (non-destructive shuffle)
@@ -12,6 +12,11 @@ export function shuffleArray<T>(array: ReadonlyArray<T>): ReadonlyArray<T> {
 	}
 	return shuffled;
 }
+
+const detectorMaker =
+	(targetText: string) =>
+	({ rev, text }: RevisionResult): string | null =>
+		text?.includes(targetText) ? rev : null;
 
 /**
  * Finds an occurrence of a target string in a set of revisions.
@@ -30,9 +35,8 @@ export async function findOneOccurrence(
 
 	// Fetch revisions in parallel and check for target text
 	const revisionResults = await getRevisionTexts(sampledRevs, lang);
-	const results = revisionResults.map(({ rev, text }) =>
-		text?.includes(targetText) ? rev : null
-	);
+	const detector = detectorMaker(targetText);
+	const results = revisionResults.map(detector);
 
 	// Return a revision where the target text appears
 	const found = results.find((rev) => rev !== null);
@@ -55,9 +59,8 @@ export async function exhaustiveSearch(
 	for (let i = 0; i < revList.length; i += batchSize) {
 		const batch = revList.slice(i, i + batchSize);
 		const revisionResults = await getRevisionTexts(batch, lang);
-		const results = revisionResults.map(({ rev, text }) =>
-			text?.includes(targetText) ? rev : null
-		);
+		const detector = detectorMaker(targetText);
+		const results = revisionResults.map(detector);
 
 		const found = results.find((rev) => rev !== null);
 		if (found) return found;
