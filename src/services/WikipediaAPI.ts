@@ -7,6 +7,8 @@ type Revision<Slot extends string = 'main'> = {
 
 /**
  * Service for interacting with the Wikipedia API
+ *
+ * note: `rvcontentformat-main=text/plain` is unavailable for regular pages
  */
 export const WikipediaAPI = {
 	/**
