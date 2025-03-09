@@ -37,6 +37,17 @@ export async function findOneOccurrence(
 	return await batchSearch(targetText, revList, fetcher);
 }
 
+function* batches<T>(
+	batchSize: number,
+	array: ReadonlyArray<T>
+): Generator<ReadonlyArray<T>> {
+	for (let i = 0; i < array.length; i += batchSize) {
+		yield array.slice(i, i + batchSize);
+	}
+}
+
+const batchSize = 50;
+
 const detectorMaker =
 	(targetText: string) =>
 	({ rev, text }: RevisionResult): string | null =>
@@ -52,9 +63,7 @@ export async function batchSearch(
 		revIds: ReadonlyArray<number>
 	) => Promise<ReadonlyArray<RevisionResult>>
 ): Promise<number | null> {
-	const batchSize = 50;
-	for (let i = 0; i < revList.length; i += batchSize) {
-		const batch = revList.slice(i, i + batchSize);
+	for (const batch of batches(batchSize, revList)) {
 		// Fetch revisions in parallel and check for target text
 		const revisionResults = await fetcher(batch);
 		const detector = detectorMaker(targetText);
