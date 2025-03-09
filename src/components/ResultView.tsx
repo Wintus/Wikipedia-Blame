@@ -14,7 +14,7 @@ export function ResultView({ result }: ResultViewProps) {
 		return <div className="result-view error">{result.error}</div>;
 	}
 
-	if (result.revisionId === null) {
+	if (result.revisionId == null) {
 		return (
 			<div className="result-view not-found">
 				Text not found in the article's revision history.
