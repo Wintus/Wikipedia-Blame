@@ -59,7 +59,7 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
 			<LanguageSelector language={language} onChange={setLanguage} />
 
 			<button type="submit" disabled={isLoading}>
-				{isLoading ? 'Searching...' : 'Find First Occurrence'}
+				{isLoading ? 'Searching...' : 'Find An Occurrence'}
 			</button>
 		</form>
 	);
