@@ -54,11 +54,6 @@ function* batches<T>(
 
 const batchSize = 50;
 
-const detectorMaker =
-	(targetText: string) =>
-	({ rev, text }: RevisionResult): string | null =>
-		text?.includes(targetText) ? rev : null;
-
 /**
  * Performs a batch search by fetching revisions in batches of 50.
  */
@@ -72,8 +67,9 @@ export async function batchSearch(
 	for (const batch of batches(batchSize, revList)) {
 		// Fetch revisions in parallel and check for target text
 		const revisionResults = await fetcher(batch);
-		const detector = detectorMaker(targetText);
-		const results = revisionResults.map(detector);
+		const results = revisionResults.map(({ rev, text }) =>
+			text?.includes(targetText) ? rev : null
+		);
 		// Return a revision where the target text appears
 		const found = results.find((rev) => rev != null);
 		if (found) return found;
