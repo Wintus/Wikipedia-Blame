@@ -42,25 +42,11 @@ function App() {
 				language
 			);
 
-			if (foundRevisionId) {
-				// Fetch additional details about the revision
-				const revisionText = await WikipediaAPI.getRevisionText(
-					foundRevisionId,
-					language
-				);
-
-				setSearchResult((prev) => ({
-					...prev,
-					revisionId: foundRevisionId,
-					loading: false,
-				}));
-			} else {
-				setSearchResult((prev) => ({
-					...prev,
-					revisionId: null,
-					loading: false,
-				}));
-			}
+			setSearchResult((prev) => ({
+				...prev,
+				revisionId: foundRevisionId,
+				loading: false,
+			}));
 		} catch (error) {
 			setSearchResult((prev) => ({
 				...prev,

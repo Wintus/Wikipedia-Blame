@@ -1,7 +1,14 @@
 import { WikiLanguage, RevisionResult, WikipediaResponse } from '../types';
 
+type Revision<Slot extends string = 'main'> = {
+	revid: number;
+	slots: { [key in Slot]: { content: string } };
+};
+
 /**
  * Service for interacting with the Wikipedia API
+ *
+ * note: `rvcontentformat-main=text/plain` is unavailable for regular pages
  */
 export const WikipediaAPI = {
 	/**
@@ -11,11 +18,13 @@ export const WikipediaAPI = {
 		revId: number,
 		lang: WikiLanguage = 'en'
 	): Promise<string | null> {
-		const url = `https://${lang}.wikipedia.org/w/api.php?action=query&prop=revisions&revids=${revId}&rvprop=content&formatversion=2&format=json&origin=*&rvslots=main`;
+		const url = `https://${lang}.wikipedia.org/w/api.php?action=query&prop=revisions&revids=${revId}&rvprop=ids|content&formatversion=2&format=json&origin=*&rvslots=main`;
 		try {
 			const response = await fetch(url);
 			const data = await response.json();
-			return data?.query?.pages?.[0]?.revisions?.[0]?.content ?? null;
+			return (
+				data?.query?.pages?.[0]?.revisions?.[0]?.slots?.main?.content ?? null
+			);
 		} catch (error) {
 			console.error('Error fetching revision text:', error);
 			return null;
@@ -38,15 +47,15 @@ export const WikipediaAPI = {
 			);
 		}
 		const revIdsStr = revIds.join('|');
-		const url = `https://${lang}.wikipedia.org/w/api.php?action=query&prop=revisions&revids=${revIdsStr}&rvprop=content&formatversion=2&format=json&origin=*&rvslots=main`;
+		const url = `https://${lang}.wikipedia.org/w/api.php?action=query&prop=revisions&revids=${revIdsStr}&rvprop=ids|content&formatversion=2&format=json&origin=*&rvslots=main`;
 
 		try {
 			const response = await fetch(url);
 			const data = await response.json();
 			const revisions =
-				data?.query?.pages?.[0]?.revisions.map((rev: any) => ({
+				data?.query?.pages?.[0]?.revisions.map((rev: Revision) => ({
 					rev: rev.revid,
-					text: rev.content,
+					text: rev.slots.main.content,
 				})) ?? [];
 			return revisions;
 		} catch (error) {
@@ -57,15 +66,16 @@ export const WikipediaAPI = {
 
 	/**
 	 * Fetches all revisions of a Wikipedia page in batches of 500.
+	 *
+	 * TODO: consider to use pageids instead of titles
 	 */
 	async getAllRevisions(
 		pageTitle: string,
 		lang: WikiLanguage = 'en'
 	): Promise<ReadonlyArray<number>> {
 		const revisions: number[] = [];
-		let continueParam: string | null = null;
-
 		try {
+			let continueParam: string | null;
 			do {
 				const url = new URL(`https://${lang}.wikipedia.org/w/api.php`);
 				url.searchParams.append('action', 'query');
@@ -88,12 +98,10 @@ export const WikipediaAPI = {
 
 				continueParam = data?.continue?.rvcontinue ?? null;
 			} while (continueParam);
-
-			return revisions;
 		} catch (error) {
 			console.error('Error fetching all revisions:', error);
-			return [];
 		}
+		return revisions;
 	},
 
 	/**

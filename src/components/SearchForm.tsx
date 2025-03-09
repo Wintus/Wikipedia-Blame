@@ -16,14 +16,6 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
 	const [targetText, setTargetText] = useState('');
 	const [language, setLanguage] = useState<WikiLanguage>('en');
 
-	const handlePageTitleChange = (value: string) => {
-		setPageTitle(value.trim());
-	};
-
-	const handleTargetTextChange = (value: string) => {
-		setTargetText(value.trim());
-	};
-
 	const handleSubmit = (e: FormEvent) => {
 		e.preventDefault();
 		if (pageTitle && targetText) {
@@ -39,7 +31,7 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
 					type="text"
 					id="page-title"
 					value={pageTitle}
-					onChange={(e) => handlePageTitleChange(e.target.value)}
+					onChange={(e) => setPageTitle(e.target.value.trim())}
 					placeholder="e.g. Albert Einstein"
 					required
 				/>
@@ -50,7 +42,7 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
 				<textarea
 					id="target-text"
 					value={targetText}
-					onChange={(e) => handleTargetTextChange(e.target.value)}
+					onChange={(e) => setTargetText(e.target.value.trim())}
 					placeholder="Enter text to search for in the article's history"
 					required
 				/>
