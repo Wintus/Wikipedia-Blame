@@ -56,7 +56,7 @@ export async function fetchRevisionTexts(
 	try {
 		const response = await fetch(url);
 		const data = await response.json();
-		const revisions = getPageRevisions(data).map(convert) ?? [];
+		const revisions = getPageRevisions(data).map(convert);
 		return revisions;
 	} catch (error) {
 		console.error('Error fetching revision texts:', error);
