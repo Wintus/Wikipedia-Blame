@@ -2,19 +2,17 @@ import { useState } from 'react';
 import './App.css';
 import { SearchForm } from './components/SearchForm';
 import { ResultView } from './components/ResultView';
-import { WikipediaAPI } from './services/WikipediaAPI';
+import {
+	getBaseUrl,
+	fetchAllRevisions,
+	fetchRevisionTexts,
+} from './services/WikipediaAPI';
 import { findOneOccurrence } from './utils/RevisionFinder';
-import { SearchResult, WikiLanguage } from './types';
+import { defaultSearchResult, SearchResult, WikiLanguage } from './types';
 
 function App() {
-	const [searchResult, setSearchResult] = useState<SearchResult>({
-		pageTitle: '',
-		targetText: '',
-		revisionId: null,
-		loading: false,
-		error: null,
-		language: 'en',
-	});
+	const [searchResult, setSearchResult] =
+		useState<SearchResult>(defaultSearchResult);
 
 	const handleSearch = async (
 		pageTitle: string,
@@ -31,21 +29,23 @@ function App() {
 			revisionId: null,
 		}));
 
+		const baseUrl = getBaseUrl(language);
+
 		try {
 			// Fetch all revisions for the page
-			const revisions = await WikipediaAPI.getAllRevisions(pageTitle, language);
+			const revisions = await fetchAllRevisions(baseUrl, pageTitle);
 
 			// Find one occurrence of the target text
 			const foundRevisionId = await findOneOccurrence(
 				targetText,
-				revisions,
-				language
+				(revIds) => fetchRevisionTexts(baseUrl, revIds),
+				revisions
 			);
 
 			setSearchResult((prev) => ({
 				...prev,
-				revisionId: foundRevisionId,
 				loading: false,
+				revisionId: foundRevisionId,
 			}));
 		} catch (error) {
 			setSearchResult((prev) => ({
@@ -57,6 +57,11 @@ function App() {
 		}
 	};
 
+	const resultShown =
+		searchResult.loading ||
+		searchResult.revisionId != null ||
+		searchResult.error;
+
 	return (
 		<div className="app">
 			<header>
@@ -65,9 +70,7 @@ function App() {
 			</header>
 			<main>
 				<SearchForm onSearch={handleSearch} isLoading={searchResult.loading} />
-				{(searchResult.loading ||
-					searchResult.revisionId !== null ||
-					searchResult.error) && <ResultView result={searchResult} />}
+				{resultShown && <ResultView result={searchResult} />}
 			</main>
 		</div>
 	);

@@ -10,33 +10,19 @@ export type RevisionResult = {
 };
 
 export type SearchResult = {
+	language: WikiLanguage;
 	pageTitle: string;
 	targetText: string;
-	revisionId: number | null;
-	timestamp?: string;
-	author?: string;
 	loading: boolean;
+	revisionId: number | null;
 	error: string | null;
 };
 
-export type WikipediaRevision = {
-	revid: number;
-	timestamp?: string;
-	user?: string;
-	content?: string;
-};
-
-export type WikipediaPage = {
-	pageid: number;
-	title: string;
-	revisions?: ReadonlyArray<WikipediaRevision>;
-};
-
-export type WikipediaResponse = {
-	query?: {
-		pages?: ReadonlyArray<WikipediaPage>;
-	};
-	continue?: {
-		rvcontinue?: string;
-	};
-};
+export const defaultSearchResult = {
+	language: 'en',
+	pageTitle: '',
+	targetText: '',
+	loading: false,
+	revisionId: null,
+	error: null,
+} as const satisfies SearchResult;

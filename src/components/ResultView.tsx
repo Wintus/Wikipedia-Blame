@@ -1,9 +1,14 @@
 import { SearchResult } from '../types';
-import { WikipediaAPI } from '../services/WikipediaAPI';
 
 type ResultViewProps = {
 	result: SearchResult;
 };
+
+/**
+ * Gets the URL for a specific revision
+ */
+const getRevisionUrl = (revId: number, lang: WikiLanguage = 'en'): string =>
+	`https://${lang}.wikipedia.org/w/index.php?oldid=${revId}`;
 
 export function ResultView({ result }: ResultViewProps) {
 	if (result.loading) {
@@ -14,7 +19,7 @@ export function ResultView({ result }: ResultViewProps) {
 		return <div className="result-view error">{result.error}</div>;
 	}
 
-	if (result.revisionId === null) {
+	if (result.revisionId == null) {
 		return (
 			<div className="result-view not-found">
 				Text not found in the article's revision history.
@@ -22,10 +27,7 @@ export function ResultView({ result }: ResultViewProps) {
 		);
 	}
 
-	const revisionUrl = WikipediaAPI.getRevisionUrl(
-		result.revisionId,
-		result.language
-	);
+	const revisionUrl = getRevisionUrl(result.revisionId, result.language);
 
 	return (
 		<div className="result-view success">
@@ -40,16 +42,6 @@ export function ResultView({ result }: ResultViewProps) {
 				<p>
 					<strong>Revision ID:</strong> {result.revisionId}
 				</p>
-				{result.timestamp && (
-					<p>
-						<strong>Timestamp:</strong> {result.timestamp}
-					</p>
-				)}
-				{result.author && (
-					<p>
-						<strong>Author:</strong> {result.author}
-					</p>
-				)}
 				<a
 					href={revisionUrl}
 					target="_blank"

@@ -11,10 +11,8 @@
 ### WikipediaAPI Service
 ```typescript
 // Core functions for interacting with Wikipedia API
-async getRevisionText(revId: number, lang: WikiLanguage = 'en'): Promise<string | null>
 async getRevisionTexts(revIds: ReadonlyArray<number>, lang: WikiLanguage = 'en'): Promise<ReadonlyArray<RevisionResult>>
 async getAllRevisions(pageTitle: string, lang: WikiLanguage = 'en'): Promise<ReadonlyArray<number>>
-getRevisionUrl(revId: number, lang: WikiLanguage = 'en'): string
 ```
 
 ### RevisionFinder Utility
