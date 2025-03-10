@@ -25,6 +25,8 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
 
 	return (
 		<form onSubmit={handleSubmit} className="search-form">
+			<LanguageSelector language={language} onChange={setLanguage} />
+
 			<div className="form-group">
 				<label htmlFor="page-title">Wikipedia Article Title:</label>
 				<input
@@ -47,8 +49,6 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
 					required
 				/>
 			</div>
-
-			<LanguageSelector language={language} onChange={setLanguage} />
 
 			<button type="submit" disabled={isLoading}>
 				{isLoading ? 'Searching...' : 'Find An Occurrence'}
