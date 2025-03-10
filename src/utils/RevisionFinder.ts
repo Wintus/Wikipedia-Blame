@@ -30,17 +30,17 @@ function sampling(
  */
 export async function findOneOccurrence(
 	targetText: string,
-	revisions: ReadonlyArray<number>,
 	fetcher: (
 		revisions: ReadonlyArray<number>
-	) => Promise<ReadonlyArray<RevisionResult>>
+	) => Promise<ReadonlyArray<RevisionResult>>,
+	revisions: ReadonlyArray<number>
 ): Promise<number | null> {
 	if (revisions.length === 0) return null;
 	// Randomized sampling
 	const sampledRevs = sampling(revisions).sort();
 	// Fetch revisions and check for target text
-	const found = await batchSearch(targetText, sampledRevs, fetcher);
-	return found ?? (await batchSearch(targetText, revisions, fetcher));
+	const found = await batchSearch(targetText, fetcher, sampledRevs);
+	return found ?? (await batchSearch(targetText, fetcher, revisions));
 }
 
 function* batches<T>(
@@ -59,10 +59,10 @@ const batchSize = 50;
  */
 export async function batchSearch(
 	targetText: string,
-	revisions: ReadonlyArray<number>,
 	fetcher: (
 		revisions: ReadonlyArray<number>
-	) => Promise<ReadonlyArray<RevisionResult>>
+	) => Promise<ReadonlyArray<RevisionResult>>,
+	revisions: ReadonlyArray<number>
 ): Promise<number | null> {
 	for (const batch of batches(batchSize, revisions)) {
 		// Fetch revisions in parallel and check for target text

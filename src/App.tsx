@@ -38,8 +38,8 @@ function App() {
 			// Find one occurrence of the target text
 			const foundRevisionId = await findOneOccurrence(
 				targetText,
-				revisions,
-				(revIds) => fetchRevisionTexts(baseUrl, revIds)
+				(revIds) => fetchRevisionTexts(baseUrl, revIds),
+				revisions
 			);
 
 			setSearchResult((prev) => ({
