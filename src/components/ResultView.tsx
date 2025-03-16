@@ -1,4 +1,5 @@
 import { SearchResult } from '../types';
+import { getBaseUrl } from '../services/WikipediaAPI';
 
 type ResultViewProps = {
 	result: SearchResult;
@@ -7,8 +8,8 @@ type ResultViewProps = {
 /**
  * Gets the URL for a specific revision
  */
-const getRevisionUrl = (revId: number, lang: WikiLanguage = 'en'): string =>
-	`https://${lang}.wikipedia.org/w/index.php?oldid=${revId}`;
+const getRevisionUrl = (baseUrl: string, revId: number): string =>
+	`${baseUrl}/w/index.php?oldid=${revId}`;
 
 export function ResultView({ result }: ResultViewProps) {
 	if (result.loading) {
@@ -27,7 +28,8 @@ export function ResultView({ result }: ResultViewProps) {
 		);
 	}
 
-	const revisionUrl = getRevisionUrl(result.revisionId, result.language);
+	const baseUrl = getBaseUrl(result.language);
+	const revisionUrl = getRevisionUrl(baseUrl, result.revisionId);
 
 	return (
 		<div className="result-view success">
