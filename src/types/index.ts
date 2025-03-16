@@ -9,6 +9,12 @@ export type RevisionResult = {
 	text: string;
 };
 
+export type OnSearchFn = (
+	pageTitle: string,
+	targetText: string,
+	language: WikiLanguage
+) => Promise<void>;
+
 export type SearchResult = {
 	language: WikiLanguage;
 	pageTitle: string;
