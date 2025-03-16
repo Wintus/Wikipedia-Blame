@@ -21,7 +21,7 @@ function App() {
 		useState<SearchResult>(defaultSearchResult);
 
 	const handleSearch: OnSearchFn = async (
-		language: WikiLanguage,
+		baseUrl: string,
 		pageTitle: string,
 		targetText: string
 	) => {
@@ -29,14 +29,11 @@ function App() {
 			...prev,
 			pageTitle,
 			targetText,
-			language,
 			loading: true,
 			error: null,
 			revisionId: null,
 			pageId: null,
 		}));
-
-		const baseUrl = getBaseUrl(language);
 
 		try {
 			// First, fetch the page ID
