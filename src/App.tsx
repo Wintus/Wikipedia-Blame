@@ -8,13 +8,18 @@ import {
 	fetchRevisionTexts,
 } from './services/WikipediaAPI';
 import { findOneOccurrence } from './utils/RevisionFinder';
-import { defaultSearchResult, SearchResult, WikiLanguage } from './types';
+import {
+	defaultSearchResult,
+	SearchResult,
+	WikiLanguage,
+	OnSearchFn,
+} from './types';
 
 function App() {
 	const [searchResult, setSearchResult] =
 		useState<SearchResult>(defaultSearchResult);
 
-	const handleSearch = async (
+	const handleSearch: OnSearchFn = async (
 		pageTitle: string,
 		targetText: string,
 		language: WikiLanguage
