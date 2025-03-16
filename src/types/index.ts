@@ -18,7 +18,6 @@ export type OnSearchFn = (
 export type SearchResult = {
 	language: WikiLanguage;
 	pageTitle: string;
-	pageId: number | null;
 	targetText: string;
 	loading: boolean;
 	revisionId: number | null;
@@ -28,7 +27,6 @@ export type SearchResult = {
 export const defaultSearchResult = {
 	language: 'en',
 	pageTitle: '',
-	pageId: null,
 	targetText: '',
 	loading: false,
 	revisionId: null,

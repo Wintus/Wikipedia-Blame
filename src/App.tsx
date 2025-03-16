@@ -32,7 +32,6 @@ function App() {
 			loading: true,
 			error: null,
 			revisionId: null,
-			pageId: null,
 		}));
 
 		try {
@@ -43,13 +42,7 @@ function App() {
 				throw new Error(`Page "${pageTitle}" not found.`);
 			}
 
-			// Update state with pageId
-			setSearchResult((prev) => ({
-				...prev,
-				pageId,
-			}));
-
-			// Fetch all revisions for the page using pageId
+				// Fetch all revisions for the page using pageId
 			const revisions = await fetchAllRevisions(baseUrl, pageId);
 
 			// Find one occurrence of the target text
