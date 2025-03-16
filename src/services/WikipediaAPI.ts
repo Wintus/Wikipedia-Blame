@@ -39,6 +39,31 @@ const convert = (revision: Revision<'main'>): RevisionResult => ({
 });
 
 /**
+ * Fetches the page ID for a given title using the REST API
+ */
+export async function fetchPageId(
+	baseUrl: string,
+	pageTitle: string
+): Promise<number | null> {
+	try {
+		// Using the /page/{title}/bare endpoint from REST API
+		const restBaseUrl = baseUrl.replace('/w/', '/w/rest.php');
+		const url = `${restBaseUrl}/v1/page/${encodeURIComponent(pageTitle)}/bare`;
+		// guard
+		const response = await fetch(url);
+		if (!response.ok) {
+			return null;
+		}
+		// Return the page ID from the response
+		const data = await response.json();
+		return data.id;
+	} catch (error) {
+		console.error('Error fetching page ID:', error);
+		return null;
+	}
+}
+
+/**
  * Fetches the text content of multiple Wikipedia revisions using formatversion=2.
  *
  * Precondition: The number of revision IDs cannot exceed 50 due to API limitations.
@@ -69,12 +94,10 @@ export async function fetchRevisionTexts(
 
 /**
  * Fetches all revisions of a Wikipedia page in batches of 500.
- *
- * TODO: consider to use pageids instead of titles
  */
 export async function fetchAllRevisions(
 	baseUrl: string,
-	pageTitle: string
+	pageId: number
 ): Promise<ReadonlyArray<number>> {
 	const revisions: number[] = [];
 	try {
@@ -83,7 +106,7 @@ export async function fetchAllRevisions(
 			const url = new URL('./api.php', baseUrl);
 			url.searchParams.append('action', 'query');
 			url.searchParams.append('prop', 'revisions');
-			url.searchParams.append('titles', pageTitle);
+			url.searchParams.append('pageids', pageId.toString());
 			url.searchParams.append('rvprop', 'ids');
 			url.searchParams.append('rvlimit', '500');
 			url.searchParams.append('formatversion', '2');

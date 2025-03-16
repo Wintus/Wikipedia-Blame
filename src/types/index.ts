@@ -9,9 +9,16 @@ export type RevisionResult = {
 	text: string;
 };
 
+export type OnSearchFn = (
+	pageTitle: string,
+	targetText: string,
+	language: WikiLanguage
+) => Promise<void>;
+
 export type SearchResult = {
 	language: WikiLanguage;
 	pageTitle: string;
+	pageId: number | null;
 	targetText: string;
 	loading: boolean;
 	revisionId: number | null;
@@ -21,6 +28,7 @@ export type SearchResult = {
 export const defaultSearchResult = {
 	language: 'en',
 	pageTitle: '',
+	pageId: null,
 	targetText: '',
 	loading: false,
 	revisionId: null,

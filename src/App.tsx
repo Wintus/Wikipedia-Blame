@@ -6,15 +6,21 @@ import {
 	getBaseUrl,
 	fetchAllRevisions,
 	fetchRevisionTexts,
+	fetchPageId,
 } from './services/WikipediaAPI';
 import { findOneOccurrence } from './utils/RevisionFinder';
-import { defaultSearchResult, SearchResult, WikiLanguage } from './types';
+import {
+	defaultSearchResult,
+	SearchResult,
+	WikiLanguage,
+	OnSearchFn,
+} from './types';
 
 function App() {
 	const [searchResult, setSearchResult] =
 		useState<SearchResult>(defaultSearchResult);
 
-	const handleSearch = async (
+	const handleSearch: OnSearchFn = async (
 		pageTitle: string,
 		targetText: string,
 		language: WikiLanguage
@@ -27,13 +33,27 @@ function App() {
 			loading: true,
 			error: null,
 			revisionId: null,
+			pageId: null,
 		}));
 
 		const baseUrl = getBaseUrl(language);
 
 		try {
-			// Fetch all revisions for the page
-			const revisions = await fetchAllRevisions(baseUrl, pageTitle);
+			// First, fetch the page ID
+			const pageId = await fetchPageId(baseUrl, pageTitle);
+
+			if (!pageId) {
+				throw new Error(`Page "${pageTitle}" not found.`);
+			}
+
+			// Update state with pageId
+			setSearchResult((prev) => ({
+				...prev,
+				pageId,
+			}));
+
+			// Fetch all revisions for the page using pageId
+			const revisions = await fetchAllRevisions(baseUrl, pageId);
 
 			// Find one occurrence of the target text
 			const foundRevisionId = await findOneOccurrence(

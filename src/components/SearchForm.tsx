@@ -7,7 +7,7 @@ type SearchFormProps = {
 		pageTitle: string,
 		targetText: string,
 		language: WikiLanguage
-	) => void;
+	) => Promise<void>;
 	isLoading: boolean;
 };
 
@@ -19,6 +19,7 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
 	const handleSubmit = (e: FormEvent) => {
 		e.preventDefault();
 		if (pageTitle && targetText) {
+			// no await
 			onSearch(pageTitle, targetText, language);
 		}
 	};
