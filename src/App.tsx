@@ -21,9 +21,9 @@ function App() {
 		useState<SearchResult>(defaultSearchResult);
 
 	const handleSearch: OnSearchFn = async (
+		language: WikiLanguage,
 		pageTitle: string,
-		targetText: string,
-		language: WikiLanguage
+		targetText: string
 	) => {
 		setSearchResult((prev) => ({
 			...prev,

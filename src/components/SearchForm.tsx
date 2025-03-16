@@ -20,7 +20,7 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
 		e.preventDefault();
 		if (pageTitle && targetText) {
 			// no await
-			onSearch(pageTitle, targetText, language);
+			onSearch(language, pageTitle, targetText);
 		}
 	};
 
