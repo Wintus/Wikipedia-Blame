@@ -28,7 +28,7 @@ type WikipediaResponse = {
 };
 
 export const getBaseUrl = (lang: WikiLanguage): string =>
-	`https://${lang}.wikipedia.org/w/`;
+	`https://${lang}.wikipedia.org`;
 
 const getPageRevisions = <Slot extends string = 'main'>(
 	data
@@ -47,8 +47,7 @@ export async function fetchPageId(
 ): Promise<number | null> {
 	try {
 		// Using the /page/{title}/bare endpoint from REST API
-		const restBaseUrl = baseUrl.replace('/w/', '/w/rest.php');
-		const url = `${restBaseUrl}/v1/page/${encodeURIComponent(pageTitle)}/bare`;
+		const url = `${baseUrl}/w/rest.php/v1/page/${encodeURIComponent(pageTitle)}/bare`;
 		// guard
 		const response = await fetch(url);
 		if (!response.ok) {
@@ -79,7 +78,7 @@ export async function fetchRevisionTexts(
 		);
 	}
 	const revIdsStr = revIds.join('|');
-	const url = `${baseUrl}/api.php?action=query&prop=revisions&revids=${revIdsStr}&rvprop=ids|content&formatversion=2&format=json&origin=*&rvslots=main`;
+	const url = `${baseUrl}/w/api.php?action=query&prop=revisions&revids=${revIdsStr}&rvprop=ids|content&formatversion=2&format=json&origin=*&rvslots=main`;
 
 	try {
 		const response = await fetch(url);
@@ -103,7 +102,7 @@ export async function fetchAllRevisions(
 	try {
 		let continueParam: string | null;
 		do {
-			const url = new URL('./api.php', baseUrl);
+			const url = new URL('/w/api.php', baseUrl);
 			url.searchParams.append('action', 'query');
 			url.searchParams.append('prop', 'revisions');
 			url.searchParams.append('pageids', pageId.toString());

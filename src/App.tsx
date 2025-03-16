@@ -21,22 +21,18 @@ function App() {
 		useState<SearchResult>(defaultSearchResult);
 
 	const handleSearch: OnSearchFn = async (
+		baseUrl: string,
 		pageTitle: string,
-		targetText: string,
-		language: WikiLanguage
+		targetText: string
 	) => {
 		setSearchResult((prev) => ({
 			...prev,
 			pageTitle,
 			targetText,
-			language,
 			loading: true,
 			error: null,
 			revisionId: null,
-			pageId: null,
 		}));
-
-		const baseUrl = getBaseUrl(language);
 
 		try {
 			// First, fetch the page ID
@@ -46,13 +42,7 @@ function App() {
 				throw new Error(`Page "${pageTitle}" not found.`);
 			}
 
-			// Update state with pageId
-			setSearchResult((prev) => ({
-				...prev,
-				pageId,
-			}));
-
-			// Fetch all revisions for the page using pageId
+				// Fetch all revisions for the page using pageId
 			const revisions = await fetchAllRevisions(baseUrl, pageId);
 
 			// Find one occurrence of the target text

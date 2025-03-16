@@ -1,12 +1,13 @@
 import { FormEvent, useState } from 'react';
 import { WikiLanguage } from '../types';
+import { getBaseUrl } from '../services/WikipediaAPI';
 import { LanguageSelector } from './LanguageSelector';
 
 type SearchFormProps = {
 	onSearch: (
+		baseUrl: string,
 		pageTitle: string,
-		targetText: string,
-		language: WikiLanguage
+		targetText: string
 	) => Promise<void>;
 	isLoading: boolean;
 };
@@ -19,8 +20,9 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
 	const handleSubmit = (e: FormEvent) => {
 		e.preventDefault();
 		if (pageTitle && targetText) {
+			const baseUrl = getBaseUrl(language);
 			// no await
-			onSearch(pageTitle, targetText, language);
+			onSearch(baseUrl, pageTitle, targetText);
 		}
 	};
 
