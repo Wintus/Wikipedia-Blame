@@ -42,7 +42,7 @@ function App() {
 				throw new Error(`Page "${pageTitle}" not found.`);
 			}
 
-				// Fetch all revisions for the page using pageId
+			// Fetch all revisions for the page using pageId
 			const revisions = await fetchAllRevisions(baseUrl, pageId);
 
 			// Find one occurrence of the target text
