@@ -1,65 +1,71 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
-	getBaseUrl,
 	fetchPageId,
 	fetchRevisionTexts,
 	fetchAllRevisions,
+	getBaseUrl,
 } from '../WikipediaAPI';
-import { RevisionResult } from '../../types';
 
 describe('WikipediaAPI', () => {
-	const originalFetch = global.fetch;
 	const baseUrl = 'https://en.wikipedia.org';
+	const mockFetch = vi.fn();
 
 	beforeEach(() => {
-		global.fetch = vi.fn();
+		global.fetch = mockFetch;
+		global.console = { ...global.console, error: vi.fn() };
 	});
 
 	afterEach(() => {
-		global.fetch = originalFetch;
+		vi.resetAllMocks();
 	});
 
 	describe('getBaseUrl', () => {
-		it('generates correct base URL for different languages', () => {
+		it('returns correct base URL for different languages', () => {
 			expect(getBaseUrl('en')).toBe('https://en.wikipedia.org');
 			expect(getBaseUrl('ja')).toBe('https://ja.wikipedia.org');
 		});
 	});
 
 	describe('fetchPageId', () => {
-		it('returns page ID for successful request', async () => {
+		it('returns page ID when request is successful', async () => {
 			const mockResponse = {
 				ok: true,
 				json: vi.fn().mockResolvedValue({ id: 12345 }),
 			};
+			mockFetch.mockResolvedValue(mockResponse);
 
-			(global.fetch as vi.Mock).mockResolvedValue(mockResponse);
+			const pageId = await fetchPageId(baseUrl, 'Test Page');
 
-			const result = await fetchPageId(baseUrl, 'Test Page');
-			expect(result).toBe(12345);
-		});
-
-		it('returns null for unsuccessful request', async () => {
-			const mockResponse = {
-				ok: false,
-			};
-
-			(global.fetch as vi.Mock).mockResolvedValue(mockResponse);
-
-			const result = await fetchPageId(baseUrl, 'Test Page');
-			expect(result).toBeNull();
+			expect(mockFetch).toHaveBeenCalledWith(
+				`${baseUrl}/w/rest.php/v1/page/Test%20Page/bare`
+			);
+			expect(pageId).toBe(12345);
 		});
 
 		it('returns null on network error', async () => {
-			(global.fetch as vi.Mock).mockRejectedValue(new Error('Network error'));
+			mockFetch.mockRejectedValue(new Error('Network error'));
 
-			const result = await fetchPageId(baseUrl, 'Test Page');
-			expect(result).toBeNull();
+			const pageId = await fetchPageId(baseUrl, 'Test Page');
+
+			expect(pageId).toBeNull();
+			expect(console.error).toHaveBeenCalledWith(
+				'Error fetching page ID:',
+				expect.any(Error)
+			);
+		});
+
+		it('returns null on unsuccessful response', async () => {
+			const mockResponse = { ok: false };
+			mockFetch.mockResolvedValue(mockResponse);
+
+			const pageId = await fetchPageId(baseUrl, 'Test Page');
+
+			expect(pageId).toBeNull();
 		});
 	});
 
 	describe('fetchRevisionTexts', () => {
-		it('fetches multiple revision texts', async () => {
+		it('fetches revision texts successfully', async () => {
 			const mockResponse = {
 				json: vi.fn().mockResolvedValue({
 					query: {
@@ -67,12 +73,8 @@ describe('WikipediaAPI', () => {
 							{
 								revisions: [
 									{
-										revid: 1,
-										slots: { main: { content: 'First revision' } },
-									},
-									{
-										revid: 2,
-										slots: { main: { content: 'Second revision' } },
+										revid: 12345,
+										slots: { main: { content: 'Test content' } },
 									},
 								],
 							},
@@ -80,41 +82,48 @@ describe('WikipediaAPI', () => {
 					},
 				}),
 			};
+			mockFetch.mockResolvedValue(mockResponse);
 
-			(global.fetch as vi.Mock).mockResolvedValue(mockResponse);
+			const revisions = await fetchRevisionTexts(baseUrl, [12345]);
 
-			const result = await fetchRevisionTexts(baseUrl, [1, 2]);
-			expect(result).toEqual([
-				{ rev: 1, text: 'First revision' },
-				{ rev: 2, text: 'Second revision' },
-			]);
+			expect(mockFetch).toHaveBeenCalledWith(
+				expect.stringContaining(
+					`${baseUrl}/w/api.php?action=query&prop=revisions&revids=12345`
+				)
+			);
+			expect(revisions).toEqual([{ rev: 12345, text: 'Test content' }]);
 		});
 
-		it('throws error when more than 50 revision IDs are provided', async () => {
+		it('returns empty array on network error', async () => {
+			mockFetch.mockRejectedValue(new Error('Network error'));
+
+			const revisions = await fetchRevisionTexts(baseUrl, [12345]);
+
+			expect(revisions).toEqual([]);
+			expect(console.error).toHaveBeenCalledWith(
+				'Error fetching revision texts:',
+				expect.any(Error)
+			);
+		});
+
+		it('throws error when revision IDs exceed 50', async () => {
 			const largeRevisionList = Array.from({ length: 51 }, (_, i) => i);
 
 			await expect(
 				fetchRevisionTexts(baseUrl, largeRevisionList)
 			).rejects.toThrow('The number of revision IDs cannot exceed 50');
 		});
-
-		it('returns empty array on network error', async () => {
-			(global.fetch as vi.Mock).mockRejectedValue(new Error('Network error'));
-
-			const result = await fetchRevisionTexts(baseUrl, [1, 2]);
-			expect(result).toEqual([]);
-		});
 	});
 
 	describe('fetchAllRevisions', () => {
-		it('fetches all revisions with pagination', async () => {
+		it('fetches all revisions successfully', async () => {
 			const mockResponses = [
 				{
 					json: vi.fn().mockResolvedValue({
 						query: {
 							pages: [
 								{
-									revisions: [{ revid: 1 }, { revid: 2 }],
+									revisions: [{ revid: 12345 }, { revid: 67890 }],
 								},
 							],
 						},
@@ -126,27 +135,31 @@ describe('WikipediaAPI', () => {
 						query: {
 							pages: [
 								{
-									revisions: [{ revid: 3 }, { revid: 4 }],
+									revisions: [{ revid: 54321 }],
 								},
 							],
 						},
 					}),
 				},
 			];
+			mockFetch.mockImplementation(() => mockResponses.shift());
 
-			(global.fetch as vi.Mock)
-				.mockResolvedValueOnce(mockResponses[0])
-				.mockResolvedValueOnce(mockResponses[1]);
+			const revisions = await fetchAllRevisions(baseUrl, 1234);
 
-			const result = await fetchAllRevisions(baseUrl, 12345);
-			expect(result).toEqual([1, 2, 3, 4]);
+			expect(mockFetch).toHaveBeenCalledTimes(2);
+			expect(revisions).toEqual([12345, 67890, 54321]);
 		});
 
 		it('returns empty array on network error', async () => {
-			(global.fetch as vi.Mock).mockRejectedValue(new Error('Network error'));
+			mockFetch.mockRejectedValue(new Error('Network error'));
 
-			const result = await fetchAllRevisions(baseUrl, 12345);
-			expect(result).toEqual([]);
+			const revisions = await fetchAllRevisions(baseUrl, 1234);
+
+			expect(revisions).toEqual([]);
+			expect(console.error).toHaveBeenCalledWith(
+				'Error fetching all revisions:',
+				expect.any(Error)
+			);
 		});
 	});
 });
