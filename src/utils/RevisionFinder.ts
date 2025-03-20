@@ -15,11 +15,11 @@ export function shuffleArray<T>(array: ReadonlyArray<T>): ReadonlyArray<T> {
 /**
  * Helper function to perform randomized sampling
  */
-function sampling(
-	array: ReadonlyArray<unknown>,
+function sampling<T>(
+	array: ReadonlyArray<T>,
 	minCount: number = 5,
 	samplingRatio: number = 0.1
-): ReadonlyArray<number> {
+): ReadonlyArray<T> {
 	const sampleSize = Math.max(minCount, array.length * samplingRatio); // let it cast to integer
 	return shuffleArray(array).slice(0, sampleSize);
 }
