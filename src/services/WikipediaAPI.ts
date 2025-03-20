@@ -11,15 +11,15 @@ type Revision<Slot extends string> = {
 	slots: { [key in Slot]: { content: string } };
 };
 
-type WikipediaPage = {
+type WikipediaPage<Slot extends string = 'main'> = {
 	pageid: number;
 	title: string;
-	revisions?: ReadonlyArray<Revision>;
+	revisions?: ReadonlyArray<Revision<Slot>>;
 };
 
-type WikipediaResponse = {
+type WikipediaResponse<Slot extends string = 'main'> = {
 	query?: {
-		pages?: ReadonlyArray<WikipediaPage>;
+		pages?: ReadonlyArray<WikipediaPage<Slot>>;
 	};
 	continue?: {
 		continue?: string;
@@ -31,7 +31,7 @@ export const getBaseUrl = (lang: WikiLanguage): string =>
 	`https://${lang}.wikipedia.org`;
 
 const getPageRevisions = <Slot extends string = 'main'>(
-	data: WikipediaResponse
+	data: WikipediaResponse<Slot>
 ): ReadonlyArray<Revision<Slot>> => data?.query?.pages?.[0]?.revisions ?? [];
 const convert = (revision: Revision<'main'>): RevisionResult => ({
 	rev: revision.revid,
