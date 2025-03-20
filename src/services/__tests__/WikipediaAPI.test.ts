@@ -9,14 +9,15 @@ import {
 describe('WikipediaAPI', () => {
 	const baseUrl = 'https://en.wikipedia.org';
 	const mockFetch = vi.fn();
+	const mockConsoleError = vi.fn();
 
 	beforeEach(() => {
-		global.fetch = mockFetch;
-		global.console = { ...global.console, error: vi.fn() };
+		vi.stubGlobal('fetch', mockFetch);
+		vi.stubGlobal('console', { ...console, error: mockConsoleError });
 	});
 
 	afterEach(() => {
-		vi.resetAllMocks();
+		vi.unstubAllGlobals();
 	});
 
 	describe('getBaseUrl', () => {
