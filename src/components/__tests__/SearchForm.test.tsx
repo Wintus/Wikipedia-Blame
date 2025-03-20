@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { SearchForm } from '../SearchForm';
 import { getBaseUrl } from '../../services/WikipediaAPI';
@@ -13,7 +13,7 @@ describe('SearchForm', () => {
 		render(<SearchForm onSearch={onSearch} isLoading={isLoading} />);
 
 	beforeEach(() => {
-		(getBaseUrl as vi.Mock).mockReturnValue('https://en.wikipedia.org');
+		vi.mocked(getBaseUrl).mockReturnValue('https://en.wikipedia.org');
 	});
 
 	it('renders form inputs', () => {
