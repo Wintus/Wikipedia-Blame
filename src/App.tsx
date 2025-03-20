@@ -3,7 +3,6 @@ import './App.css';
 import { SearchForm } from './components/SearchForm';
 import { ResultView } from './components/ResultView';
 import {
-	getBaseUrl,
 	fetchAllRevisions,
 	fetchRevisionTexts,
 	fetchPageId,
@@ -12,7 +11,6 @@ import { findOneOccurrence } from './utils/RevisionFinder';
 import {
 	defaultSearchResult,
 	SearchResult,
-	WikiLanguage,
 	OnSearchFn,
 } from './types';
 
