@@ -46,3 +46,12 @@ By leveraging the Wikipedia API, it searches through revision history to pinpoin
 - Find first/last occurrence of text
 - Visual highlighting of changes
 - Support for additional Wikipedia languages
+
+## Deployment Details
+
+- Configured for automatic deployment to GitHub Pages via GitHub Actions
+- Accessible at: https://[username].github.io/Wikipedia-Blame/
+- Workflow file: `.github/workflows/deploy.yml`
+- Automatically builds and deploys on pushes to the main branch
+- Uses the latest GitHub Pages deployment methods
+- Supports manual deployment via GitHub Actions workflow dispatch
