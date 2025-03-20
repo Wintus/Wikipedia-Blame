@@ -14,9 +14,9 @@ describe('RevisionFinder', () => {
 	describe('shuffleArray', () => {
 		it('maintains original array contents', () => {
 			const original = [1, 2, 3, 4, 5];
-			const shuffled = shuffleArray(original);
+			const shuffled = shuffleArray(original) as number[];
 
-			expect(shuffled.sort()).toEqual(original.sort());
+			expect(shuffled.toSorted()).toEqual(original.sort());
 		});
 
 		it('returns a new array reference', () => {

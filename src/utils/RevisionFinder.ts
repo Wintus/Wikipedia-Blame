@@ -15,11 +15,11 @@ export function shuffleArray<T>(array: ReadonlyArray<T>): ReadonlyArray<T> {
 /**
  * Helper function to perform randomized sampling
  */
-function sampling(
-	array: ReadonlyArray<unknown>,
+function sampling<T>(
+	array: ReadonlyArray<T>,
 	minCount: number = 5,
 	samplingRatio: number = 0.1
-): ReadonlyArray<number> {
+): ReadonlyArray<T> {
 	const sampleSize = Math.max(minCount, array.length * samplingRatio); // let it cast to integer
 	return shuffleArray(array).slice(0, sampleSize);
 }
@@ -37,7 +37,7 @@ export async function findOneOccurrence(
 ): Promise<number | null> {
 	if (revisions.length === 0) return null;
 	// Randomized sampling
-	const sampledRevs = sampling(revisions).sort();
+	const sampledRevs = sampling(revisions).toSorted();
 	// Fetch revisions and check for target text
 	const found = await batchSearch(targetText, fetcher, sampledRevs);
 	return found ?? (await batchSearch(targetText, fetcher, revisions));
