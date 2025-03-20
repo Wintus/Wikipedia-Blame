@@ -31,7 +31,7 @@ export const getBaseUrl = (lang: WikiLanguage): string =>
 	`https://${lang}.wikipedia.org`;
 
 const getPageRevisions = <Slot extends string = 'main'>(
-	data
+	data: WikipediaResponse
 ): ReadonlyArray<Revision<Slot>> => data?.query?.pages?.[0]?.revisions ?? [];
 const convert = (revision: Revision<'main'>): RevisionResult => ({
 	rev: revision.revid,
@@ -100,7 +100,7 @@ export async function fetchAllRevisions(
 ): Promise<ReadonlyArray<number>> {
 	const revisions: number[] = [];
 	try {
-		let continueParam: string | null;
+		let continueParam: string | null = null;
 		do {
 			const url = new URL('/w/api.php', baseUrl);
 			url.searchParams.append('action', 'query');
