@@ -37,7 +37,7 @@ export async function findOneOccurrence(
 ): Promise<number | null> {
 	if (revisions.length === 0) return null;
 	// Randomized sampling
-	const sampledRevs = sampling(revisions).sort();
+	const sampledRevs = sampling(revisions).toSorted();
 	// Fetch revisions and check for target text
 	const found = await batchSearch(targetText, fetcher, sampledRevs);
 	return found ?? (await batchSearch(targetText, fetcher, revisions));
