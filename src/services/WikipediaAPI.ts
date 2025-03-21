@@ -27,6 +27,8 @@ type WikipediaResponse<Slot extends string = 'main'> = {
 	};
 };
 
+type Order = 'asc' | 'desc';
+
 export const getBaseUrl = (lang: WikiLanguage): string =>
 	`https://${lang}.wikipedia.org`;
 
