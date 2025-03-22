@@ -8,11 +8,7 @@ import {
 	fetchPageId,
 } from './services/WikipediaAPI';
 import { findOneOccurrence } from './utils/RevisionFinder';
-import {
-	defaultSearchResult,
-	SearchResult,
-	OnSearchFn,
-} from './types';
+import { defaultSearchResult, SearchResult, OnSearchFn } from './types';
 
 function App() {
 	const [searchResult, setSearchResult] =
