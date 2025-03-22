@@ -12,7 +12,7 @@ describe('ResultView', () => {
 		revisionId: null,
 		loading: false,
 		error: null,
-		language: 'en',
+		baseUrl: 'https://en.wikipedia.org',
 		...overrides,
 	});
 
