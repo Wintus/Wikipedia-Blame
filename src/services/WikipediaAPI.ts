@@ -49,7 +49,9 @@ export async function fetchPageId(
 ): Promise<number | null> {
 	try {
 		// Using the /page/{title}/bare endpoint from REST API
-		const url = `${baseUrl}/w/rest.php/v1/page/${encodeURIComponent(pageTitle)}/bare`;
+		const url = `${baseUrl}/w/rest.php/v1/page/${encodeURIComponent(
+			pageTitle
+		)}/bare`;
 		// guard
 		const response = await fetch(url);
 		if (!response.ok) {
