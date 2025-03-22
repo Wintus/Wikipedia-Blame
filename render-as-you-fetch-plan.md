@@ -22,7 +22,6 @@ This document outlines the implementation strategy for a Render-as-You-Fetch app
 
 ### 3. Simplified State Structure
 
-- Use `baseUrl` directly instead of language-based derivation
 - Minimize state duplication
 - Keep component-specific state local
 
@@ -77,12 +76,11 @@ This document outlines the implementation strategy for a Render-as-You-Fetch app
 
 ## Implementation Sequence
 
-1. Update types to support `baseUrl`
-2. Modify SearchForm for eager fetching
-3. Refactor App component for promise management
-4. Create WikipediaSearchResult for suspense rendering
-5. Implement Error Boundary
-6. Add loading indicators and transitions
+0. Modify SearchForm for eager fetching
+0. Refactor App component for promise management
+0. Create WikipediaSearchResult for suspense rendering
+0. Implement Error Boundary
+0. Add loading indicators and transitions
 
 ## Conclusion
 
