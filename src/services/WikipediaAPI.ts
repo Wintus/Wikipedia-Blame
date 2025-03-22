@@ -27,6 +27,8 @@ type WikipediaResponse<Slot extends string = 'main'> = {
 	};
 };
 
+type Order = 'asc' | 'desc';
+
 export const getBaseUrl = (lang: WikiLanguage): string =>
 	`https://${lang}.wikipedia.org`;
 
@@ -93,12 +95,18 @@ export async function fetchRevisionTexts(
 
 /**
  * Fetches all revisions of a Wikipedia page in batches of 500.
+ *
+ * The default order is ascending (= newer last = older first), but can be changed to descending.
+ *
+ * see https://www.mediawiki.org/wiki/API:Revisions
  */
 export async function fetchAllRevisions(
 	baseUrl: string,
-	pageId: number
+	pageId: number,
+	order: Order = 'asc'
 ): Promise<ReadonlyArray<number>> {
 	const revisions: number[] = [];
+	const dir = order === 'desc' ? 'older' : 'newer';
 	try {
 		let continueParam: string | null = null;
 		do {
@@ -108,6 +116,7 @@ export async function fetchAllRevisions(
 			url.searchParams.append('pageids', pageId.toString());
 			url.searchParams.append('rvprop', 'ids');
 			url.searchParams.append('rvlimit', '500');
+			url.searchParams.append('rvdir', dir);
 			url.searchParams.append('formatversion', '2');
 			url.searchParams.append('format', 'json');
 			url.searchParams.append('origin', '*');
