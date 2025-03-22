@@ -16,7 +16,7 @@ export type OnSearchFn = (
 ) => Promise<void>;
 
 export type SearchResult = {
-	language: WikiLanguage;
+	baseUrl: string;
 	pageTitle: string;
 	targetText: string;
 	loading: boolean;
@@ -25,7 +25,7 @@ export type SearchResult = {
 };
 
 export const defaultSearchResult = {
-	language: 'en',
+	baseUrl: 'https://en.wikipedia.org',
 	pageTitle: '',
 	targetText: '',
 	loading: false,

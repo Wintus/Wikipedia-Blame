@@ -21,6 +21,7 @@ function App() {
 	) => {
 		setSearchResult((prev) => ({
 			...prev,
+			baseUrl,
 			pageTitle,
 			targetText,
 			loading: true,

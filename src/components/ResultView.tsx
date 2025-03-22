@@ -1,5 +1,4 @@
 import { SearchResult } from '../types';
-import { getBaseUrl } from '../services/WikipediaAPI';
 
 type ResultViewProps = {
 	result: SearchResult;
@@ -25,8 +24,7 @@ export function ResultView({ result }: ResultViewProps) {
 		);
 	}
 
-	const baseUrl = getBaseUrl(result.language);
-	const revisionUrl = getRevisionUrl(baseUrl, result.revisionId);
+	const revisionUrl = getRevisionUrl(result.baseUrl, result.revisionId);
 
 	return (
 		<div className="result-view success">
