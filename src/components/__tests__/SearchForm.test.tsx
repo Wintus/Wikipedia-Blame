@@ -1,122 +1,85 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { SearchForm } from '../SearchForm';
-import { getBaseUrl } from '../../services/WikipediaAPI';
-
-// Mock the getBaseUrl function
-vi.mock('../../services/WikipediaAPI', () => ({
-	getBaseUrl: vi.fn(),
-}));
 
 describe('SearchForm', () => {
-	const renderComponent = (onSearch = vi.fn(), isLoading = false) =>
-		render(<SearchForm onSearch={onSearch} isLoading={isLoading} />);
+	const mockOnSearch = vi.fn();
+	const defaultProps = { onSearch: mockOnSearch, isLoading: false };
 
 	beforeEach(() => {
-		vi.mocked(getBaseUrl).mockReturnValue('https://en.wikipedia.org');
+		mockOnSearch.mockClear();
 	});
 
-	it('renders form inputs', () => {
-		renderComponent();
-
-		expect(screen.getByLabelText(/wikipedia article title/i)).toBeTruthy();
-		expect(screen.getByLabelText(/text to find/i)).toBeTruthy();
+	it('renders form inputs and button', () => {
+		render(<SearchForm {...defaultProps} />);
+		expect(screen.getByLabelText(/Wiki Article Title:/i)).toBeInTheDocument();
+		expect(screen.getByLabelText(/Text to Find:/i)).toBeInTheDocument();
 		expect(
-			screen.getByRole('button', { name: /find an occurrence/i })
-		).toBeTruthy();
+			screen.getByRole('button', { name: /Find An Occurrence/i })
+		).toBeInTheDocument();
 	});
 
-	it('handles input changes', () => {
-		renderComponent();
+	it('calls onSearch with correct parameters when form is submitted', () => {
+		render(<SearchForm {...defaultProps} />);
+		const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
+		const textArea = screen.getByLabelText(/Text to Find:/i);
+		const button = screen.getByRole('button', { name: /Find An Occurrence/i });
 
-		const pageTitleInput = screen.getByLabelText(
-			/wikipedia article title/i
-		) as HTMLInputElement;
-		const targetTextInput = screen.getByLabelText(
-			/text to find/i
-		) as HTMLTextAreaElement;
+		fireEvent.change(titleInput, { target: { value: 'Albert Einstein' } });
+		fireEvent.change(textArea, { target: { value: 'relativity' } });
+		fireEvent.click(button);
 
-		fireEvent.change(pageTitleInput, { target: { value: 'Test Page' } });
-		fireEvent.change(targetTextInput, { target: { value: 'Test Text' } });
-
-		expect(pageTitleInput.value).toBe('Test Page');
-		expect(targetTextInput.value).toBe('Test Text');
-	});
-
-	it('trims input values', () => {
-		renderComponent();
-
-		const pageTitleInput = screen.getByLabelText(
-			/wikipedia article title/i
-		) as HTMLInputElement;
-		const targetTextInput = screen.getByLabelText(
-			/text to find/i
-		) as HTMLTextAreaElement;
-
-		fireEvent.change(pageTitleInput, { target: { value: '  Test Page  ' } });
-		fireEvent.change(targetTextInput, { target: { value: '  Test Text  ' } });
-
-		expect(pageTitleInput.value).toBe('Test Page');
-		expect(targetTextInput.value).toBe('Test Text');
-	});
-
-	it('disables submit button when loading', () => {
-		renderComponent(vi.fn(), true);
-
-		const submitButton = screen.getByRole('button', { name: /searching/i });
-		expect(submitButton.hasAttribute('disabled')).toBe(true);
-	});
-
-	it('enables submit button when not loading', () => {
-		renderComponent();
-
-		const submitButton = screen.getByRole('button', {
-			name: /find an occurrence/i,
-		});
-		expect(submitButton.hasAttribute('disabled')).toBe(false);
-	});
-
-	it('calls onSearch with correct parameters', () => {
-		const mockOnSearch = vi.fn();
-		renderComponent(mockOnSearch);
-
-		const pageTitleInput = screen.getByLabelText(
-			/wikipedia article title/i
-		) as HTMLInputElement;
-		const targetTextInput = screen.getByLabelText(
-			/text to find/i
-		) as HTMLTextAreaElement;
-		const submitButton = screen.getByRole('button', {
-			name: /find an occurrence/i,
-		});
-
-		fireEvent.change(pageTitleInput, { target: { value: 'Test Page' } });
-		fireEvent.change(targetTextInput, { target: { value: 'Test Text' } });
-		fireEvent.click(submitButton);
-
-		expect(getBaseUrl).toHaveBeenCalledWith('en');
+		expect(mockOnSearch).toHaveBeenCalledTimes(1);
 		expect(mockOnSearch).toHaveBeenCalledWith(
-			'https://en.wikipedia.org',
-			'Test Page',
-			'Test Text'
+			{
+				id: 'enwp',
+				name: 'English Wikipedia',
+				url: new URL('https://en.wikipedia.org/'),
+			},
+			'Albert Einstein',
+			'relativity'
 		);
 	});
 
 	it('does not call onSearch when inputs are empty', () => {
-		const mockOnSearch = vi.fn();
-		renderComponent(mockOnSearch);
-
-		const submitButton = screen.getByRole('button', {
-			name: /find an occurrence/i,
-		});
-		fireEvent.click(submitButton);
-
+		render(<SearchForm {...defaultProps} />);
+		const button = screen.getByRole('button', { name: /Find An Occurrence/i });
+		fireEvent.click(button);
 		expect(mockOnSearch).not.toHaveBeenCalled();
 	});
 
-	it('includes language selector', () => {
-		renderComponent();
+	it('disables the button when isLoading is true', () => {
+		render(<SearchForm onSearch={defaultProps.onSearch} isLoading={true} />);
+		const button = screen.getByRole('button');
+		expect(button).toBeDisabled();
+	});
 
-		expect(screen.getByLabelText(/wikipedia language/i)).toBeTruthy();
+	it('renders the WikiSelector component', () => {
+		render(<SearchForm {...defaultProps} />);
+		expect(screen.getByLabelText(/Wiki Site:/i)).toBeInTheDocument();
+	});
+
+	it('updates the selected wiki when WikiSelector changes', () => {
+		render(<SearchForm {...defaultProps} />);
+		const wikiSelector = screen.getByLabelText(/Wiki Site:/i);
+		fireEvent.change(wikiSelector, { target: { value: 'jawp' } });
+
+		const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
+		const textArea = screen.getByLabelText(/Text to Find:/i);
+		const button = screen.getByRole('button', { name: /Find An Occurrence/i });
+
+		fireEvent.change(titleInput, { target: { value: 'Albert Einstein' } });
+		fireEvent.change(textArea, { target: { value: 'relativity' } });
+		fireEvent.click(button);
+
+		expect(mockOnSearch).toHaveBeenCalledWith(
+			{
+				id: 'jawp',
+				name: 'Japanese Wikipedia',
+				url: new URL('https://ja.wikipedia.org/'),
+			},
+			'Albert Einstein',
+			'relativity'
+		);
 	});
 });
