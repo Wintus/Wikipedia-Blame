@@ -14,11 +14,8 @@ function App() {
 	const [searchResult, setSearchResult] =
 		useState<SearchResult>(defaultSearchResult);
 
-	const handleSearch: OnSearchFn = async (
-		baseUrl: string,
-		pageTitle: string,
-		targetText: string
-	) => {
+	const handleSearch: OnSearchFn = async (wiki, pageTitle, targetText) => {
+		const baseUrl = wiki.url.toString();
 		setSearchResult((prev) => ({
 			...prev,
 			baseUrl,
