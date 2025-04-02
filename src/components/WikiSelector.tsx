@@ -1,5 +1,5 @@
 import { ChangeEvent } from 'react';
-import { WikiSite, WIKI_SITES } from '../types';
+import { WikiSite, WIKI_SITES } from '../wiki';
 
 type WikiSelectorProps = {
 	selectedWiki: WikiSite;

@@ -5,7 +5,7 @@ import {
 	fetchAllRevisions,
 	getBaseUrl,
 } from '../WikipediaAPI';
-import { WIKI_SITES } from '../../types';
+import { WIKI_SITES } from '../../wiki';
 
 describe('WikipediaAPI', () => {
 	const baseUrl = 'https://en.wikipedia.org';

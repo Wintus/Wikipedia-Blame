@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ResultView } from '../ResultView';
-import { SearchResult, WIKI_SITES } from '../../types';
+import { SearchResult, WIKI_SITES } from '../../wiki';
 
 describe('ResultView', () => {
 	const createResult = (

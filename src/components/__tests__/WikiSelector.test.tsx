@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { WikiSelector } from '../WikiSelector';
-import { WIKI_SITES } from '../../types';
+import { WIKI_SITES } from '../../wiki';
 import '@testing-library/jest-dom';
 
 describe('WikiSelector', () => {
