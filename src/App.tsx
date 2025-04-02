@@ -15,10 +15,9 @@ function App() {
 		useState<SearchResult>(defaultSearchResult);
 
 	const handleSearch: OnSearchFn = async (wiki, pageTitle, targetText) => {
-		const baseUrl = wiki.url.toString();
 		setSearchResult((prev) => ({
 			...prev,
-			baseUrl,
+			wiki,
 			pageTitle,
 			targetText,
 			loading: true,
@@ -26,6 +25,7 @@ function App() {
 			revisionId: null,
 		}));
 
+		const baseUrl = wiki.url.toString();
 		try {
 			// First, fetch the page ID
 			const pageId = await fetchPageId(baseUrl, pageTitle);
