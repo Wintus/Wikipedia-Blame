@@ -8,7 +8,7 @@ export type WikiSite = {
 	url: URL;
 };
 
-export const WIKI_SITES: Record<string, WikiSite> = {
+export const WIKI_SITES: Record<WikiSite['id'], WikiSite> = {
 	ENWP: {
 		id: 'enwp',
 		name: 'English Wikipedia',
