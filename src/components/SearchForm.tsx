@@ -14,9 +14,11 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
 
 	const handleSubmit = (e: FormEvent) => {
 		e.preventDefault();
-		if (pageTitle && targetText) {
+		const trimmedPageTitle = pageTitle.trim();
+		const trimmedTargetText = targetText.trim();
+		if (trimmedPageTitle && trimmedTargetText) {
 			// no await
-			onSearch(selectedWiki, pageTitle, targetText);
+			onSearch(selectedWiki, trimmedPageTitle, trimmedTargetText);
 		}
 	};
 
@@ -30,7 +32,7 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
 					type="text"
 					id="page-title"
 					value={pageTitle}
-					onChange={(e) => setPageTitle(e.target.value.trim())}
+					onChange={(e) => setPageTitle(e.target.value)}
 					placeholder="e.g. Albert Einstein"
 					required
 				/>
@@ -41,7 +43,7 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
 				<textarea
 					id="target-text"
 					value={targetText}
-					onChange={(e) => setTargetText(e.target.value.trim())}
+					onChange={(e) => setTargetText(e.target.value)}
 					placeholder="Enter text to search for in the article's history"
 					required
 				/>
