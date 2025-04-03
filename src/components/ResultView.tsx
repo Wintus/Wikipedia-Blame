@@ -1,4 +1,4 @@
-import { SearchResult } from '../types';
+import { SearchResult } from '../wiki';
 
 type ResultViewProps = {
 	result: SearchResult;
@@ -7,8 +7,8 @@ type ResultViewProps = {
 /**
  * Gets the URL for a specific revision
  */
-const getRevisionUrl = (baseUrl: string, revId: number): string =>
-	`${baseUrl}/w/index.php?oldid=${revId}`;
+const getRevisionUrl = (wikiUrl: string, revId: number): string =>
+	`${wikiUrl.replace(/\/$/, '')}/w/index.php?oldid=${revId}`;
 
 export function ResultView({ result }: ResultViewProps) {
 	// guard
@@ -24,7 +24,10 @@ export function ResultView({ result }: ResultViewProps) {
 		);
 	}
 
-	const revisionUrl = getRevisionUrl(result.baseUrl, result.revisionId);
+	const revisionUrl = getRevisionUrl(
+		result.wiki.url.toString(),
+		result.revisionId
+	);
 
 	return (
 		<div className="result-view success">

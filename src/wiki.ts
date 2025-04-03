@@ -2,7 +2,24 @@
  * Types for Wikipedia API responses and application state
  */
 
-export type WikiLanguage = 'en' | 'ja';
+export type WikiSite = {
+	id: string;
+	name: string;
+	url: URL;
+};
+
+export const WIKI_SITES: Record<string, WikiSite> = {
+	ENWP: {
+		id: 'enwp',
+		name: 'English Wikipedia',
+		url: new URL('https://en.wikipedia.org'),
+	},
+	JAWP: {
+		id: 'jawp',
+		name: 'Japanese Wikipedia',
+		url: new URL('https://ja.wikipedia.org'),
+	},
+};
 
 export type RevisionResult = {
 	rev: number;
@@ -10,13 +27,13 @@ export type RevisionResult = {
 };
 
 export type OnSearchFn = (
-	baseUrl: string,
+	wiki: WikiSite,
 	pageTitle: string,
 	targetText: string
 ) => Promise<void>;
 
 export type SearchResult = {
-	baseUrl: string;
+	wiki: WikiSite;
 	pageTitle: string;
 	targetText: string;
 	loading: boolean;
@@ -25,7 +42,7 @@ export type SearchResult = {
 };
 
 export const defaultSearchResult = {
-	baseUrl: 'https://en.wikipedia.org',
+	wiki: WIKI_SITES.ENWP,
 	pageTitle: '',
 	targetText: '',
 	loading: false,

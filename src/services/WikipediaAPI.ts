@@ -4,7 +4,7 @@
  * note: `rvcontentformat-main=text/plain` is unavailable for regular pages
  */
 
-import { WikiLanguage, RevisionResult } from '../types';
+import { RevisionResult, WikiSite } from '../wiki';
 
 type Revision<Slot extends string> = {
 	revid: number;
@@ -29,8 +29,7 @@ type WikipediaResponse<Slot extends string = 'main'> = {
 
 type Order = 'asc' | 'desc';
 
-export const getBaseUrl = (lang: WikiLanguage): string =>
-	`https://${lang}.wikipedia.org`;
+export const getBaseUrl = (wiki: WikiSite): string => wiki.url.toString();
 
 const getPageRevisions = <Slot extends string = 'main'>(
 	data: WikipediaResponse<Slot>

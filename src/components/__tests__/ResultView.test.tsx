@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ResultView } from '../ResultView';
-import { SearchResult } from '../../types';
+import { SearchResult, WIKI_SITES } from '../../wiki';
 
 describe('ResultView', () => {
 	const createResult = (
@@ -12,7 +12,7 @@ describe('ResultView', () => {
 		revisionId: null,
 		loading: false,
 		error: null,
-		baseUrl: 'https://en.wikipedia.org',
+		wiki: WIKI_SITES.ENWP,
 		...overrides,
 	});
 

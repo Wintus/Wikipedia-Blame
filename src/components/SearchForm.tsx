@@ -1,37 +1,31 @@
 import { FormEvent, useState } from 'react';
-import { WikiLanguage } from '../types';
-import { getBaseUrl } from '../services/WikipediaAPI';
-import { LanguageSelector } from './LanguageSelector';
+import { WikiSite, WIKI_SITES, OnSearchFn } from '../wiki';
+import { WikiSelector } from './WikiSelector';
 
 type SearchFormProps = {
-	onSearch: (
-		baseUrl: string,
-		pageTitle: string,
-		targetText: string
-	) => Promise<void>;
+	onSearch: OnSearchFn;
 	isLoading: boolean;
 };
 
 export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
 	const [pageTitle, setPageTitle] = useState('');
 	const [targetText, setTargetText] = useState('');
-	const [language, setLanguage] = useState<WikiLanguage>('en');
+	const [selectedWiki, setSelectedWiki] = useState<WikiSite>(WIKI_SITES.ENWP);
 
 	const handleSubmit = (e: FormEvent) => {
 		e.preventDefault();
 		if (pageTitle && targetText) {
-			const baseUrl = getBaseUrl(language);
 			// no await
-			onSearch(baseUrl, pageTitle, targetText);
+			onSearch(selectedWiki, pageTitle, targetText);
 		}
 	};
 
 	return (
 		<form onSubmit={handleSubmit} className="search-form">
-			<LanguageSelector language={language} onChange={setLanguage} />
+			<WikiSelector selectedWiki={selectedWiki} onChange={setSelectedWiki} />
 
 			<div className="form-group">
-				<label htmlFor="page-title">Wikipedia Article Title:</label>
+				<label htmlFor="page-title">Wiki Article Title:</label>
 				<input
 					type="text"
 					id="page-title"

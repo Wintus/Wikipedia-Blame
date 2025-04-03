@@ -8,20 +8,16 @@ import {
 	fetchPageId,
 } from './services/WikipediaAPI';
 import { findOneOccurrence } from './utils/RevisionFinder';
-import { defaultSearchResult, SearchResult, OnSearchFn } from './types';
+import { defaultSearchResult, SearchResult, OnSearchFn } from './wiki';
 
 function App() {
 	const [searchResult, setSearchResult] =
 		useState<SearchResult>(defaultSearchResult);
 
-	const handleSearch: OnSearchFn = async (
-		baseUrl: string,
-		pageTitle: string,
-		targetText: string
-	) => {
+	const handleSearch: OnSearchFn = async (wiki, pageTitle, targetText) => {
 		setSearchResult((prev) => ({
 			...prev,
-			baseUrl,
+			wiki,
 			pageTitle,
 			targetText,
 			loading: true,
@@ -29,6 +25,7 @@ function App() {
 			revisionId: null,
 		}));
 
+		const baseUrl = wiki.url.toString();
 		try {
 			// First, fetch the page ID
 			const pageId = await fetchPageId(baseUrl, pageTitle);

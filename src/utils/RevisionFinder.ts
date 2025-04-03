@@ -1,4 +1,4 @@
-import { RevisionResult } from '../types';
+import { RevisionResult } from '../wiki';
 
 /**
  * Fisher-Yates shuffle (non-destructive shuffle)

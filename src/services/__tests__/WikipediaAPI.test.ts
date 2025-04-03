@@ -5,6 +5,7 @@ import {
 	fetchAllRevisions,
 	getBaseUrl,
 } from '../WikipediaAPI';
+import { WIKI_SITES } from '../../wiki';
 
 describe('WikipediaAPI', () => {
 	const baseUrl = 'https://en.wikipedia.org';
@@ -22,8 +23,8 @@ describe('WikipediaAPI', () => {
 
 	describe('getBaseUrl', () => {
 		it('returns correct base URL for different languages', () => {
-			expect(getBaseUrl('en')).toBe('https://en.wikipedia.org');
-			expect(getBaseUrl('ja')).toBe('https://ja.wikipedia.org');
+			expect(getBaseUrl(WIKI_SITES.ENWP)).toBe('https://en.wikipedia.org/');
+			expect(getBaseUrl(WIKI_SITES.JAWP)).toBe('https://ja.wikipedia.org/');
 		});
 	});
 
