@@ -1,72 +1,18 @@
-import { useState } from 'react';
+import { useActionState } from 'react';
 import './App.css';
 import { SearchForm } from './components/SearchForm';
 import { ResultView } from './components/ResultView';
-import {
-	fetchAllRevisions,
-	fetchRevisionTexts,
-	fetchPageId,
-} from './services/WikipediaAPI';
-import { findOneOccurrence } from './utils/RevisionFinder';
-import {
-	defaultSearchResult,
-	type SearchResult,
-	type OnSearchFn,
-} from './wiki';
+import { searchAction } from './actions/searchActions';
+import { defaultSearchResult } from './wiki';
 
 function App() {
-	const [searchResult, setSearchResult] =
-		useState<SearchResult>(defaultSearchResult);
-
-	const handleSearch: OnSearchFn = async (wiki, pageTitle, targetText) => {
-		setSearchResult((prev) => ({
-			...prev,
-			wiki,
-			pageTitle,
-			targetText,
-			loading: true,
-			error: null,
-			revisionId: null,
-		}));
-
-		const baseUrl = wiki.url.toString();
-		try {
-			// First, fetch the page ID
-			const pageId = await fetchPageId(baseUrl, pageTitle);
-
-			if (!pageId) {
-				throw new Error(`Page "${pageTitle}" not found.`);
-			}
-
-			// Fetch all revisions for the page using pageId
-			const revisions = await fetchAllRevisions(baseUrl, pageId);
-
-			// Find one occurrence of the target text
-			const foundRevisionId = await findOneOccurrence(
-				targetText,
-				(revIds) => fetchRevisionTexts(baseUrl, revIds),
-				revisions
-			);
-
-			setSearchResult((prev) => ({
-				...prev,
-				loading: false,
-				revisionId: foundRevisionId,
-			}));
-		} catch (error) {
-			setSearchResult((prev) => ({
-				...prev,
-				loading: false,
-				error:
-					error instanceof Error ? error.message : 'An unknown error occurred',
-			}));
-		}
-	};
+	const [searchResult, formAction, isPending] = useActionState(
+		searchAction,
+		defaultSearchResult
+	);
 
 	const resultShown =
-		searchResult.loading ||
-		searchResult.revisionId != null ||
-		searchResult.error;
+		isPending || searchResult.revisionId != null || searchResult.error;
 
 	return (
 		<div className="app">
@@ -75,8 +21,10 @@ function App() {
 				<p>Find an occurrence of text in a Wikipedia article</p>
 			</header>
 			<main>
-				<SearchForm onSearch={handleSearch} isLoading={searchResult.loading} />
-				{resultShown && <ResultView result={searchResult} />}
+				<SearchForm formAction={formAction} isPending={isPending} />
+				{resultShown && (
+					<ResultView result={searchResult} isPending={isPending} />
+				)}
 			</main>
 		</div>
 	);
