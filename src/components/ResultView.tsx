@@ -2,6 +2,7 @@ import { type SearchResult } from '../wiki';
 
 type ResultViewProps = {
 	result: SearchResult;
+	isPending?: boolean;
 };
 
 /**
@@ -10,9 +11,9 @@ type ResultViewProps = {
 const getRevisionUrl = (wikiUrl: string, revId: number): string =>
 	`${wikiUrl.replace(/\/$/, '')}/w/index.php?oldid=${revId}`;
 
-export function ResultView({ result }: ResultViewProps) {
+export function ResultView({ result, isPending }: ResultViewProps) {
 	// guard
-	if (result.loading) {
+	if (isPending) {
 		return <div className="result-view loading">Searching...</div>;
 	} else if (result.error) {
 		return <div className="result-view error">{result.error}</div>;
