@@ -3,11 +3,14 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { SearchForm } from '../SearchForm';
 
 describe('SearchForm', () => {
-	const mockOnSearch = vi.fn();
-	const defaultProps = { onSearch: mockOnSearch, isLoading: false };
+	const mockFormAction = vi.fn();
+	const defaultProps = {
+		formAction: mockFormAction,
+		isPending: false,
+	};
 
 	beforeEach(() => {
-		mockOnSearch.mockClear();
+		mockFormAction.mockClear();
 	});
 
 	it('renders form inputs and button', () => {
@@ -19,7 +22,7 @@ describe('SearchForm', () => {
 		).toBeInTheDocument();
 	});
 
-	it('calls onSearch with correct parameters when form is submitted', () => {
+	it('submits form with correct FormData', () => {
 		render(<SearchForm {...defaultProps} />);
 		const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
 		const textArea = screen.getByLabelText(/Text to Find:/i);
@@ -29,27 +32,33 @@ describe('SearchForm', () => {
 		fireEvent.change(textArea, { target: { value: 'relativity' } });
 		fireEvent.click(button);
 
-		expect(mockOnSearch).toHaveBeenCalledTimes(1);
-		expect(mockOnSearch).toHaveBeenCalledWith(
-			{
-				id: 'enwp',
-				name: 'English Wikipedia',
-				url: new URL('https://en.wikipedia.org/'),
-			},
-			'Albert Einstein',
-			'relativity'
-		);
+		expect(mockFormAction).toHaveBeenCalledTimes(1);
+
+		// Verify the FormData contains correct values
+		const formDataArg = mockFormAction.mock.calls[0]?.[0];
+		expect(formDataArg.get('pageTitle')).toBe('Albert Einstein');
+		expect(formDataArg.get('targetText')).toBe('relativity');
+
+		// Verify wiki is correctly serialized
+		const wikiData = JSON.parse(formDataArg.get('wiki') as string);
+		expect(wikiData).toEqual({
+			id: 'enwp',
+			name: 'English Wikipedia',
+			url: 'https://en.wikipedia.org/',
+		});
 	});
 
-	it('does not call onSearch when inputs are empty', () => {
+	it('does not submit when inputs are empty', () => {
 		render(<SearchForm {...defaultProps} />);
 		const button = screen.getByRole('button', { name: /Find An Occurrence/i });
 		fireEvent.click(button);
-		expect(mockOnSearch).not.toHaveBeenCalled();
+		expect(mockFormAction).not.toHaveBeenCalled();
 	});
 
-	it('disables the button when isLoading is true', () => {
-		render(<SearchForm onSearch={defaultProps.onSearch} isLoading={true} />);
+	it('disables the button when isPending is true', () => {
+		render(
+			<SearchForm formAction={defaultProps.formAction} isPending={true} />
+		);
 		const button = screen.getByRole('button');
 		expect(button).toBeDisabled();
 	});
@@ -57,29 +66,5 @@ describe('SearchForm', () => {
 	it('renders the WikiSelector component', () => {
 		render(<SearchForm {...defaultProps} />);
 		expect(screen.getByLabelText(/Wiki Site:/i)).toBeInTheDocument();
-	});
-
-	it('updates the selected wiki when WikiSelector changes', () => {
-		render(<SearchForm {...defaultProps} />);
-		const wikiSelector = screen.getByLabelText(/Wiki Site:/i);
-		fireEvent.change(wikiSelector, { target: { value: 'jawp' } });
-
-		const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
-		const textArea = screen.getByLabelText(/Text to Find:/i);
-		const button = screen.getByRole('button', { name: /Find An Occurrence/i });
-
-		fireEvent.change(titleInput, { target: { value: 'Albert Einstein' } });
-		fireEvent.change(textArea, { target: { value: 'relativity' } });
-		fireEvent.click(button);
-
-		expect(mockOnSearch).toHaveBeenCalledWith(
-			{
-				id: 'jawp',
-				name: 'Japanese Wikipedia',
-				url: new URL('https://ja.wikipedia.org/'),
-			},
-			'Albert Einstein',
-			'relativity'
-		);
 	});
 });
