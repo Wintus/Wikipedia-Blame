@@ -8,7 +8,7 @@ export type WikiSite = {
 	url: URL;
 };
 
-export const WIKI_SITES: Record<WikiSite['id'], WikiSite> = {
+export const WIKI_SITES = {
 	ENWP: {
 		id: 'enwp',
 		name: 'English Wikipedia',
@@ -19,7 +19,7 @@ export const WIKI_SITES: Record<WikiSite['id'], WikiSite> = {
 		name: 'Japanese Wikipedia',
 		url: new URL('https://ja.wikipedia.org'),
 	},
-};
+} as const satisfies Record<WikiSite['id'], WikiSite>;
 
 export type RevisionResult = {
 	rev: number;
