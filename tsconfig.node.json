@@ -20,6 +20,10 @@
 		"noUnusedParameters": true,
 		"noFallthroughCasesInSwitch": true,
 		"noUncheckedSideEffectImports": true,
+		"checkJs": true,
+		"exactOptionalPropertyTypes": true,
+		"noImplicitReturns": true,
+		"noUncheckedIndexedAccess": true,
 	},
 	"include": ["vite.config.ts"]
 }
