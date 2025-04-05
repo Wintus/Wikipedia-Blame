@@ -1,4 +1,4 @@
-import { SearchResult } from '../wiki';
+import { type SearchResult } from '../wiki';
 
 type ResultViewProps = {
 	result: SearchResult;

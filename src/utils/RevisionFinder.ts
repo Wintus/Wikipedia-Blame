@@ -1,4 +1,5 @@
-import { RevisionResult } from '../wiki';
+// TODO: stop depending on the wiki module by generifying the typing
+import { type RevisionResult } from '../wiki';
 
 /**
  * Fisher-Yates shuffle (non-destructive shuffle)
@@ -7,7 +8,7 @@ export function shuffleArray<T>(array: ReadonlyArray<T>): ReadonlyArray<T> {
 	const shuffled = [...array]; // Shallow copy to avoid modifying the original array
 	for (let i = shuffled.length - 1; i > 0; i--) {
 		const j = Math.floor(Math.random() * (i + 1));
-		[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+		[shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!];
 	}
 	return shuffled;
 }

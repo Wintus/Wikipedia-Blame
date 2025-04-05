@@ -1,5 +1,5 @@
-import { FormEvent, useState } from 'react';
-import { WikiSite, WIKI_SITES, OnSearchFn } from '../wiki';
+import { type FormEvent, useState } from 'react';
+import { type WikiSite, WIKI_SITES, type OnSearchFn } from '../wiki';
 import { WikiSelector } from './WikiSelector';
 
 type SearchFormProps = {

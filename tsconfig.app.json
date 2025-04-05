@@ -6,6 +6,7 @@
 		"lib": ["ES2023", "DOM", "DOM.Iterable"],
 		"module": "ESNext",
 		"skipLibCheck": true,
+		"verbatimModuleSyntax": true,
 
 		/* Bundler mode */
 		"moduleResolution": "bundler",
@@ -20,7 +21,11 @@
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		"noFallthroughCasesInSwitch": true,
-		"noUncheckedSideEffectImports": true
+		"noUncheckedSideEffectImports": true,
+		"checkJs": true,
+		"exactOptionalPropertyTypes": true,
+		"noImplicitReturns": true,
+		"noUncheckedIndexedAccess": true,
 	},
 	"include": ["src"]
 }
