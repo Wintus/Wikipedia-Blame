@@ -1,3 +1,4 @@
+// TODO: stop depending on the wiki module by generifying the typing
 import { type RevisionResult } from '../wiki';
 
 /**
