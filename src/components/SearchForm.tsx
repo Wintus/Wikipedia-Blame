@@ -1,29 +1,22 @@
-import { type FormEvent, useState } from 'react';
-import { type WikiSite, WIKI_SITES, type OnSearchFn } from '../wiki';
+import { useState } from 'react';
+import { type WikiSite, WIKI_SITES } from '../wiki';
 import { WikiSelector } from './WikiSelector';
 
 type SearchFormProps = {
-	onSearch: OnSearchFn;
-	isLoading: boolean;
+	formAction: (formData: FormData) => void;
+	isPending: boolean;
 };
 
-export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
+export function SearchForm({ formAction, isPending }: SearchFormProps) {
 	const [pageTitle, setPageTitle] = useState('');
 	const [targetText, setTargetText] = useState('');
 	const [selectedWiki, setSelectedWiki] = useState<WikiSite>(WIKI_SITES.ENWP);
 
-	const handleSubmit = (e: FormEvent) => {
-		e.preventDefault();
-		const trimmedPageTitle = pageTitle.trim();
-		const trimmedTargetText = targetText.trim();
-		if (trimmedPageTitle && trimmedTargetText) {
-			// no await
-			onSearch(selectedWiki, trimmedPageTitle, trimmedTargetText);
-		}
-	};
-
 	return (
-		<form onSubmit={handleSubmit} className="search-form">
+		<form action={formAction} className="search-form">
+			{/* Hidden input to pass the selected wiki */}
+			<input type="hidden" name="wiki" value={JSON.stringify(selectedWiki)} />
+
 			<WikiSelector selectedWiki={selectedWiki} onChange={setSelectedWiki} />
 
 			<div className="form-group">
@@ -31,6 +24,7 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
 				<input
 					type="text"
 					id="page-title"
+					name="pageTitle"
 					value={pageTitle}
 					onChange={(e) => setPageTitle(e.target.value)}
 					placeholder="e.g. Albert Einstein"
@@ -42,6 +36,7 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
 				<label htmlFor="target-text">Text to Find:</label>
 				<textarea
 					id="target-text"
+					name="targetText"
 					value={targetText}
 					onChange={(e) => setTargetText(e.target.value)}
 					placeholder="Enter text to search for in the article's history"
@@ -49,8 +44,8 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
 				/>
 			</div>
 
-			<button type="submit" disabled={isLoading}>
-				{isLoading ? 'Searching...' : 'Find An Occurrence'}
+			<button type="submit" disabled={isPending}>
+				{isPending ? 'Searching...' : 'Find An Occurrence'}
 			</button>
 		</form>
 	);

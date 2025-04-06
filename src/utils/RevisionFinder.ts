@@ -1,4 +1,4 @@
-// TODO: stop depending on the wiki module by generifying the typing
+// TODO: remove the dependency on the wiki module by genericizing the types
 import { type RevisionResult } from '../wiki';
 
 /**

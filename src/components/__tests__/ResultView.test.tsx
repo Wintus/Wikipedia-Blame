@@ -16,11 +16,18 @@ describe('ResultView', () => {
 		...overrides,
 	});
 
-	it('displays loading state', () => {
-		const loadingResult = createResult({ loading: true });
-		render(<ResultView result={loadingResult} />);
+	it('displays pending state when isPending is true', () => {
+		const result = createResult();
+		render(<ResultView result={result} isPending={true} />);
 
 		expect(screen.getByText(/searching/i)).toBeTruthy();
+	});
+
+	it('prioritizes isPending over loading state', () => {
+		const loadingResult = createResult({ loading: true });
+		render(<ResultView result={loadingResult} isPending={false} />);
+
+		expect(screen.queryByText(/searching/i)).toBeNull();
 	});
 
 	it('displays error state', () => {
@@ -67,5 +74,16 @@ describe('ResultView', () => {
 		expect(revisionLink.getAttribute('href')).toBe(
 			'https://en.wikipedia.org/w/index.php?oldid=12345'
 		);
+	});
+
+	it('handles case when no revision link is available', () => {
+		const resultWithoutRevision = createResult({
+			pageTitle: 'Test Article',
+			targetText: 'Test Text',
+			revisionId: null,
+		});
+		render(<ResultView result={resultWithoutRevision} />);
+
+		expect(screen.getByText(/text not found/i)).toBeTruthy();
 	});
 });
