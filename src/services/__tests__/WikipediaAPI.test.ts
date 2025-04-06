@@ -3,12 +3,11 @@ import {
 	fetchPageId,
 	fetchRevisionTexts,
 	fetchAllRevisions,
-	getBaseUrl,
 } from '../WikipediaAPI';
 import { WIKI_SITES } from '../../wiki';
 
 describe('WikipediaAPI', () => {
-	const baseUrl = 'https://en.wikipedia.org';
+	const baseUrl = WIKI_SITES.ENWP.url;
 	const mockFetch = vi.fn();
 	const mockConsoleError = vi.fn();
 
@@ -21,13 +20,6 @@ describe('WikipediaAPI', () => {
 		vi.unstubAllGlobals();
 	});
 
-	describe('getBaseUrl', () => {
-		it('returns correct base URL for different languages', () => {
-			expect(getBaseUrl(WIKI_SITES.ENWP)).toBe('https://en.wikipedia.org/');
-			expect(getBaseUrl(WIKI_SITES.JAWP)).toBe('https://ja.wikipedia.org/');
-		});
-	});
-
 	describe('fetchPageId', () => {
 		it('returns page ID when request is successful', async () => {
 			const mockResponse = {
@@ -38,9 +30,11 @@ describe('WikipediaAPI', () => {
 
 			const pageId = await fetchPageId(baseUrl, 'Test Page');
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				`${baseUrl}/w/rest.php/v1/page/Test%20Page/bare`
+			const expectedUrl = new URL(
+				'/w/rest.php/v1/page/Test Page/bare',
+				baseUrl
 			);
+			expect(mockFetch).toHaveBeenCalledWith(expectedUrl);
 			expect(pageId).toBe(12345);
 		});
 
@@ -88,11 +82,11 @@ describe('WikipediaAPI', () => {
 
 			const revisions = await fetchRevisionTexts(baseUrl, [12345]);
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				expect.stringContaining(
-					`${baseUrl}/w/api.php?action=query&prop=revisions&revids=12345`
-				)
+			const expectedUrl = new URL(
+				`/w/api.php?action=query&prop=revisions&revids=12345&rvprop=ids|content&formatversion=2&format=json&origin=*&rvslots=main`,
+				baseUrl
 			);
+			expect(mockFetch).toHaveBeenCalledWith(expectedUrl);
 			expect(revisions).toEqual([{ rev: 12345, text: 'Test content' }]);
 		});
 

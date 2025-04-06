@@ -25,7 +25,7 @@ export async function searchAction(
 	}
 
 	try {
-		const baseUrl = wiki.url.toString();
+		const baseUrl = wiki.url;
 
 		// Fetch page ID
 		const pageId = await fetchPageId(baseUrl, pageTitle);
