@@ -29,6 +29,11 @@ type WikipediaResponse<Slot extends string = 'main'> = {
 
 type Order = 'asc' | 'desc';
 
+const direction = {
+	asc: 'newer',
+	desc: 'older',
+} as const satisfies Record<Order, string>;
+
 const getPageRevisions = <Slot extends string = 'main'>(
 	data: WikipediaResponse<Slot>
 ): ReadonlyArray<Revision<Slot>> => data?.query?.pages?.[0]?.revisions ?? [];
@@ -110,7 +115,7 @@ export async function fetchAllRevisions(
 	order: Order = 'asc'
 ): Promise<ReadonlyArray<number>> {
 	const revisions: number[] = [];
-	const dir = order === 'desc' ? 'older' : 'newer';
+	const dir = direction[order];
 	try {
 		let continueParam: string | null = null;
 		do {
