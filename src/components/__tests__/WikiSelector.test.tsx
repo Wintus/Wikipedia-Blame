@@ -2,7 +2,6 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { WikiSelector } from '../WikiSelector';
 import { WIKI_SITES, type WikiSite } from '../../wiki';
-import '@testing-library/jest-dom';
 
 describe('WikiSelector', () => {
 	const renderComponent = (
@@ -24,24 +23,23 @@ describe('WikiSelector', () => {
 
 	it('displays correct default wiki', () => {
 		renderComponent(WIKI_SITES.ENWP);
-		const selectElement = screen.getByLabelText(
-			'Wiki Site:'
-		) as HTMLSelectElement;
+		const selectElement =
+			screen.getByLabelText<HTMLSelectElement>('Wiki Site:');
 		expect(selectElement.value).toBe(WIKI_SITES.ENWP.id);
 	});
 
 	it('displays correct alternative wiki when provided', () => {
 		renderComponent(WIKI_SITES.JAWP);
-		const selectElement = screen.getByLabelText(
-			'Wiki Site:'
-		) as HTMLSelectElement;
+		const selectElement =
+			screen.getByLabelText<HTMLSelectElement>('Wiki Site:');
 		expect(selectElement.value).toBe(WIKI_SITES.JAWP.id);
 	});
 
 	it('calls onChange with correct wiki when changed', () => {
 		const mockOnChange = vi.fn();
 		renderComponent(WIKI_SITES.ENWP, mockOnChange);
-		const selectElement = screen.getByLabelText('Wiki Site:');
+		const selectElement =
+			screen.getByLabelText<HTMLSelectElement>('Wiki Site:');
 		fireEvent.change(selectElement, {
 			target: { value: WIKI_SITES.JAWP.id },
 		});
@@ -52,13 +50,13 @@ describe('WikiSelector', () => {
 		renderComponent();
 		const options = screen.getAllByRole('option') as HTMLOptionElement[];
 		expect(options.length).toBe(Object.keys(WIKI_SITES).length);
-		options.forEach((option) => {
+		for (const option of options) {
 			const foundWiki = Object.values(WIKI_SITES).find(
 				(w) => w.id === option.value
 			);
 			expect(foundWiki).toBeDefined();
 			expect(option.textContent).toContain(foundWiki?.name);
 			expect(option.textContent).toContain(foundWiki?.url.hostname);
-		});
+		}
 	});
 });
