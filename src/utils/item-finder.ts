@@ -22,6 +22,9 @@ function sampling<T>(
 	return shuffleArray(array).slice(0, sampleSize);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+type NonNullish = {};
+
 /**
  * Creates a text-based detector for finding occurrences in items
  */
@@ -34,7 +37,7 @@ export const createTextDetector =
  * Finds an occurrence of a target string in a set of items.
  * Starts with a randomized sampling approach, then falls back to a full batch search exhaustively if necessary.
  */
-export async function findOneOccurrence<T extends number, U, R extends {}>(
+export async function findOneOccurrence<T extends number, U, R extends NonNullish>(
 	predicate: (item: U) => R | null,
 	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
 	// TODO: AsyncGenerator
@@ -62,7 +65,7 @@ const batchSize = 50;
 /**
  * Performs a batch search by fetching items in batches of 50.
  */
-export async function batchSearch<T extends number, U, R extends {}>(
+export async function batchSearch<T extends number, U, R extends NonNullish>(
 	predicate: (item: U) => R | null,
 	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
 	items: ReadonlyArray<T>
