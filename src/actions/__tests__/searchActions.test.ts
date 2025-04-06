@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { searchAction } from '../searchActions';
 import { WIKI_SITES } from '../../wiki';
 import * as WikipediaAPI from '../../services/WikipediaAPI';
-import * as RevisionFinder from '../../utils/RevisionFinder';
+import * as RevisionFinder from '../../utils/item-finder';
 
 describe('searchAction', () => {
 	const defaultWiki = WIKI_SITES.ENWP;

@@ -3,7 +3,8 @@ import {
 	shuffleArray,
 	findOneOccurrence,
 	batchSearch,
-} from '../RevisionFinder';
+	createTextDetector,
+} from '../item-finder';
 
 describe('RevisionFinder', () => {
 	// Seed random number generator for consistent testing
@@ -36,9 +37,13 @@ describe('RevisionFinder', () => {
 	});
 
 	describe('findOneOccurrence', () => {
-		it('returns null for empty revisions', async () => {
+		it('returns null for empty items', async () => {
 			const mockFetcher = vi.fn();
-			const result = await findOneOccurrence('test', mockFetcher, []);
+			const result = await findOneOccurrence(
+				createTextDetector('test'),
+				mockFetcher,
+				[]
+			);
 
 			expect(result).toBeNull();
 			expect(mockFetcher).not.toHaveBeenCalled();
@@ -53,14 +58,18 @@ describe('RevisionFinder', () => {
 				])
 				.mockResolvedValueOnce([{ rev: 54321, text: 'Contains test text' }]);
 
-			const revisions = [12345, 67890, 54321];
-			const result = await findOneOccurrence('test', mockFetcher, revisions);
+			const items = [12345, 67890, 54321];
+			const result = await findOneOccurrence(
+				createTextDetector('test'),
+				mockFetcher,
+				items
+			);
 
 			expect(result).toBe(54321);
 			expect(mockFetcher).toHaveBeenCalledTimes(2);
 		});
 
-		it('returns null when no revision contains target text', async () => {
+		it('returns null when no item contains target text', async () => {
 			const mockFetcher = vi
 				.fn()
 				.mockResolvedValueOnce([
@@ -69,8 +78,12 @@ describe('RevisionFinder', () => {
 				])
 				.mockResolvedValueOnce([{ rev: 54321, text: 'More text' }]);
 
-			const revisions = [12345, 67890, 54321];
-			const result = await findOneOccurrence('test', mockFetcher, revisions);
+			const items = [12345, 67890, 54321];
+			const result = await findOneOccurrence(
+				createTextDetector('test'),
+				mockFetcher,
+				items
+			);
 
 			expect(result).toBeNull();
 			expect(mockFetcher).toHaveBeenCalledTimes(2);
@@ -78,42 +91,54 @@ describe('RevisionFinder', () => {
 	});
 
 	describe('batchSearch', () => {
-		it('finds revision with target text', async () => {
+		it('finds item with target text', async () => {
 			const mockFetcher = vi.fn().mockResolvedValue([
 				{ rev: 12345, text: 'Some text' },
 				{ rev: 67890, text: 'Contains test text' },
 			]);
 
-			const revisions = [12345, 67890, 54321, 98765];
-			const result = await batchSearch('test', mockFetcher, revisions);
+			const items = [12345, 67890, 54321, 98765];
+			const result = await batchSearch(
+				createTextDetector('test'),
+				mockFetcher,
+				items
+			);
 
 			expect(result).toBe(67890);
 			expect(mockFetcher).toHaveBeenCalledWith([12345, 67890, 54321, 98765]);
 		});
 
-		it('returns null when no revision contains target text', async () => {
+		it('returns null when no item contains target text', async () => {
 			const mockFetcher = vi.fn().mockResolvedValue([
 				{ rev: 12345, text: 'Some text' },
 				{ rev: 67890, text: 'Another text' },
 			]);
 
-			const revisions = [12345, 67890];
-			const result = await batchSearch('test', mockFetcher, revisions);
+			const items = [12345, 67890];
+			const result = await batchSearch(
+				createTextDetector('test'),
+				mockFetcher,
+				items
+			);
 
 			expect(result).toBeNull();
 			expect(mockFetcher).toHaveBeenCalledWith([12345, 67890]);
 		});
 
-		it('processes batches of revisions', async () => {
-			const largeRevisions = Array.from({ length: 100 }, (_, i) => i);
+		it('processes batches of items', async () => {
+			const largeItems = Array.from({ length: 100 }, (_, i) => i);
 			const mockFetcher = vi
 				.fn()
 				.mockResolvedValueOnce(
-					largeRevisions.slice(0, 50).map((rev) => ({ rev, text: 'Some text' }))
+					largeItems.slice(0, 50).map((rev) => ({ rev, text: 'Some text' }))
 				)
 				.mockResolvedValueOnce([{ rev: 75, text: 'Contains test text' }]);
 
-			const result = await batchSearch('test', mockFetcher, largeRevisions);
+			const result = await batchSearch(
+				createTextDetector('test'),
+				mockFetcher,
+				largeItems
+			);
 
 			expect(result).toBe(75);
 			expect(mockFetcher).toHaveBeenCalledTimes(2);

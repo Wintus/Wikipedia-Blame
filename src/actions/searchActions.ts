@@ -3,7 +3,7 @@ import {
 	fetchAllRevisions,
 	fetchRevisionTexts,
 } from '../services/WikipediaAPI';
-import { findOneOccurrence } from '../utils/RevisionFinder';
+import { createTextDetector, findOneOccurrence } from '../utils/item-finder';
 import { type WikiSite, type SearchResult } from '../wiki';
 
 export async function searchAction(
@@ -48,7 +48,7 @@ export async function searchAction(
 
 		// Find occurrence of target text
 		const foundRevisionId = await findOneOccurrence(
-			targetText,
+			createTextDetector(targetText),
 			(revIds) => fetchRevisionTexts(baseUrl, revIds),
 			revisions
 		);
