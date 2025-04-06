@@ -134,9 +134,9 @@ export async function fetchAllRevisions(
 			if (continueParam) url.searchParams.append('rvcontinue', continueParam);
 
 			const response = await fetch(url);
-			const data: WikipediaResponse = await response.json();
+			const data: WikipediaResponse<never> = await response.json();
 
-			const pageRevs = getPageRevisions<never>(data);
+			const pageRevs = getPageRevisions(data);
 			for (const rev of pageRevs) {
 				// TODO: yield
 				revisions.push(rev.revid);
