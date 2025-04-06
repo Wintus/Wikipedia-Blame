@@ -3,7 +3,7 @@ import {
 	fetchAllRevisions,
 	fetchRevisionTexts,
 } from '../services/WikipediaAPI';
-import { findOneOccurrence } from '../utils/RevisionFinder';
+import { findOneOccurrence, type Predicate } from '../utils/item-finder';
 import { type WikiSite, type SearchResult } from '../wiki';
 
 export async function searchAction(
@@ -25,7 +25,7 @@ export async function searchAction(
 	}
 
 	try {
-		const baseUrl = wiki.url.toString();
+		const baseUrl = wiki.url;
 
 		// Fetch page ID
 		const pageId = await fetchPageId(baseUrl, pageTitle);
@@ -43,11 +43,12 @@ export async function searchAction(
 		}
 
 		// Fetch all revisions
+		// TODO: ES2024 Array.fromAsync
 		const revisions = await fetchAllRevisions(baseUrl, pageId);
 
 		// Find occurrence of target text
 		const foundRevisionId = await findOneOccurrence(
-			targetText,
+			createTextDetector(targetText),
 			(revIds) => fetchRevisionTexts(baseUrl, revIds),
 			revisions
 		);
@@ -73,4 +74,18 @@ export async function searchAction(
 			revisionId: null,
 		};
 	}
-}
+} /**
+ * Creates a text-based detector for finding occurrences in items
+ */
+
+export const createTextDetector = <
+	T extends number,
+	U extends { rev: T; text?: string },
+>(
+	targetText: string
+) =>
+	((item: U): T | null =>
+		item.text?.includes(targetText) ? item.rev : null) satisfies Predicate<
+		U,
+		T
+	>;

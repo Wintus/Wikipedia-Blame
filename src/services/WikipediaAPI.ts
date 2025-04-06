@@ -4,7 +4,7 @@
  * note: `rvcontentformat-main=text/plain` is unavailable for regular pages
  */
 
-import { type RevisionResult, type WikiSite } from '../wiki';
+import { type RevisionResult } from '../wiki';
 
 type Revision<Slot extends string> = {
 	revid: number;
@@ -29,7 +29,10 @@ type WikipediaResponse<Slot extends string = 'main'> = {
 
 type Order = 'asc' | 'desc';
 
-export const getBaseUrl = (wiki: WikiSite): string => wiki.url.toString();
+const direction = {
+	asc: 'newer',
+	desc: 'older',
+} as const satisfies Record<Order, string>;
 
 const getPageRevisions = <Slot extends string = 'main'>(
 	data: WikipediaResponse<Slot>
@@ -41,16 +44,16 @@ const convert = (revision: Revision<'main'>): RevisionResult => ({
 
 /**
  * Fetches the page ID for a given title using the REST API
+ *
+ * see https://www.mediawiki.org/wiki/API:REST_API/Reference#Get_page
  */
 export async function fetchPageId(
-	baseUrl: string,
+	baseUrl: URL,
 	pageTitle: string
 ): Promise<number | null> {
 	try {
 		// Using the /page/{title}/bare endpoint from REST API
-		const url = `${baseUrl}/w/rest.php/v1/page/${encodeURIComponent(
-			pageTitle
-		)}/bare`;
+		const url = new URL(`/w/rest.php/v1/page/${pageTitle}/bare`, baseUrl);
 		// guard
 		const response = await fetch(url);
 		if (!response.ok) {
@@ -68,11 +71,13 @@ export async function fetchPageId(
 /**
  * Fetches the text content of multiple Wikipedia revisions using formatversion=2.
  *
+ * see https://www.mediawiki.org/wiki/API:Revisions
+ *
  * Precondition: The number of revision IDs cannot exceed 50 due to API limitations.
  * Precondition: The revision IDs is assumed of a single page.
  */
 export async function fetchRevisionTexts(
-	baseUrl: string,
+	baseUrl: URL,
 	revIds: ReadonlyArray<number>
 ): Promise<ReadonlyArray<RevisionResult>> {
 	if (revIds.length > 50) {
@@ -81,7 +86,10 @@ export async function fetchRevisionTexts(
 		);
 	}
 	const revIdsStr = revIds.join('|');
-	const url = `${baseUrl}/w/api.php?action=query&prop=revisions&revids=${revIdsStr}&rvprop=ids|content&formatversion=2&format=json&origin=*&rvslots=main`;
+	const url = new URL(
+		`/w/api.php?action=query&prop=revisions&revids=${revIdsStr}&rvprop=ids|content&formatversion=2&format=json&origin=*&rvslots=main`,
+		baseUrl
+	);
 
 	try {
 		const response = await fetch(url);
@@ -100,14 +108,16 @@ export async function fetchRevisionTexts(
  * The default order is ascending (= newer last = older first), but can be changed to descending.
  *
  * see https://www.mediawiki.org/wiki/API:Revisions
+ *
+ * TODO: AsyncGenerator
  */
 export async function fetchAllRevisions(
-	baseUrl: string,
+	baseUrl: URL,
 	pageId: number,
 	order: Order = 'asc'
 ): Promise<ReadonlyArray<number>> {
 	const revisions: number[] = [];
-	const dir = order === 'desc' ? 'older' : 'newer';
+	const dir = direction[order];
 	try {
 		let continueParam: string | null = null;
 		do {
@@ -123,11 +133,12 @@ export async function fetchAllRevisions(
 			url.searchParams.append('origin', '*');
 			if (continueParam) url.searchParams.append('rvcontinue', continueParam);
 
-			const response = await fetch(url.toString());
+			const response = await fetch(url);
 			const data: WikipediaResponse = await response.json();
 
 			const pageRevs = getPageRevisions<never>(data);
 			for (const rev of pageRevs) {
+				// TODO: yield
 				revisions.push(rev.revid);
 			}
 
