@@ -108,6 +108,8 @@ export async function fetchRevisionTexts(
  * The default order is ascending (= newer last = older first), but can be changed to descending.
  *
  * see https://www.mediawiki.org/wiki/API:Revisions
+ *
+ * TODO: AsyncGenerator
  */
 export async function fetchAllRevisions(
 	baseUrl: URL,
@@ -136,6 +138,7 @@ export async function fetchAllRevisions(
 
 			const pageRevs = getPageRevisions<never>(data);
 			for (const rev of pageRevs) {
+				// TODO: yield
 				revisions.push(rev.revid);
 			}
 

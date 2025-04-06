@@ -34,6 +34,7 @@ export async function findOneOccurrence(
 	fetcher: (
 		revisions: ReadonlyArray<number>
 	) => Promise<ReadonlyArray<RevisionResult>>,
+	// TODO: AsyncGenerator
 	revisions: ReadonlyArray<number>
 ): Promise<number | null> {
 	if (revisions.length === 0) return null;

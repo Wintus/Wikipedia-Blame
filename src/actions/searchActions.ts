@@ -43,6 +43,7 @@ export async function searchAction(
 		}
 
 		// Fetch all revisions
+		// TODO: ES2024 Array.fromAsync
 		const revisions = await fetchAllRevisions(baseUrl, pageId);
 
 		// Find occurrence of target text
