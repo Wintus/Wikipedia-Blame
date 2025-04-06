@@ -57,6 +57,9 @@ const batchSize = 50;
 
 /**
  * Performs a batch search by fetching revisions in batches of 50.
+ *
+ * FIXME: remove dependency on the wiki module by genericizing the types
+ * TODO: extract the text detector to a separate function
  */
 export async function batchSearch(
 	targetText: string,
