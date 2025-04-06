@@ -74,10 +74,11 @@ export async function searchAction(
 			revisionId: null,
 		};
 	}
-} /**
+}
+
+/**
  * Creates a text-based detector for finding occurrences in items
  */
-
 export const createTextDetector = <
 	T extends number,
 	U extends { rev: T; text?: string },
