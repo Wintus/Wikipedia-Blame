@@ -24,25 +24,33 @@ function sampling<T>(
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 type NonNullish = {};
+type Predicate<S, T extends NonNullish> = (item: S) => T | null;
 
 /**
  * Creates a text-based detector for finding occurrences in items
  */
-export const createTextDetector =
-	<T extends number, U extends { rev: T; text?: string }>(targetText: string) =>
-	(item: U): T | null =>
-		item.text?.includes(targetText) ? item.rev : null;
+export const createTextDetector = <
+	T extends number,
+	U extends { rev: T; text?: string },
+>(
+	targetText: string
+) =>
+	((item: U): T | null =>
+		item.text?.includes(targetText) ? item.rev : null) satisfies Predicate<
+		U,
+		T
+	>;
 
 /**
  * Finds an occurrence of a target string in a set of items.
  * Starts with a randomized sampling approach, then falls back to a full batch search exhaustively if necessary.
  */
-export async function findOneOccurrence<T extends number, U, R extends NonNullish>(
-	predicate: (item: U) => R | null,
+export async function findOneOccurrence<T extends number, U extends NonNullish>(
+	predicate: Predicate<U, T>,
 	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
 	// TODO: AsyncGenerator
 	items: ReadonlyArray<T>
-): Promise<R | null> {
+): Promise<T | null> {
 	if (items.length === 0) return null;
 	// Randomized sampling
 	const sampledItems = sampling(items).toSorted();
@@ -65,11 +73,11 @@ const batchSize = 50;
 /**
  * Performs a batch search by fetching items in batches of 50.
  */
-export async function batchSearch<T extends number, U, R extends NonNullish>(
-	predicate: (item: U) => R | null,
+export async function batchSearch<T extends number, U extends NonNullish>(
+	predicate: Predicate<U, T>,
 	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
 	items: ReadonlyArray<T>
-): Promise<R | null> {
+): Promise<T | null> {
 	for (const batch of batches(batchSize, items)) {
 		// Fetch items in parallel and check for condition
 		const itemResults = await fetcher(batch);
