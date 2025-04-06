@@ -24,22 +24,7 @@ function sampling<T>(
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 type NonNullish = {};
-type Predicate<S, T extends NonNullish> = (item: S) => T | null;
-
-/**
- * Creates a text-based detector for finding occurrences in items
- */
-export const createTextDetector = <
-	T extends number,
-	U extends { rev: T; text?: string },
->(
-	targetText: string
-) =>
-	((item: U): T | null =>
-		item.text?.includes(targetText) ? item.rev : null) satisfies Predicate<
-		U,
-		T
-	>;
+export type Predicate<S, T extends NonNullish> = (item: S) => T | null;
 
 /**
  * Finds an occurrence of a target string in a set of items.

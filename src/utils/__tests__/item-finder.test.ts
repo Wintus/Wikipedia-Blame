@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import {
-	shuffleArray,
-	findOneOccurrence,
-	batchSearch,
-	createTextDetector,
-} from '../item-finder';
+import { shuffleArray, findOneOccurrence, batchSearch } from '../item-finder';
+
+const createTextDetector =
+	<T extends number, U extends { rev: T; text?: string }>(targetText: string) =>
+	(item: U): T | null =>
+		item.text?.includes(targetText) ? item.rev : null;
 
 describe('RevisionFinder', () => {
 	// Seed random number generator for consistent testing
