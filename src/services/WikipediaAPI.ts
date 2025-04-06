@@ -41,6 +41,8 @@ const convert = (revision: Revision<'main'>): RevisionResult => ({
 
 /**
  * Fetches the page ID for a given title using the REST API
+ *
+ * see https://www.mediawiki.org/wiki/API:REST_API/Reference#Get_page
  */
 export async function fetchPageId(
 	baseUrl: string,
@@ -67,6 +69,8 @@ export async function fetchPageId(
 
 /**
  * Fetches the text content of multiple Wikipedia revisions using formatversion=2.
+ *
+ * see https://www.mediawiki.org/wiki/API:Revisions
  *
  * Precondition: The number of revision IDs cannot exceed 50 due to API limitations.
  * Precondition: The revision IDs is assumed of a single page.
