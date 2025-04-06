@@ -62,13 +62,14 @@ const batchSize = 50;
  * FIXME: remove dependency on the wiki module by genericizing the types
  * TODO: extract the text detector to a separate function
  */
-export async function batchSearch(
+export async function batchSearch<
+	T extends number = number,
+	U extends RevisionResult = RevisionResult,
+>(
 	targetText: string,
-	fetcher: (
-		revisions: ReadonlyArray<number>
-	) => Promise<ReadonlyArray<RevisionResult>>,
-	revisions: ReadonlyArray<number>
-): Promise<number | null> {
+	fetcher: (revisions: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
+	revisions: ReadonlyArray<T>
+): Promise<T | null> {
 	for (const batch of batches(batchSize, revisions)) {
 		// Fetch revisions in parallel and check for target text
 		const revisionResults = await fetcher(batch);
@@ -77,7 +78,7 @@ export async function batchSearch(
 		);
 		// Return a revision where the target text appears
 		const found = results.find((rev) => rev != null);
-		if (found) return found;
+		if (found != null) return found as T;
 	}
 	return null;
 }
