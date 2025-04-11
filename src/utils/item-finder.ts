@@ -64,12 +64,22 @@ export async function batchSearch<T extends number, U extends NonNullish>(
 	items: ReadonlyArray<T>
 ): Promise<T | null> {
 	for (const batch of batches(batchSize, items)) {
-		// Fetch items in parallel and check for condition
-		const itemResults = await fetcher(batch);
-		const results = itemResults.map(predicate);
-		// Return an item where the condition is met
-		const found = results.find((rev) => rev != null);
+		const found = await fetchAndFind(predicate, fetcher, batch);
 		if (found != null) return found;
 	}
 	return null;
+}
+
+/**
+ * Fetches items in a batch and finds the first item that meets the condition.
+ */
+async function fetchAndFind<T extends number, U extends NonNullish>(
+	predicate: Predicate<U, T>,
+	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
+	batch: ReadonlyArray<T>
+): Promise<T | null> {
+	// Fetch items in parallel and check for condition
+	const items = await fetcher(batch);
+	// Return an item where the condition is met
+	return items.map(predicate).find((rev) => rev != null) ?? null;
 }
