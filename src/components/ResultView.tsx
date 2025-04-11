@@ -8,8 +8,8 @@ type ResultViewProps = {
 /**
  * Gets the URL for a specific revision
  */
-const getRevisionUrl = (wikiUrl: string, revId: number): string =>
-	`${wikiUrl.replace(/\/$/, '')}/w/index.php?oldid=${revId}`;
+const getRevisionUrl = (wikiUrl: URL | string, revId: number): URL =>
+	new URL(`/w/index.php?oldid=${revId}`, wikiUrl);
 
 export function ResultView({ result, isPending }: ResultViewProps) {
 	// guard
@@ -26,9 +26,9 @@ export function ResultView({ result, isPending }: ResultViewProps) {
 	}
 
 	const revisionUrl = getRevisionUrl(
-		result.wiki.url.toString(),
+		result.wiki.url,
 		result.revisionId
-	);
+	).toString();
 
 	return (
 		<div className="result-view success">
