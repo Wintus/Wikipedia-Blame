@@ -1,27 +1,3 @@
-/**
- * Fisher-Yates shuffle (non-destructive shuffle)
- */
-export function shuffleArray<T>(array: ReadonlyArray<T>): ReadonlyArray<T> {
-	const shuffled = [...array]; // Shallow copy to avoid modifying the original array
-	for (let i = shuffled.length - 1; i > 0; i--) {
-		const j = Math.floor(Math.random() * (i + 1));
-		[shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!];
-	}
-	return shuffled;
-}
-
-/**
- * Helper function to perform randomized sampling
- */
-function sampling<T>(
-	array: ReadonlyArray<T>,
-	minCount: number = 5,
-	samplingRatio: number = 0.1
-): ReadonlyArray<T> {
-	const sampleSize = Math.max(minCount, array.length * samplingRatio); // let it cast to integer
-	return shuffleArray(array).slice(0, sampleSize);
-}
-
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 type NonNullish = {};
 export type Predicate<S, T extends NonNullish> = (item: S) => T | null;
@@ -33,15 +9,47 @@ export type Predicate<S, T extends NonNullish> = (item: S) => T | null;
 export async function findOneOccurrence<T extends number, U extends NonNullish>(
 	predicate: Predicate<U, T>,
 	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
-	// TODO: AsyncGenerator
-	items: ReadonlyArray<T>
+	items: AsyncGenerator<T, unknown, unknown>
 ): Promise<T | null> {
-	if (items.length === 0) return null;
-	// Randomized sampling
-	const sampledItems = sampling(items).toSorted();
-	// Fetch items and check for target condition
-	const found = await batchSearch(predicate, fetcher, sampledItems);
-	return found ?? (await batchSearch(predicate, fetcher, items));
+	const samplingRatio = 0.1;
+	const sampledItems = [];
+	const sampledCount = 50;
+	const fallbackItems = [];
+	const fallbackCount = 200;
+	for await (const item of items) {
+		// Randomized sampling
+		if (Math.random() < samplingRatio) {
+			sampledItems.push(item);
+		} else {
+			fallbackItems.push(item);
+		}
+		// Fetch and check for target condition over sampled items
+		if (sampledItems.length > sampledCount) {
+			const found = await fetchAndFind(
+				predicate,
+				fetcher,
+				sampledItems.splice(0, batchSize)
+			);
+			if (found != null) return found;
+		}
+		// Fetch and check for target condition over fallback items
+		if (fallbackItems.length > fallbackCount) {
+			const found = await fetchAndFind(
+				predicate,
+				fetcher,
+				fallbackItems.splice(0, batchSize)
+			);
+			if (found != null) return found;
+		}
+	}
+	// consume the rest of the items
+	const rest = [...sampledItems, ...fallbackItems];
+	if (rest.length > 0) {
+		const found = await batchSearch(predicate, fetcher, rest);
+		if (found != null) return found;
+	}
+	// if no item is found, return null
+	return null;
 }
 
 function* batches<T>(
