@@ -43,8 +43,7 @@ export async function searchAction(
 		}
 
 		// Fetch all revisions
-		// TODO: AsyncGenerator
-		const revisions = await fetchAllRevisions(baseUrl, pageId);
+		const revisions = fetchAllRevisions(baseUrl, pageId);
 
 		// Find occurrence of target text
 		const foundRevisionId = await findOneOccurrence(

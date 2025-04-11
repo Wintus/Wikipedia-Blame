@@ -4,6 +4,14 @@ import { WIKI_SITES, type SearchResult } from '../../wiki';
 import * as WikipediaAPI from '../../services/WikipediaAPI';
 import * as RevisionFinder from '../../utils/item-finder';
 
+async function* createAsyncGenerator<T>(
+	items: ReadonlyArray<T>
+): AsyncGenerator<T> {
+	for (const item of items) {
+		yield item;
+	}
+}
+
 describe('searchAction', () => {
 	const defaultWiki = WIKI_SITES.ENWP;
 	const defaultPrevState = {
@@ -56,7 +64,9 @@ describe('searchAction', () => {
 	it('handles successful search flow', async () => {
 		// Mock API calls
 		vi.spyOn(WikipediaAPI, 'fetchPageId').mockResolvedValue(123);
-		vi.spyOn(WikipediaAPI, 'fetchAllRevisions').mockResolvedValue([1, 2, 3]);
+		vi.spyOn(WikipediaAPI, 'fetchAllRevisions').mockResolvedValue(
+			createAsyncGenerator([1, 2, 3])
+		);
 		vi.spyOn(RevisionFinder, 'findOneOccurrence').mockResolvedValue(2);
 		vi.spyOn(WikipediaAPI, 'fetchRevisionTexts').mockResolvedValue([
 			{ rev: 2, text: 'Contains Test Text' },
@@ -95,7 +105,9 @@ describe('searchAction', () => {
 	it('handles text not found in revisions', async () => {
 		// Mock successful page and revision fetch, but no text found
 		vi.spyOn(WikipediaAPI, 'fetchPageId').mockResolvedValue(123);
-		vi.spyOn(WikipediaAPI, 'fetchAllRevisions').mockResolvedValue([1, 2, 3]);
+		vi.spyOn(WikipediaAPI, 'fetchAllRevisions').mockResolvedValue(
+			createAsyncGenerator([1, 2, 3])
+		);
 		vi.spyOn(RevisionFinder, 'findOneOccurrence').mockResolvedValue(null);
 
 		const formData = createFormData();
