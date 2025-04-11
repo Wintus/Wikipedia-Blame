@@ -103,20 +103,17 @@ export async function fetchRevisionTexts(
 }
 
 /**
- * Fetches all revisions of a Wikipedia page in batches of 500.
+ * Fetches all revisions of a Wikipedia page as an async generator.
  *
  * The default order is ascending (= newer last = older first), but can be changed to descending.
  *
  * see https://www.mediawiki.org/wiki/API:Revisions
- *
- * TODO: AsyncGenerator
  */
-export async function fetchAllRevisions(
+export async function* fetchAllRevisions(
 	baseUrl: URL,
 	pageId: number,
 	order: Order = 'asc'
-): Promise<ReadonlyArray<number>> {
-	const revisions: number[] = [];
+): AsyncGenerator<number, void, unknown> {
 	const dir = direction[order];
 	try {
 		let continueParam: string | null = null;
@@ -126,7 +123,7 @@ export async function fetchAllRevisions(
 			url.searchParams.append('prop', 'revisions');
 			url.searchParams.append('pageids', pageId.toString());
 			url.searchParams.append('rvprop', 'ids');
-			url.searchParams.append('rvlimit', '500');
+			url.searchParams.append('rvlimit', 'max');
 			url.searchParams.append('rvdir', dir);
 			url.searchParams.append('formatversion', '2');
 			url.searchParams.append('format', 'json');
@@ -138,8 +135,7 @@ export async function fetchAllRevisions(
 
 			const pageRevs = getPageRevisions(data);
 			for (const rev of pageRevs) {
-				// TODO: yield
-				revisions.push(rev.revid);
+				yield rev.revid;
 			}
 
 			continueParam = data?.continue?.rvcontinue ?? null;
@@ -147,5 +143,4 @@ export async function fetchAllRevisions(
 	} catch (error) {
 		console.error('Error fetching all revisions:', error);
 	}
-	return revisions;
 }
