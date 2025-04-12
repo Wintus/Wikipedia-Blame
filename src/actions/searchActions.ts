@@ -12,8 +12,8 @@ export async function searchAction(
 ): Promise<SearchResult> {
 	// Parse form data
 	const wiki: WikiSite = JSON.parse(formData.get('wiki') as string);
-	const pageTitle = formData.get('pageTitle') as string;
-	const targetText = formData.get('targetText') as string;
+	const pageTitle = (formData.get('pageTitle') as string)?.trim();
+	const targetText = (formData.get('targetText') as string)?.trim();
 
 	// Validate inputs
 	if (!pageTitle || !targetText) {
