@@ -13,7 +13,7 @@ export async function searchAction(
 	// Parse form data
 	const wiki: WikiSite = JSON.parse(formData.get('wiki') as string);
 	const pageTitle = (formData.get('pageTitle') as string)?.trim();
-	const targetText = (formData.get('targetText') as string)?.trim();
+	const targetText = formData.get('targetText') as string;
 
 	// Validate inputs
 	if (!pageTitle || !targetText) {

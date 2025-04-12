@@ -38,7 +38,7 @@ export function ResultView({ result, isPending }: ResultViewProps) {
 					<strong>Article:</strong> {result.pageTitle.trim()}
 				</p>
 				<p>
-					<strong>Text:</strong> "{result.targetText.trim()}"
+					<strong>Text:</strong> "{result.targetText}"
 				</p>
 				<p>
 					<strong>Revision ID:</strong> {result.revisionId}
