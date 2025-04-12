@@ -63,4 +63,15 @@ describe('SearchForm', () => {
 		render(<SearchForm {...defaultProps} />);
 		expect(screen.getByLabelText(/Wiki Site:/i)).toBeInTheDocument();
 	});
+
+	it('the selected option remains selected after form submission', () => {
+		render(<SearchForm {...defaultProps} />);
+		const wikiSelector = screen.getByLabelText<HTMLSelectElement>(/Wiki Site:/i);
+
+		fireEvent.change(wikiSelector, { target: { value: 'jawp' } });
+		expect(wikiSelector.value).toBe('jawp');
+
+		fireEvent.submit(screen.getByRole('form'));
+		expect(wikiSelector.value).toBe('jawp');
+	});
 });
