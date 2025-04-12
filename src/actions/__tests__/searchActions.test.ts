@@ -24,11 +24,6 @@ describe('searchAction', () => {
 	} as const satisfies SearchResult;
 	const defaultExpectedState = {
 		...defaultPrevState,
-		wiki: {
-			...defaultWiki,
-			// squashed into a string for FromData later
-			url: defaultWiki.url.toString(),
-		},
 		searchCount: 1,
 	} as const;
 
@@ -38,7 +33,7 @@ describe('searchAction', () => {
 
 	const createFormData = (overrides: Record<string, string> = {}) => {
 		const formData = new FormData();
-		formData.append('wiki', JSON.stringify(defaultWiki));
+		formData.append('wikiId', defaultWiki.id);
 		formData.append('pageTitle', 'Test Page');
 		formData.append('targetText', 'Test Text');
 

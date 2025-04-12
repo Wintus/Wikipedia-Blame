@@ -11,7 +11,11 @@ export async function searchAction(
 	formData: FormData
 ): Promise<SearchResult> {
 	// Parse form data
-	const wiki: WikiSite = JSON.parse(formData.get('wiki') as string);
+	const wikiId = formData
+		.get('wikiId')
+		?.toString()
+		.toUpperCase() as keyof typeof WIKI_SITES;
+	const wiki: WikiSite = WIKI_SITES[wikiId];
 	const pageTitle = (formData.get('pageTitle') as string)?.trim();
 	const targetText = formData.get('targetText') as string;
 

@@ -39,13 +39,9 @@ describe('SearchForm', () => {
 		expect(formDataArg.get('pageTitle')).toBe('Albert Einstein');
 		expect(formDataArg.get('targetText')).toBe('relativity');
 
-		// Verify wiki is correctly serialized
-		const wikiData = JSON.parse(formDataArg.get('wiki') as string);
-		expect(wikiData).toEqual({
-			id: 'enwp',
-			name: 'English Wikipedia',
-			url: 'https://en.wikipedia.org/',
-		});
+		// Verify wiki is correctly selected
+		const wikiId = formDataArg.get('wikiId') as string;
+		expect(wikiId).toEqual('enwp');
 	});
 
 	it('does not submit when inputs are empty', () => {
