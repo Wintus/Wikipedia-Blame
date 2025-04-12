@@ -72,21 +72,6 @@ function* batches<T>(
 }
 
 /**
- * Performs a batch search by fetching items in batches of 50.
- */
-export async function batchSearch<T extends number, U extends NonNullish>(
-	predicate: Predicate<U, T>,
-	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
-	items: ReadonlyArray<T>
-): Promise<T | null> {
-	for (const batch of batches(batchSize, items)) {
-		const found = await fetchAndFind(predicate, fetcher, batch);
-		if (found != null) return found;
-	}
-	return null;
-}
-
-/**
  * Fetches items in a batch and finds the first item that meets the condition.
  */
 async function fetchAndFind<T extends number, U extends NonNullish>(

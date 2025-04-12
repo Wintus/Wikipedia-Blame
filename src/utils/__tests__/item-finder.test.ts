@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { findOneOccurrence, batchSearch } from '../item-finder';
+import { findOneOccurrence } from '../item-finder';
 
 const createTextDetector =
 	<T extends number, U extends { rev: T; text?: string }>(targetText: string) =>
@@ -69,61 +69,6 @@ describe('RevisionFinder', () => {
 
 			expect(result).toBeNull();
 			expect(mockFetcher).toHaveBeenCalledTimes(1);
-		});
-	});
-
-	describe('batchSearch', () => {
-		it('finds item with target text', async () => {
-			const mockFetcher = vi.fn().mockResolvedValue([
-				{ rev: 12345, text: 'Some text' },
-				{ rev: 67890, text: 'Contains test text' },
-			]);
-
-			const items = [12345, 67890, 54321, 98765];
-			const result = await batchSearch(
-				createTextDetector('test'),
-				mockFetcher,
-				items
-			);
-
-			expect(result).toBe(67890);
-			expect(mockFetcher).toHaveBeenCalledWith([12345, 67890, 54321, 98765]);
-		});
-
-		it('returns null when no item contains target text', async () => {
-			const mockFetcher = vi.fn().mockResolvedValue([
-				{ rev: 12345, text: 'Some text' },
-				{ rev: 67890, text: 'Another text' },
-			]);
-
-			const items = [12345, 67890];
-			const result = await batchSearch(
-				createTextDetector('test'),
-				mockFetcher,
-				items
-			);
-
-			expect(result).toBeNull();
-			expect(mockFetcher).toHaveBeenCalledWith([12345, 67890]);
-		});
-
-		it('processes batches of items', async () => {
-			const largeItems = Array.from({ length: 100 }, (_, i) => i);
-			const mockFetcher = vi
-				.fn()
-				.mockResolvedValueOnce(
-					largeItems.slice(0, 50).map((rev) => ({ rev, text: 'Some text' }))
-				)
-				.mockResolvedValueOnce([{ rev: 75, text: 'Contains test text' }]);
-
-			const result = await batchSearch(
-				createTextDetector('test'),
-				mockFetcher,
-				largeItems
-			);
-
-			expect(result).toBe(75);
-			expect(mockFetcher).toHaveBeenCalledTimes(2);
 		});
 	});
 });
