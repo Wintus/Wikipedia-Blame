@@ -36,7 +36,6 @@ export type SearchResult = {
 	wiki: WikiSite;
 	pageTitle: string;
 	targetText: string;
-	loading: boolean;
 	revisionId: number | null;
 	error: string | null;
 };
@@ -45,7 +44,6 @@ export const defaultSearchResult = {
 	wiki: WIKI_SITES.ENWP,
 	pageTitle: '',
 	targetText: '',
-	loading: false,
 	revisionId: null,
 	error: null,
 } as const satisfies SearchResult;

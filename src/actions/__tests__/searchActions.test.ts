@@ -10,7 +10,6 @@ describe('searchAction', () => {
 		wiki: defaultWiki,
 		pageTitle: '',
 		targetText: '',
-		loading: false,
 		revisionId: null,
 		error: null,
 	};
@@ -48,7 +47,6 @@ describe('searchAction', () => {
 		expect(result).toEqual({
 			...defaultPrevState,
 			error: 'Please provide both a page title and text to search for',
-			loading: false,
 		});
 	});
 
@@ -69,7 +67,6 @@ describe('searchAction', () => {
 			...defaultExpectedState,
 			pageTitle: 'Test Page',
 			targetText: 'Test Text',
-			loading: false,
 			revisionId: 2,
 			error: null,
 		});
@@ -87,7 +84,6 @@ describe('searchAction', () => {
 			...defaultExpectedState,
 			pageTitle: 'Test Page',
 			targetText: 'Test Text',
-			loading: false,
 			revisionId: null,
 			error: 'Page "Test Page" not found.',
 		});
@@ -107,7 +103,6 @@ describe('searchAction', () => {
 			...defaultExpectedState,
 			pageTitle: 'Test Page',
 			targetText: 'Test Text',
-			loading: false,
 			revisionId: null,
 			error: 'Text not found in any revision',
 		});
@@ -127,7 +122,6 @@ describe('searchAction', () => {
 			...defaultExpectedState,
 			pageTitle: 'Test Page',
 			targetText: 'Test Text',
-			loading: false,
 			revisionId: null,
 			error: 'Network error',
 		});
@@ -145,7 +139,6 @@ describe('searchAction', () => {
 			...defaultExpectedState,
 			pageTitle: 'Test Page',
 			targetText: 'Test Text',
-			loading: false,
 			revisionId: null,
 			error: 'An unknown error occurred',
 		});

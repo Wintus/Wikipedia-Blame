@@ -20,7 +20,6 @@ export async function searchAction(
 		return {
 			...prevState,
 			error: 'Please provide both a page title and text to search for',
-			loading: false,
 		};
 	}
 
@@ -37,7 +36,6 @@ export async function searchAction(
 				pageTitle,
 				targetText,
 				error: `Page "${pageTitle}" not found.`,
-				loading: false,
 				revisionId: null,
 			};
 		}
@@ -58,7 +56,6 @@ export async function searchAction(
 			wiki,
 			pageTitle,
 			targetText,
-			loading: false,
 			revisionId: foundRevisionId,
 			error: foundRevisionId ? null : 'Text not found in any revision',
 		};
@@ -68,7 +65,6 @@ export async function searchAction(
 			wiki,
 			pageTitle,
 			targetText,
-			loading: false,
 			error:
 				error instanceof Error ? error.message : 'An unknown error occurred',
 			revisionId: null,
