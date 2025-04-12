@@ -16,7 +16,6 @@ export async function searchAction(
 		.get('wikiId')
 		?.toString()
 		.toUpperCase() as keyof typeof WIKI_SITES;
-	const wiki: WikiSite = WIKI_SITES[wikiId];
 	const pageTitle = formData.get('pageTitle')?.toString().trim();
 	const targetText = formData.get('targetText')?.toString();
 
@@ -29,9 +28,10 @@ export async function searchAction(
 		};
 	}
 
-	try {
-		const baseUrl = wiki.url;
+	const wiki: WikiSite = WIKI_SITES[wikiId];
+	const baseUrl = wiki.url;
 
+	try {
 		// Fetch page ID
 		const pageId = await fetchPageId(baseUrl, pageTitle);
 
