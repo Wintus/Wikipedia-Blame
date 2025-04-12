@@ -79,7 +79,7 @@ function* batches<T>(
 /**
  * Fetches items in a batch and finds the first item that meets the condition.
  */
-async function fetchAndFind<T extends number, U extends NonNullish>(
+async function fetchAndFind<T extends NonNullish, U>(
 	predicate: Predicate<U, T>,
 	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
 	batch: ReadonlyArray<T>
