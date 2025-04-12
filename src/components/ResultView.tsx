@@ -35,10 +35,10 @@ export function ResultView({ result, isPending }: ResultViewProps) {
 			<h3>An Occurrence Found</h3>
 			<div className="result-details">
 				<p>
-					<strong>Article:</strong> {result.pageTitle}
+					<strong>Article:</strong> {result.pageTitle.trim()}
 				</p>
 				<p>
-					<strong>Text:</strong> "{result.targetText}"
+					<strong>Text:</strong> "{result.targetText.trim()}"
 				</p>
 				<p>
 					<strong>Revision ID:</strong> {result.revisionId}
