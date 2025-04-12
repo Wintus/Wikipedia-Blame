@@ -2,6 +2,7 @@ import {
 	fetchPageId,
 	fetchAllRevisions,
 	fetchRevisionTexts,
+	type RevisionResult,
 } from '../services/WikipediaAPI';
 import { findOneOccurrence, type Predicate } from '../utils/item-finder';
 import { type WikiSite, type SearchResult, WIKI_SITES } from '../wiki';
@@ -82,16 +83,11 @@ export async function searchAction(
 /**
  * Creates a text-based detector for finding occurrences in items
  */
-export const createTextDetector = <
-	T extends number,
-	U extends { rev: T; text?: string },
->(
-	targetText: string
-) =>
-	((item: U): T | null =>
-		item.text?.includes(targetText) ? item.rev : null) satisfies Predicate<
-		U,
-		T
+const createTextDetector = (targetText: string) =>
+	((item: RevisionResult): number | null =>
+		item.text.includes(targetText) ? item.rev : null) satisfies Predicate<
+		RevisionResult,
+		number
 	>;
 
 export const defaultSearchResult = {
