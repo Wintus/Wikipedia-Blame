@@ -16,8 +16,8 @@ export async function searchAction(
 		?.toString()
 		.toUpperCase() as keyof typeof WIKI_SITES;
 	const wiki: WikiSite = WIKI_SITES[wikiId];
-	const pageTitle = (formData.get('pageTitle') as string)?.trim();
-	const targetText = formData.get('targetText') as string;
+	const pageTitle = formData.get('pageTitle')?.toString().trim();
+	const targetText = formData.get('targetText')?.toString();
 
 	// Validate inputs
 	if (!pageTitle || !targetText) {
