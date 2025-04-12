@@ -21,7 +21,8 @@ export function WikiSelector({ selectedWiki, onChange }: WikiSelectorProps) {
 			<select
 				id="wiki-select"
 				name="wikiId"
-				value={selectedWiki.id}
+				key={selectedWiki.id}
+				defaultValue={selectedWiki.id}
 				onChange={handleChange}
 			>
 				{Object.values(WIKI_SITES).map((wiki) => (
