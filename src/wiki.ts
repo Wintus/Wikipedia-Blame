@@ -35,12 +35,3 @@ export type SearchResult = {
 	error: string | null;
 	searchCount: number;
 };
-
-export const defaultSearchResult = {
-	wiki: WIKI_SITES.ENWP,
-	pageTitle: '',
-	targetText: '',
-	revisionId: null,
-	error: null,
-	searchCount: 0,
-} as const satisfies SearchResult;

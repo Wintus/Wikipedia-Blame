@@ -14,9 +14,6 @@ export function SearchForm({ formAction, isPending }: SearchFormProps) {
 
 	return (
 		<form action={formAction} className="search-form">
-			{/* Hidden input to pass the selected wiki */}
-			<input type="hidden" name="wiki" value={JSON.stringify(selectedWiki)} />
-
 			<WikiSelector selectedWiki={selectedWiki} onChange={setSelectedWiki} />
 
 			<div className="form-group">

@@ -4,7 +4,7 @@
  * note: `rvcontentformat-main=text/plain` is unavailable for regular pages
  */
 
-type RevisionResult = {
+export type RevisionResult = {
 	rev: number;
 	text: string;
 };

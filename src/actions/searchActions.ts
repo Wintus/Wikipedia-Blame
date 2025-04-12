@@ -2,18 +2,19 @@ import {
 	fetchPageId,
 	fetchAllRevisions,
 	fetchRevisionTexts,
+	type RevisionResult,
 } from '../services/WikipediaAPI';
 import { findOneOccurrence, type Predicate } from '../utils/item-finder';
-import { type WikiSite, type SearchResult } from '../wiki';
+import { type WikiSite, type SearchResult, WIKI_SITES } from '../wiki';
 
 export async function searchAction(
 	prevState: SearchResult,
 	formData: FormData
 ): Promise<SearchResult> {
 	// Parse form data
-	const wiki: WikiSite = JSON.parse(formData.get('wiki') as string);
-	const pageTitle = (formData.get('pageTitle') as string)?.trim();
-	const targetText = (formData.get('targetText') as string)?.trim();
+	const wikiId = formData.get('wikiId')?.toString().toUpperCase();
+	const pageTitle = formData.get('pageTitle')?.toString().trim();
+	const targetText = formData.get('targetText')?.toString();
 
 	// Validate inputs
 	if (!pageTitle || !targetText) {
@@ -23,10 +24,22 @@ export async function searchAction(
 			searchCount: prevState.searchCount + 1,
 		};
 	}
+	if (
+		!wikiId ||
+		!((key: string): key is keyof typeof WIKI_SITES => key in WIKI_SITES)(
+			wikiId
+		)
+	) {
+		return {
+			...prevState,
+			error: `Invalid wiki site selected: ${wikiId}`,
+			searchCount: prevState.searchCount + 1,
+		};
+	}
+	const wiki: WikiSite = WIKI_SITES[wikiId];
+	const baseUrl = wiki.url;
 
 	try {
-		const baseUrl = wiki.url;
-
 		// Fetch page ID
 		const pageId = await fetchPageId(baseUrl, pageTitle);
 
@@ -78,14 +91,18 @@ export async function searchAction(
 /**
  * Creates a text-based detector for finding occurrences in items
  */
-export const createTextDetector = <
-	T extends number,
-	U extends { rev: T; text?: string },
->(
-	targetText: string
-) =>
-	((item: U): T | null =>
-		item.text?.includes(targetText) ? item.rev : null) satisfies Predicate<
-		U,
-		T
+const createTextDetector = (targetText: string) =>
+	((item: RevisionResult): number | null =>
+		item.text.includes(targetText) ? item.rev : null) satisfies Predicate<
+		RevisionResult,
+		number
 	>;
+
+export const defaultSearchResult = {
+	wiki: WIKI_SITES.ENWP,
+	pageTitle: '',
+	targetText: '',
+	revisionId: null,
+	error: null,
+	searchCount: 0,
+} as const satisfies SearchResult;
