@@ -12,10 +12,7 @@ export async function searchAction(
 	formData: FormData
 ): Promise<SearchResult> {
 	// Parse form data
-	const wikiId = formData
-		.get('wikiId')
-		?.toString()
-		.toUpperCase() as keyof typeof WIKI_SITES;
+	const wikiId = formData.get('wikiId')?.toString().toUpperCase();
 	const pageTitle = formData.get('pageTitle')?.toString().trim();
 	const targetText = formData.get('targetText')?.toString();
 
@@ -27,7 +24,18 @@ export async function searchAction(
 			searchCount: prevState.searchCount + 1,
 		};
 	}
-
+	if (
+		!wikiId ||
+		!((key: string): key is keyof typeof WIKI_SITES => key in WIKI_SITES)(
+			wikiId
+		)
+	) {
+		return {
+			...prevState,
+			error: `Invalid wiki site selected: ${wikiId}`,
+			searchCount: prevState.searchCount + 1,
+		};
+	}
 	const wiki: WikiSite = WIKI_SITES[wikiId];
 	const baseUrl = wiki.url;
 
