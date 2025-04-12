@@ -140,7 +140,8 @@ describe('WikipediaAPI', () => {
 			];
 			mockFetch.mockImplementation(() => mockResponses.shift());
 
-			const revisions = await fetchAllRevisions(baseUrl, 1234);
+			const all = fetchAllRevisions(baseUrl, 1234);
+			const revisions = await Array.fromAsync(all);
 
 			// Check that fetch was called at least once and the correct revisions are returned
 			expect(mockFetch).toHaveBeenCalled();
@@ -151,7 +152,8 @@ describe('WikipediaAPI', () => {
 		it('returns empty array on network error', async () => {
 			mockFetch.mockRejectedValue(new Error('Network error'));
 
-			const revisions = await fetchAllRevisions(baseUrl, 1234);
+			const all = fetchAllRevisions(baseUrl, 1234);
+			const revisions = await Array.fromAsync(all);
 
 			expect(revisions).toEqual([]);
 			expect(console.error).toHaveBeenCalledWith(

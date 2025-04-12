@@ -1,75 +1,91 @@
-/**
- * Fisher-Yates shuffle (non-destructive shuffle)
- */
-export function shuffleArray<T>(array: ReadonlyArray<T>): ReadonlyArray<T> {
-	const shuffled = [...array]; // Shallow copy to avoid modifying the original array
-	for (let i = shuffled.length - 1; i > 0; i--) {
-		const j = Math.floor(Math.random() * (i + 1));
-		[shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!];
-	}
-	return shuffled;
-}
-
-/**
- * Helper function to perform randomized sampling
- */
-function sampling<T>(
-	array: ReadonlyArray<T>,
-	minCount: number = 5,
-	samplingRatio: number = 0.1
-): ReadonlyArray<T> {
-	const sampleSize = Math.max(minCount, array.length * samplingRatio); // let it cast to integer
-	return shuffleArray(array).slice(0, sampleSize);
-}
-
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 type NonNullish = {};
 export type Predicate<S, T extends NonNullish> = (item: S) => T | null;
+
+const batchSize = 50;
+
+export async function findOneOccurrence<T extends number, U extends NonNullish>(
+	predicate: Predicate<U, T>,
+	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
+	items: AsyncGenerator<T, unknown, unknown>
+): Promise<T | null> {
+	const samplingRatio = 0.1;
+	const sampledCount = 50;
+	const fallbackCount = 500;
+	// fetch and find in batches
+	for await (const batch of itemGenerator(
+		items,
+		samplingRatio,
+		sampledCount,
+		fallbackCount
+	)) {
+		const found = await fetchAndFind(predicate, fetcher, batch);
+		if (found != null) return found;
+	}
+	// if no item is found, return null
+	return null;
+}
 
 /**
  * Finds an occurrence of a target string in a set of items.
  * Starts with a randomized sampling approach, then falls back to a full batch search exhaustively if necessary.
  */
-export async function findOneOccurrence<T extends number, U extends NonNullish>(
-	predicate: Predicate<U, T>,
-	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
-	// TODO: AsyncGenerator
-	items: ReadonlyArray<T>
-): Promise<T | null> {
-	if (items.length === 0) return null;
-	// Randomized sampling
-	const sampledItems = sampling(items).toSorted();
-	// Fetch items and check for target condition
-	const found = await batchSearch(predicate, fetcher, sampledItems);
-	return found ?? (await batchSearch(predicate, fetcher, items));
+async function* itemGenerator<T extends number>(
+	items: AsyncGenerator<T, unknown, unknown>,
+	samplingRatio: number,
+	sampledCount: number,
+	fallbackCount: number
+): AsyncGenerator<ReadonlyArray<T>, void, unknown> {
+	const sampledItems: T[] = [];
+	const fallbackItems: T[] = [];
+	const batcher = (buffer: T[], ratio = 0.5) =>
+		batches(
+			batchSize,
+			buffer.splice(0, buffer.length * ratio) as ReadonlyArray<T>
+		);
+	// main loop for sampling and yielding in different frequencies
+	for await (const item of items) {
+		if (Math.random() < samplingRatio) {
+			sampledItems.push(item);
+		} else {
+			fallbackItems.push(item);
+		}
+		// yield a batch of items if the sampled or fallback items reach each threshold
+		if (sampledItems.length >= sampledCount) {
+			yield* batcher(sampledItems);
+		}
+		if (fallbackItems.length >= fallbackCount) {
+			yield* batcher(fallbackItems);
+		}
+	}
+	// yield remaining items
+	if (sampledItems.length > 0) {
+		yield* batcher(sampledItems, 1);
+	}
+	if (fallbackItems.length > 0) {
+		yield* batcher(fallbackItems, 1);
+	}
 }
 
 function* batches<T>(
 	batchSize: number,
 	array: ReadonlyArray<T>
-): Generator<ReadonlyArray<T>> {
+): Generator<ReadonlyArray<T>, void, unknown> {
 	for (let i = 0; i < array.length; i += batchSize) {
 		yield array.slice(i, i + batchSize);
 	}
 }
 
-const batchSize = 50;
-
 /**
- * Performs a batch search by fetching items in batches of 50.
+ * Fetches items in a batch and finds the first item that meets the condition.
  */
-export async function batchSearch<T extends number, U extends NonNullish>(
+async function fetchAndFind<T extends NonNullish, U>(
 	predicate: Predicate<U, T>,
 	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
-	items: ReadonlyArray<T>
+	batch: ReadonlyArray<T>
 ): Promise<T | null> {
-	for (const batch of batches(batchSize, items)) {
-		// Fetch items in parallel and check for condition
-		const itemResults = await fetcher(batch);
-		const results = itemResults.map(predicate);
-		// Return an item where the condition is met
-		const found = results.find((rev) => rev != null);
-		if (found != null) return found;
-	}
-	return null;
+	// Fetch items in parallel and check for condition
+	const items = await fetcher(batch);
+	// Return an item where the condition is met
+	return items.map(predicate).find((rev) => rev != null) ?? null;
 }
