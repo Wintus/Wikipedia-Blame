@@ -13,7 +13,7 @@ export function SearchForm({ formAction, isPending }: SearchFormProps) {
 	const [selectedWiki, setSelectedWiki] = useState<WikiSite>(WIKI_SITES.ENWP);
 
 	return (
-		<form action={formAction} className="search-form">
+		<form action={formAction} className="search-form" name="searchForm">
 			<WikiSelector selectedWiki={selectedWiki} onChange={setSelectedWiki} />
 
 			<div className="form-group">
