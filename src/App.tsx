@@ -11,9 +11,6 @@ function App() {
 		defaultSearchResult
 	);
 
-	const resultShown =
-		isPending || searchResult.revisionId != null || searchResult.error;
-
 	return (
 		<div className="app">
 			<header>
@@ -22,7 +19,7 @@ function App() {
 			</header>
 			<main>
 				<SearchForm formAction={formAction} isPending={isPending} />
-				{resultShown && (
+				{searchResult.searchCount > 0 && (
 					<ResultView result={searchResult} isPending={isPending} />
 				)}
 			</main>

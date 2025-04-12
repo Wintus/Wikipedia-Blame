@@ -20,6 +20,7 @@ export async function searchAction(
 		return {
 			...prevState,
 			error: 'Please provide both a page title and text to search for',
+			searchCount: prevState.searchCount + 1,
 		};
 	}
 
@@ -37,6 +38,7 @@ export async function searchAction(
 				targetText,
 				error: `Page "${pageTitle}" not found.`,
 				revisionId: null,
+				searchCount: prevState.searchCount + 1,
 			};
 		}
 
@@ -58,6 +60,7 @@ export async function searchAction(
 			targetText,
 			revisionId: foundRevisionId,
 			error: foundRevisionId ? null : 'Text not found in any revision',
+			searchCount: prevState.searchCount + 1,
 		};
 	} catch (error) {
 		return {
@@ -68,6 +71,7 @@ export async function searchAction(
 			error:
 				error instanceof Error ? error.message : 'An unknown error occurred',
 			revisionId: null,
+			searchCount: prevState.searchCount + 1,
 		};
 	}
 }

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { searchAction } from '../searchActions';
-import { WIKI_SITES } from '../../wiki';
+import { WIKI_SITES, type SearchResult } from '../../wiki';
 import * as WikipediaAPI from '../../services/WikipediaAPI';
 import * as RevisionFinder from '../../utils/item-finder';
 
@@ -12,7 +12,8 @@ describe('searchAction', () => {
 		targetText: '',
 		revisionId: null,
 		error: null,
-	};
+		searchCount: 0,
+	} as const satisfies SearchResult;
 	const defaultExpectedState = {
 		...defaultPrevState,
 		wiki: {
@@ -20,7 +21,8 @@ describe('searchAction', () => {
 			// squashed into a string for FromData later
 			url: defaultWiki.url.toString(),
 		},
-	};
+		searchCount: 1,
+	} as const;
 
 	beforeEach(() => {
 		vi.resetAllMocks();
@@ -47,6 +49,7 @@ describe('searchAction', () => {
 		expect(result).toEqual({
 			...defaultPrevState,
 			error: 'Please provide both a page title and text to search for',
+			searchCount: 1,
 		});
 	});
 

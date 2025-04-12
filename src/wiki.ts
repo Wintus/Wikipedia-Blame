@@ -38,6 +38,7 @@ export type SearchResult = {
 	targetText: string;
 	revisionId: number | null;
 	error: string | null;
+	searchCount: number;
 };
 
 export const defaultSearchResult = {
@@ -46,4 +47,5 @@ export const defaultSearchResult = {
 	targetText: '',
 	revisionId: null,
 	error: null,
+	searchCount: 0,
 } as const satisfies SearchResult;
