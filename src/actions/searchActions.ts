@@ -4,7 +4,7 @@ import {
 	fetchRevisionTexts,
 } from '../services/WikipediaAPI';
 import { findOneOccurrence, type Predicate } from '../utils/item-finder';
-import { type WikiSite, type SearchResult } from '../wiki';
+import { type WikiSite, type SearchResult, WIKI_SITES } from '../wiki';
 
 export async function searchAction(
 	prevState: SearchResult,
@@ -89,3 +89,12 @@ export const createTextDetector = <
 		U,
 		T
 	>;
+
+export const defaultSearchResult = {
+	wiki: WIKI_SITES.ENWP,
+	pageTitle: '',
+	targetText: '',
+	revisionId: null,
+	error: null,
+	searchCount: 0,
+} as const satisfies SearchResult;

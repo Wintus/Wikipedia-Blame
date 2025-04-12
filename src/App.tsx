@@ -2,8 +2,7 @@ import { useActionState } from 'react';
 import './App.css';
 import { SearchForm } from './components/SearchForm';
 import { ResultView } from './components/ResultView';
-import { searchAction } from './actions/searchActions';
-import { defaultSearchResult } from './wiki';
+import { searchAction, defaultSearchResult } from './actions/searchActions';
 
 function App() {
 	const [searchResult, formAction, isPending] = useActionState(
