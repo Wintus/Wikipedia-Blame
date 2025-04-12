@@ -7,12 +7,12 @@ describe('ResultView', () => {
 	const createResult = (
 		overrides: Partial<SearchResult> = {}
 	): SearchResult => ({
+		wiki: WIKI_SITES.ENWP,
 		pageTitle: '',
 		targetText: '',
 		revisionId: null,
-		loading: false,
 		error: null,
-		wiki: WIKI_SITES.ENWP,
+		searchCount: 0,
 		...overrides,
 	});
 
@@ -24,7 +24,7 @@ describe('ResultView', () => {
 	});
 
 	it('prioritizes isPending over loading state', () => {
-		const loadingResult = createResult({ loading: true });
+		const loadingResult = createResult();
 		render(<ResultView result={loadingResult} isPending={false} />);
 
 		expect(screen.queryByText(/searching/i)).toBeNull();
