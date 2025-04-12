@@ -2,6 +2,8 @@
 type NonNullish = {};
 export type Predicate<S, T extends NonNullish> = (item: S) => T | null;
 
+const batchSize = 50;
+
 /**
  * Finds an occurrence of a target string in a set of items.
  * Starts with a randomized sampling approach, then falls back to a full batch search exhaustively if necessary.
@@ -60,8 +62,6 @@ function* batches<T>(
 		yield array.slice(i, i + batchSize);
 	}
 }
-
-const batchSize = 50;
 
 /**
  * Performs a batch search by fetching items in batches of 50.
