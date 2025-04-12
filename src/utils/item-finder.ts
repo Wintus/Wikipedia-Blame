@@ -11,7 +11,7 @@ export async function findOneOccurrence<T extends number, U extends NonNullish>(
 ): Promise<T | null> {
 	const samplingRatio = 0.1;
 	const sampledCount = 50;
-	const fallbackCount = 200;
+	const fallbackCount = 500;
 	// fetch and find in batches
 	for await (const batch of itemGenerator(
 		items,
@@ -38,6 +38,11 @@ async function* itemGenerator<T extends number>(
 ): AsyncGenerator<ReadonlyArray<T>, void, unknown> {
 	const sampledItems: T[] = [];
 	const fallbackItems: T[] = [];
+	const batcher = (buffer: T[], ratio = 0.5) =>
+		batches(
+			batchSize,
+			buffer.splice(0, buffer.length * ratio) as ReadonlyArray<T>
+		);
 	// main loop for sampling and yielding in different frequencies
 	for await (const item of items) {
 		if (Math.random() < samplingRatio) {
@@ -47,25 +52,25 @@ async function* itemGenerator<T extends number>(
 		}
 		// yield a batch of items if the sampled or fallback items reach each threshold
 		if (sampledItems.length >= sampledCount) {
-			yield sampledItems.splice(0, batchSize) as ReadonlyArray<T>;
+			yield* batcher(sampledItems);
 		}
 		if (fallbackItems.length >= fallbackCount) {
-			yield fallbackItems.splice(0, batchSize) as ReadonlyArray<T>;
+			yield* batcher(fallbackItems);
 		}
 	}
 	// yield remaining items
 	if (sampledItems.length > 0) {
-		yield* batches(batchSize, sampledItems as ReadonlyArray<T>);
+		yield* batcher(sampledItems, 1);
 	}
 	if (fallbackItems.length > 0) {
-		yield* batches(batchSize, fallbackItems as ReadonlyArray<T>);
+		yield* batcher(fallbackItems, 1);
 	}
 }
 
 function* batches<T>(
 	batchSize: number,
 	array: ReadonlyArray<T>
-): Generator<ReadonlyArray<T>> {
+): Generator<ReadonlyArray<T>, void, unknown> {
 	for (let i = 0; i < array.length; i += batchSize) {
 		yield array.slice(i, i + batchSize);
 	}
