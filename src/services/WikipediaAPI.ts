@@ -4,7 +4,10 @@
  * note: `rvcontentformat-main=text/plain` is unavailable for regular pages
  */
 
-import { type RevisionResult } from '../wiki';
+type RevisionResult = {
+	rev: number;
+	text: string;
+};
 
 type Revision<Slot extends string> = {
 	revid: number;

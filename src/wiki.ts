@@ -21,11 +21,6 @@ export const WIKI_SITES = {
 	},
 } as const satisfies Record<WikiSite['id'], WikiSite>;
 
-export type RevisionResult = {
-	rev: number;
-	text: string;
-};
-
 export type OnSearchFn = (
 	wiki: WikiSite,
 	pageTitle: string,
