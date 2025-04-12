@@ -12,15 +12,15 @@ export async function searchAction(
 ): Promise<SearchResult> {
 	// Parse form data
 	const wiki: WikiSite = JSON.parse(formData.get('wiki') as string);
-	const pageTitle = formData.get('pageTitle') as string;
-	const targetText = formData.get('targetText') as string;
+	const pageTitle = (formData.get('pageTitle') as string)?.trim();
+	const targetText = (formData.get('targetText') as string)?.trim();
 
 	// Validate inputs
 	if (!pageTitle || !targetText) {
 		return {
 			...prevState,
 			error: 'Please provide both a page title and text to search for',
-			loading: false,
+			searchCount: prevState.searchCount + 1,
 		};
 	}
 
@@ -37,13 +37,13 @@ export async function searchAction(
 				pageTitle,
 				targetText,
 				error: `Page "${pageTitle}" not found.`,
-				loading: false,
 				revisionId: null,
+				searchCount: prevState.searchCount + 1,
 			};
 		}
 
 		// Fetch all revisions
-		// TODO: ES2024 Array.fromAsync
+		// TODO: AsyncGenerator
 		const revisions = await fetchAllRevisions(baseUrl, pageId);
 
 		// Find occurrence of target text
@@ -58,9 +58,9 @@ export async function searchAction(
 			wiki,
 			pageTitle,
 			targetText,
-			loading: false,
 			revisionId: foundRevisionId,
 			error: foundRevisionId ? null : 'Text not found in any revision',
+			searchCount: prevState.searchCount + 1,
 		};
 	} catch (error) {
 		return {
@@ -68,16 +68,17 @@ export async function searchAction(
 			wiki,
 			pageTitle,
 			targetText,
-			loading: false,
 			error:
 				error instanceof Error ? error.message : 'An unknown error occurred',
 			revisionId: null,
+			searchCount: prevState.searchCount + 1,
 		};
 	}
-} /**
+}
+
+/**
  * Creates a text-based detector for finding occurrences in items
  */
-
 export const createTextDetector = <
 	T extends number,
 	U extends { rev: T; text?: string },

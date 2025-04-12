@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { searchAction } from '../searchActions';
-import { WIKI_SITES } from '../../wiki';
+import { WIKI_SITES, type SearchResult } from '../../wiki';
 import * as WikipediaAPI from '../../services/WikipediaAPI';
 import * as RevisionFinder from '../../utils/item-finder';
 
@@ -10,10 +10,10 @@ describe('searchAction', () => {
 		wiki: defaultWiki,
 		pageTitle: '',
 		targetText: '',
-		loading: false,
 		revisionId: null,
 		error: null,
-	};
+		searchCount: 0,
+	} as const satisfies SearchResult;
 	const defaultExpectedState = {
 		...defaultPrevState,
 		wiki: {
@@ -21,7 +21,8 @@ describe('searchAction', () => {
 			// squashed into a string for FromData later
 			url: defaultWiki.url.toString(),
 		},
-	};
+		searchCount: 1,
+	} as const;
 
 	beforeEach(() => {
 		vi.resetAllMocks();
@@ -48,7 +49,7 @@ describe('searchAction', () => {
 		expect(result).toEqual({
 			...defaultPrevState,
 			error: 'Please provide both a page title and text to search for',
-			loading: false,
+			searchCount: 1,
 		});
 	});
 
@@ -69,7 +70,6 @@ describe('searchAction', () => {
 			...defaultExpectedState,
 			pageTitle: 'Test Page',
 			targetText: 'Test Text',
-			loading: false,
 			revisionId: 2,
 			error: null,
 		});
@@ -87,7 +87,6 @@ describe('searchAction', () => {
 			...defaultExpectedState,
 			pageTitle: 'Test Page',
 			targetText: 'Test Text',
-			loading: false,
 			revisionId: null,
 			error: 'Page "Test Page" not found.',
 		});
@@ -107,7 +106,6 @@ describe('searchAction', () => {
 			...defaultExpectedState,
 			pageTitle: 'Test Page',
 			targetText: 'Test Text',
-			loading: false,
 			revisionId: null,
 			error: 'Text not found in any revision',
 		});
@@ -127,7 +125,6 @@ describe('searchAction', () => {
 			...defaultExpectedState,
 			pageTitle: 'Test Page',
 			targetText: 'Test Text',
-			loading: false,
 			revisionId: null,
 			error: 'Network error',
 		});
@@ -145,7 +142,6 @@ describe('searchAction', () => {
 			...defaultExpectedState,
 			pageTitle: 'Test Page',
 			targetText: 'Test Text',
-			loading: false,
 			revisionId: null,
 			error: 'An unknown error occurred',
 		});
