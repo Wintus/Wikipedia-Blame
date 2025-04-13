@@ -66,7 +66,8 @@ describe('SearchForm', () => {
 
 	it('the selected option remains selected after form submission', () => {
 		render(<SearchForm {...defaultProps} />);
-		const wikiSelector = screen.getByLabelText<HTMLSelectElement>(/Wiki Site:/i);
+		const wikiSelector =
+			screen.getByLabelText<HTMLSelectElement>(/Wiki Site:/i);
 
 		fireEvent.change(wikiSelector, { target: { value: 'jawp' } });
 		expect(wikiSelector.value).toBe('jawp');

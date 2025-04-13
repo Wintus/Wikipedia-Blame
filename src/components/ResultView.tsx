@@ -1,7 +1,7 @@
-import { type SearchResult } from '../wiki';
+import { type SearchState } from '../wiki';
 
 type ResultViewProps = {
-	result: SearchResult;
+	result: SearchState;
 	isPending?: boolean;
 };
 

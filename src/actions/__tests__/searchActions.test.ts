@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { searchAction } from '../searchActions';
-import { WIKI_SITES, type SearchResult } from '../../wiki';
+import { WIKI_SITES, type SearchState } from '../../wiki';
 import * as WikipediaAPI from '../../services/WikipediaAPI';
 import * as RevisionFinder from '../../utils/item-finder';
 
@@ -21,7 +21,7 @@ describe('searchAction', () => {
 		revisionId: null,
 		error: null,
 		searchCount: 0,
-	} as const satisfies SearchResult;
+	} as const satisfies SearchState;
 	const defaultExpectedState = {
 		...defaultPrevState,
 		searchCount: 1,

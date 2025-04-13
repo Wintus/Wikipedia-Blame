@@ -1,5 +1,5 @@
 /**
- * Types for Wikipedia API responses and application state
+ * Types for MediaWiki wikis and application state
  */
 
 export type WikiSite = {
@@ -21,13 +21,7 @@ export const WIKI_SITES = {
 	},
 } as const satisfies Record<WikiSite['id'], WikiSite>;
 
-export type OnSearchFn = (
-	wiki: WikiSite,
-	pageTitle: string,
-	targetText: string
-) => Promise<void>;
-
-export type SearchResult = {
+export type SearchState = {
 	wiki: WikiSite;
 	pageTitle: string;
 	targetText: string;
