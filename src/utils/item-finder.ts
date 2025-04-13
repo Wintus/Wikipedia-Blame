@@ -28,7 +28,9 @@ export async function findOneOccurrence<T extends number, U extends NonNullish>(
 
 /**
  * Finds an occurrence of a target string in a set of items.
- * Starts with a randomized sampling approach, then falls back to a full batch search exhaustively if necessary.
+ * Perform a randomized sampling with higher frequency,
+ * and a fallback search with lower frequency.
+ * All items are searched at the end.
  */
 async function* itemGenerator<T extends number>(
 	items: AsyncGenerator<T, unknown, unknown>,
