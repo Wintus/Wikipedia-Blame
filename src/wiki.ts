@@ -1,5 +1,5 @@
 /**
- * Types for Wikipedia API responses and application state
+ * Types for MediaWiki wikis and application state
  */
 
 export type WikiSite = {
