@@ -21,12 +21,6 @@ export const WIKI_SITES = {
 	},
 } as const satisfies Record<WikiSite['id'], WikiSite>;
 
-export type OnSearchFn = (
-	wiki: WikiSite,
-	pageTitle: string,
-	targetText: string
-) => Promise<void>;
-
 export type SearchResult = {
 	wiki: WikiSite;
 	pageTitle: string;
