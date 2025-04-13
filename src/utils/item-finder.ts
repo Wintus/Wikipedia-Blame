@@ -2,8 +2,6 @@
 type NonNullish = {};
 export type Predicate<S, T extends NonNullish> = (item: S) => T | null;
 
-const batchSize = 50;
-
 export async function findOneOccurrence<T extends number, U extends NonNullish>(
 	predicate: Predicate<U, T>,
 	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
@@ -40,11 +38,6 @@ async function* itemGenerator<T extends number>(
 ): AsyncGenerator<ReadonlyArray<T>, void, unknown> {
 	const sampledItems: T[] = [];
 	const fallbackItems: T[] = [];
-	const batcher = (buffer: T[], ratio = 0.5) =>
-		batches(
-			batchSize,
-			buffer.splice(0, buffer.length * ratio) as ReadonlyArray<T>
-		);
 	// main loop for sampling and yielding in different frequencies
 	for await (const item of items) {
 		if (Math.random() < samplingRatio) {
@@ -68,6 +61,19 @@ async function* itemGenerator<T extends number>(
 		yield* batcher(fallbackItems, 1);
 	}
 }
+
+/**
+ * Comsumes a buffer of items in ratio and yields them in batches.
+ */
+const batcher = <T>(
+	buffer: T[],
+	ratio = 0.5,
+	batchSize = 50
+): Generator<ReadonlyArray<T>, void, unknown> =>
+	batches(
+		batchSize,
+		buffer.splice(0, buffer.length * ratio) as ReadonlyArray<T>
+	);
 
 function* batches<T>(
 	batchSize: number,
