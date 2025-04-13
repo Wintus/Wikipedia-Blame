@@ -9,7 +9,6 @@ function App() {
 		searchAction,
 		initSearchState
 	);
-	const hasSearched = searchState.searchCount > 0;
 
 	return (
 		<div className="app">
@@ -23,9 +22,7 @@ function App() {
 					isPending={isPending}
 					searchState={searchState}
 				/>
-				{hasSearched && (
-					<ResultView result={searchState} isPending={isPending} />
-				)}
+				<ResultView result={searchState} isPending={isPending} />
 			</main>
 		</div>
 	);
