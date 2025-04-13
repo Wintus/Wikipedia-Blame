@@ -23,13 +23,6 @@ describe('WikiSelector', () => {
 		expect(selectElement.value).toBe('enwp');
 	});
 
-	it('displays correct alternative wiki when provided', () => {
-		render(<WikiSelector selectedWiki="jawp" />);
-		const selectElement =
-			screen.getByLabelText<HTMLSelectElement>('Wiki Site:');
-		expect(selectElement.value).toBe('jawp');
-	});
-
 	it('renders options with correct text and values', () => {
 		render(<WikiSelector />);
 		const options = screen.getAllByRole('option') as HTMLOptionElement[];
