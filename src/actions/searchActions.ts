@@ -5,12 +5,12 @@ import {
 	type RevisionResult,
 } from '../services/WikipediaAPI';
 import { findOneOccurrence, type Predicate } from '../utils/item-finder';
-import { type WikiSite, type SearchResult, WIKI_SITES } from '../wiki';
+import { type WikiSite, type SearchState, WIKI_SITES } from '../wiki';
 
 export async function searchAction(
-	prevState: SearchResult,
+	prevState: SearchState,
 	formData: FormData
-): Promise<SearchResult> {
+): Promise<SearchState> {
 	// Parse form data
 	const wikiId = formData.get('wikiId')?.toString().toUpperCase();
 	const pageTitle = formData.get('pageTitle')?.toString().trim();
@@ -105,4 +105,4 @@ export const defaultSearchResult = {
 	revisionId: null,
 	error: null,
 	searchCount: 0,
-} as const satisfies SearchResult;
+} as const satisfies SearchState;

@@ -1,12 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ResultView } from '../ResultView';
-import { type SearchResult, WIKI_SITES } from '../../wiki';
+import { type SearchState, WIKI_SITES } from '../../wiki';
 
 describe('ResultView', () => {
-	const createResult = (
-		overrides: Partial<SearchResult> = {}
-	): SearchResult => ({
+	const createResult = (overrides: Partial<SearchState> = {}): SearchState => ({
 		wiki: WIKI_SITES.ENWP,
 		pageTitle: '',
 		targetText: '',

@@ -21,7 +21,7 @@ export const WIKI_SITES = {
 	},
 } as const satisfies Record<WikiSite['id'], WikiSite>;
 
-export type SearchResult = {
+export type SearchState = {
 	wiki: WikiSite;
 	pageTitle: string;
 	targetText: string;
