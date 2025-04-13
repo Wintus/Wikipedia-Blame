@@ -2,6 +2,16 @@
 type NonNullish = {};
 export type Predicate<S, T extends NonNullish> = (item: S) => T | null;
 
+/**
+ * Finds the first occurrence of an item that satisfies a given predicate.
+ *
+ * @template T - The type of the items in the input generator.
+ * @template U - The type of the items returned by the fetcher function.
+ * @param predicate - A function that takes an item and returns a value or null if the condition is not met.
+ * @param fetcher - A function that fetches a batch of items and returns a promise resolving to an array of items.
+ * @param items - An asynchronous generator that provides the items to search through.
+ * @returns A promise that resolves to the first item that satisfies the predicate, or null if no such item is found.
+ */
 export async function findOneOccurrence<T extends number, U extends NonNullish>(
 	predicate: Predicate<U, T>,
 	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
