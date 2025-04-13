@@ -11,7 +11,7 @@ export async function findOneOccurrence<T extends number, U extends NonNullish>(
 ): Promise<T | null> {
 	const samplingRatio = 0.1;
 	const sampledCount = 50;
-	const fallbackCount = 500;
+	const fallbackCount = 1000;
 	// fetch and find in batches
 	for await (const batch of itemGenerator(
 		items,
