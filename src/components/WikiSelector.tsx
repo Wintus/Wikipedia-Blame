@@ -1,30 +1,14 @@
-import { type ChangeEvent } from 'react';
-import { type WikiSite, WIKI_SITES } from '../wiki';
+import { WIKI_SITES } from '../wiki';
 
 type WikiSelectorProps = {
-	selectedWiki: WikiSite;
-	onChange: (wiki: WikiSite) => void;
+	selectedWiki?: string;
 };
 
-export function WikiSelector({ selectedWiki, onChange }: WikiSelectorProps) {
-	const handleChange = (e: ChangeEvent<HTMLSelectElement>) => {
-		const wikiId = e.target.value;
-		const wiki = WIKI_SITES[wikiId.toUpperCase() as keyof typeof WIKI_SITES];
-		if (wiki) {
-			onChange(wiki);
-		}
-	};
-
+export function WikiSelector({ selectedWiki = 'enwp' }: WikiSelectorProps) {
 	return (
 		<div className="wiki-selector">
 			<label htmlFor="wiki-select">Wiki Site:</label>
-			<select
-				id="wiki-select"
-				name="wikiId"
-				key={selectedWiki.id}
-				defaultValue={selectedWiki.id}
-				onChange={handleChange}
-			>
+			<select id="wiki-select" name="wikiId" defaultValue={selectedWiki}>
 				{Object.values(WIKI_SITES).map((wiki) => (
 					<option key={wiki.id} value={wiki.id}>
 						{wiki.name} ({wiki.url.hostname})

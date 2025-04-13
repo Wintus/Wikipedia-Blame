@@ -1,53 +1,37 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
 import { WikiSelector } from '../WikiSelector';
-import { WIKI_SITES, type WikiSite } from '../../wiki';
+import { WIKI_SITES } from '../../wiki';
 
 describe('WikiSelector', () => {
-	const renderComponent = (
-		selectedWiki: WikiSite = WIKI_SITES.ENWP,
-		onChange = vi.fn()
-	) => render(<WikiSelector selectedWiki={selectedWiki} onChange={onChange} />);
-
 	it('renders the component with correct label', () => {
-		renderComponent();
+		render(<WikiSelector />);
 		const label = screen.getByText('Wiki Site:');
 		expect(label).toBeInTheDocument();
 	});
 
 	it('renders select element with correct id', () => {
-		renderComponent();
+		render(<WikiSelector />);
 		const selectElement = screen.getByLabelText('Wiki Site:');
 		expect(selectElement).toHaveAttribute('id', 'wiki-select');
 	});
 
 	it('displays correct default wiki', () => {
-		renderComponent(WIKI_SITES.ENWP);
+		render(<WikiSelector />);
 		const selectElement =
 			screen.getByLabelText<HTMLSelectElement>('Wiki Site:');
-		expect(selectElement.value).toBe(WIKI_SITES.ENWP.id);
+		expect(selectElement.value).toBe('enwp');
 	});
 
 	it('displays correct alternative wiki when provided', () => {
-		renderComponent(WIKI_SITES.JAWP);
+		render(<WikiSelector selectedWiki="jawp" />);
 		const selectElement =
 			screen.getByLabelText<HTMLSelectElement>('Wiki Site:');
-		expect(selectElement.value).toBe(WIKI_SITES.JAWP.id);
-	});
-
-	it('calls onChange with correct wiki when changed', () => {
-		const mockOnChange = vi.fn();
-		renderComponent(WIKI_SITES.ENWP, mockOnChange);
-		const selectElement =
-			screen.getByLabelText<HTMLSelectElement>('Wiki Site:');
-		fireEvent.change(selectElement, {
-			target: { value: WIKI_SITES.JAWP.id },
-		});
-		expect(mockOnChange).toHaveBeenCalledWith(WIKI_SITES.JAWP);
+		expect(selectElement.value).toBe('jawp');
 	});
 
 	it('renders options with correct text and values', () => {
-		renderComponent();
+		render(<WikiSelector />);
 		const options = screen.getAllByRole('option') as HTMLOptionElement[];
 		expect(options.length).toBe(Object.keys(WIKI_SITES).length);
 		for (const option of options) {

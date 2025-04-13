@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { SearchForm } from '../SearchForm';
 
 describe('SearchForm', () => {
@@ -22,15 +23,16 @@ describe('SearchForm', () => {
 		).toBeInTheDocument();
 	});
 
-	it('submits form with correct FormData', () => {
+	it('submits form with correct FormData', async () => {
+		const user = userEvent.setup();
 		render(<SearchForm {...defaultProps} />);
 		const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
 		const textArea = screen.getByLabelText(/Text to Find:/i);
 		const button = screen.getByRole('button', { name: /Find An Occurrence/i });
 
-		fireEvent.change(titleInput, { target: { value: 'Albert Einstein' } });
-		fireEvent.change(textArea, { target: { value: 'relativity' } });
-		fireEvent.click(button);
+		await user.type(titleInput, 'Albert Einstein');
+		await user.type(textArea, 'relativity');
+		await user.click(button);
 
 		expect(mockFormAction).toHaveBeenCalledTimes(1);
 
@@ -44,10 +46,11 @@ describe('SearchForm', () => {
 		expect(wikiId).toEqual('enwp');
 	});
 
-	it('does not submit when inputs are empty', () => {
+	it('submits form with empty inputs', async () => {
+		const user = userEvent.setup();
 		render(<SearchForm {...defaultProps} />);
 		const button = screen.getByRole('button', { name: /Find An Occurrence/i });
-		fireEvent.click(button);
+		await user.click(button);
 		expect(mockFormAction).not.toHaveBeenCalled();
 	});
 
@@ -64,15 +67,18 @@ describe('SearchForm', () => {
 		expect(screen.getByLabelText(/Wiki Site:/i)).toBeInTheDocument();
 	});
 
-	it('the selected option remains selected after form submission', () => {
+	it('the selected option remains selected after form submission', async () => {
+		const user = userEvent.setup();
 		render(<SearchForm {...defaultProps} />);
 		const wikiSelector =
 			screen.getByLabelText<HTMLSelectElement>(/Wiki Site:/i);
 
-		fireEvent.change(wikiSelector, { target: { value: 'jawp' } });
+		await user.selectOptions(wikiSelector, 'jawp');
 		expect(wikiSelector.value).toBe('jawp');
 
-		fireEvent.submit(screen.getByRole('form'));
+		await user.click(
+			screen.getByRole('button', { name: /Find An Occurrence/i })
+		);
 		expect(wikiSelector.value).toBe('jawp');
 	});
 });
