@@ -7,16 +7,7 @@ export async function findOneOccurrence<T extends number, U extends NonNullish>(
 	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
 	items: AsyncGenerator<T, unknown, unknown>
 ): Promise<T | null> {
-	const samplingRatio = 0.1;
-	const sampledCount = 50;
-	const fallbackCount = 1000;
-	// fetch and find in batches
-	for await (const batch of itemGenerator(
-		items,
-		samplingRatio,
-		sampledCount,
-		fallbackCount
-	)) {
+	for await (const batch of itemGenerator(items)) {
 		const found = await fetchAndFind(predicate, fetcher, batch);
 		if (found != null) return found;
 	}
@@ -32,9 +23,9 @@ export async function findOneOccurrence<T extends number, U extends NonNullish>(
  */
 async function* itemGenerator<T extends number>(
 	items: AsyncGenerator<T, unknown, unknown>,
-	samplingRatio: number,
-	sampledCount: number,
-	fallbackCount: number
+	samplingRatio = 0.1,
+	sampledCount = 50,
+	fallbackCount = 1000
 ): AsyncGenerator<ReadonlyArray<T>, void, unknown> {
 	const sampledItems: T[] = [];
 	const fallbackItems: T[] = [];
