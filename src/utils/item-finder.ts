@@ -17,12 +17,22 @@ export async function findOneOccurrence<T extends NonNullish, U>(
 	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
 	items: AsyncGenerator<T, unknown, unknown>
 ): Promise<T | null> {
-	for await (const batch of itemGenerator(items)) {
-		const found = await fetchAndFind(predicate, fetcher, batch);
+	for await (const fetchedItems of fetchInBatch(fetcher, items)) {
+		// findMap
+		const found = fetchedItems.map(predicate).find((item) => item != null);
 		if (found != null) return found;
 	}
 	// if no item is found, return null
 	return null;
+}
+
+async function* fetchInBatch<T, U>(
+	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
+	items: AsyncGenerator<T, unknown, unknown>
+): AsyncGenerator<ReadonlyArray<U>, void, unknown> {
+	for await (const batch of itemGenerator(items)) {
+		yield await fetcher(batch);
+	}
 }
 
 /**
@@ -83,18 +93,4 @@ function* batches<T>(
 	for (let i = 0; i < array.length; i += batchSize) {
 		yield array.slice(i, i + batchSize);
 	}
-}
-
-/**
- * Fetches items in a batch and finds the first item that meets the condition.
- */
-async function fetchAndFind<T extends NonNullish, U>(
-	predicate: Predicate<U, T>,
-	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
-	batch: ReadonlyArray<T>
-): Promise<T | null> {
-	// Fetch items in parallel and check for condition
-	const items = await fetcher(batch);
-	// Return an item where the condition is met
-	return items.map(predicate).find((rev) => rev != null) ?? null;
 }
