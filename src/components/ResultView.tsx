@@ -26,6 +26,9 @@ export function ResultView({ result, isPending }: ResultViewProps) {
 	// guard
 	if (isPending) {
 		return <div className="result-view loading">Searching...</div>;
+	} else if (result.searchCount === 0) {
+		// No search performed yet. Show nothing.
+		return <div className="result-view empty"></div>;
 	} else if (result.error) {
 		return <div className="result-view error">{result.error}</div>;
 	} else if (result.revisionId == null) {
@@ -83,7 +86,7 @@ if (import.meta.vitest) {
 			targetText: '',
 			revisionId: null,
 			error: null,
-			searchCount: 0,
+			searchCount: 1,
 			order: 'asc' as const,
 			...overrides,
 		});
@@ -95,11 +98,13 @@ if (import.meta.vitest) {
 			expect(screen.getByText(/searching/i)).toBeTruthy();
 		});
 
-		it('prioritizes isPending over loading state', () => {
-			const loadingResult = createResult();
-			render(<ResultView result={loadingResult} isPending={false} />);
+		it('displays nothing when no search performed yet', () => {
+			const initState = createResult({
+				searchCount: 0,
+			});
+			render(<ResultView result={initState} isPending={false} />);
 
-			expect(screen.queryByText(/searching/i)).toBeNull();
+			expect(screen.queryByText(/searching|found/i)).toBeNull();
 		});
 
 		it('displays error state', () => {
