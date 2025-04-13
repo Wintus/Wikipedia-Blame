@@ -74,7 +74,7 @@ async function* itemGenerator<T>(
 }
 
 /**
- * Comsumes a buffer of items in ratio and yields them in batches.
+ * consumes a buffer of items in ratio and yields them in batches.
  */
 const batcher = <T>(
 	buffer: T[],

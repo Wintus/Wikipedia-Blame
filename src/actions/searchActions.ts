@@ -4,7 +4,7 @@ import {
 	fetchRevisionTexts,
 	type RevisionResult,
 } from '../services/WikipediaAPI';
-import { findOneOccurrence, type Predicate } from '../utils/item-finder';
+import { findOneOccurrence } from '../utils/item-finder';
 import { type WikiSite, type SearchState, WIKI_SITES } from '../wiki';
 
 export async function searchAction(
@@ -60,7 +60,8 @@ export async function searchAction(
 
 		// Find occurrence of target text
 		const foundRevisionId = await findOneOccurrence(
-			createTextDetector(targetText),
+			(item: RevisionResult): number | null =>
+				item.text.includes(targetText) ? item.rev : null,
 			(revIds) => fetchRevisionTexts(baseUrl, revIds),
 			revisions
 		);
@@ -87,16 +88,6 @@ export async function searchAction(
 		};
 	}
 }
-
-/**
- * Creates a text-based detector for finding occurrences in items
- */
-const createTextDetector = (targetText: string) =>
-	((item: RevisionResult): number | null =>
-		item.text.includes(targetText) ? item.rev : null) satisfies Predicate<
-		RevisionResult,
-		number
-	>;
 
 export const defaultSearchResult = {
 	wiki: WIKI_SITES.ENWP,
