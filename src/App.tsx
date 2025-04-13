@@ -5,7 +5,7 @@ import { ResultView } from './components/ResultView';
 import { searchAction, defaultSearchResult } from './actions/searchActions';
 
 function App() {
-	const [searchResult, formAction, isPending] = useActionState(
+	const [searchState, formAction, isPending] = useActionState(
 		searchAction,
 		defaultSearchResult
 	);
@@ -18,8 +18,8 @@ function App() {
 			</header>
 			<main>
 				<SearchForm formAction={formAction} isPending={isPending} />
-				{searchResult.searchCount > 0 && (
-					<ResultView result={searchResult} isPending={isPending} />
+				{searchState.searchCount > 0 && (
+					<ResultView result={searchState} isPending={isPending} />
 				)}
 			</main>
 		</div>
