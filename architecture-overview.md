@@ -2,7 +2,7 @@
 
 ## Overview
 
-Leveraging React v19's `useActionState` hook to create a modern, efficient data fetching strategy for the Wikipedia Blame application.
+This document outlines the current architecture, leveraging React v19's `useActionState` hook to create a modern, efficient data fetching strategy for the Wikipedia Blame application.
 
 ## Core Architectural Principles
 
