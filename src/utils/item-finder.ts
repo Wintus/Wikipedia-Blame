@@ -30,7 +30,7 @@ async function* fetchInBatch<T, U>(
 	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
 	items: AsyncGenerator<T, unknown, unknown>
 ): AsyncGenerator<ReadonlyArray<U>, void, unknown> {
-	for await (const batch of itemGenerator(items)) {
+	for await (const batch of batchGenerator(items)) {
 		yield await fetcher(batch);
 	}
 }
@@ -41,7 +41,7 @@ async function* fetchInBatch<T, U>(
  * and a fallback search with lower frequency.
  * All items are searched at the end.
  */
-async function* itemGenerator<T>(
+async function* batchGenerator<T>(
 	items: AsyncGenerator<T, unknown, unknown>,
 	samplingRatio = 0.1,
 	sampledCount = 50,
