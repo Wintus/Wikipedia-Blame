@@ -17,22 +17,14 @@ export async function findOneOccurrence<T extends NonNullish, U>(
 	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
 	items: AsyncGenerator<T, unknown, unknown>
 ): Promise<T | null> {
-	for await (const fetchedItems of fetchInBatch(fetcher, items)) {
+	for await (const batch of batchGenerator(items)) {
+		const fetchedItems = await fetcher(batch);
 		// findMap
 		const found = fetchedItems.map(predicate).find((item) => item != null);
 		if (found != null) return found;
 	}
 	// if no item is found, return null
 	return null;
-}
-
-async function* fetchInBatch<T, U>(
-	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
-	items: AsyncGenerator<T, unknown, unknown>
-): AsyncGenerator<ReadonlyArray<U>, void, unknown> {
-	for await (const batch of batchGenerator(items)) {
-		yield await fetcher(batch);
-	}
 }
 
 /**
