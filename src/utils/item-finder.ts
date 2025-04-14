@@ -81,10 +81,7 @@ const batcher = <T>(
 	ratio = 0.5,
 	batchSize = 50
 ): Generator<ReadonlyArray<T>, void, unknown> =>
-	batches(
-		batchSize,
-		buffer.splice(0, buffer.length * ratio) as ReadonlyArray<T>
-	);
+	batches(batchSize, buffer.splice(0, buffer.length * ratio));
 
 function* batches<T>(
 	batchSize: number,
