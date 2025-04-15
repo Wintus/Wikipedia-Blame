@@ -12,23 +12,21 @@ export type Predicate<S, T extends NonNullish> = (item: S) => T | null;
  * @param items - An asynchronous generator that provides the items to search through.
  * @returns A promise that resolves to the first item that satisfies the predicate, or null if no such item is found.
  */
-export async function findOneOccurrence<T extends NonNullish, U>(
+export const findOneOccurrence = async <T extends NonNullish, U>(
 	predicate: Predicate<U, T>,
 	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
 	items: AsyncGenerator<T, unknown, unknown>
-): Promise<T | null> {
-	return await genFind(batchMapGen(fetcher, predicate, items));
-}
+): Promise<T | null> => genFind(batchMapGen(fetcher, predicate, items));
 
-async function genFind<T extends NonNullish>(
+const genFind = async <T extends NonNullish>(
 	items: AsyncGenerator<T | null, unknown, unknown>
-): Promise<T | null> {
+): Promise<T | null> => {
 	for await (const item of items) {
 		if (item != null) return item;
 	}
 	// if no item is found, return null
 	return null;
-}
+};
 
 async function* batchMapGen<T extends NonNullish, U>(
 	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
