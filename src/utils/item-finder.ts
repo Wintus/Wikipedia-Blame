@@ -71,10 +71,10 @@ async function* batchGenerator<T>(
 		}
 		// yield a batch of items if the sampled or fallback items reach each threshold
 		if (sampledItems.length >= sampledCount) {
-			yield* mutBatchGen(sampledItems);
+			yield* mutBatchGen(sampledItems, 0.5);
 		}
 		if (fallbackItems.length >= fallbackCount) {
-			yield* mutBatchGen(fallbackItems);
+			yield* mutBatchGen(fallbackItems, 0.5);
 		}
 	}
 	// yield remaining items
@@ -91,7 +91,7 @@ async function* batchGenerator<T>(
  */
 const mutBatchGen = <T>(
 	buffer: T[],
-	ratio = 0.5,
+	ratio = 1.0,
 	batchSize = 50
 ): Generator<ReadonlyArray<T>, void, unknown> =>
 	batches(batchSize, buffer.splice(0, buffer.length * ratio));
