@@ -59,6 +59,7 @@ async function* batchGenerator<T>(
 	sampledCount = 50,
 	fallbackCount = 1000
 ): AsyncGenerator<ReadonlyArray<T>, void, unknown> {
+	// Buffers are intentionally mutable (T[]) as they are consumed by mutBatchGen via splice.
 	const sampledItems: T[] = [];
 	const fallbackItems: T[] = [];
 	// main loop for sampling and yielding in different frequencies
