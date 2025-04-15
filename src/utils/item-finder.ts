@@ -17,7 +17,8 @@ export async function findOneOccurrence<T extends NonNullish, U>(
 	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
 	items: AsyncGenerator<T, unknown, unknown>
 ): Promise<T | null> {
-	for await (const fetchedItems of fetchInBatch(fetcher, items)) {
+	for await (const batch of batchGenerator(items)) {
+		const fetchedItems = await fetcher(batch);
 		// findMap
 		const found = fetchedItems.map(predicate).find((item) => item != null);
 		if (found != null) return found;
@@ -26,22 +27,13 @@ export async function findOneOccurrence<T extends NonNullish, U>(
 	return null;
 }
 
-async function* fetchInBatch<T, U>(
-	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
-	items: AsyncGenerator<T, unknown, unknown>
-): AsyncGenerator<ReadonlyArray<U>, void, unknown> {
-	for await (const batch of itemGenerator(items)) {
-		yield await fetcher(batch);
-	}
-}
-
 /**
  * Finds an occurrence of a target string in a set of items.
  * Perform a randomized sampling with higher frequency,
  * and a fallback search with lower frequency.
  * All items are searched at the end.
  */
-async function* itemGenerator<T>(
+async function* batchGenerator<T>(
 	items: AsyncGenerator<T, unknown, unknown>,
 	samplingRatio = 0.1,
 	sampledCount = 50,
@@ -58,33 +50,30 @@ async function* itemGenerator<T>(
 		}
 		// yield a batch of items if the sampled or fallback items reach each threshold
 		if (sampledItems.length >= sampledCount) {
-			yield* batcher(sampledItems);
+			yield* mutBatchGen(sampledItems);
 		}
 		if (fallbackItems.length >= fallbackCount) {
-			yield* batcher(fallbackItems);
+			yield* mutBatchGen(fallbackItems);
 		}
 	}
 	// yield remaining items
 	if (sampledItems.length > 0) {
-		yield* batcher(sampledItems, 1);
+		yield* mutBatchGen(sampledItems, 1);
 	}
 	if (fallbackItems.length > 0) {
-		yield* batcher(fallbackItems, 1);
+		yield* mutBatchGen(fallbackItems, 1);
 	}
 }
 
 /**
  * consumes a buffer of items in ratio and yields them in batches.
  */
-const batcher = <T>(
+const mutBatchGen = <T>(
 	buffer: T[],
 	ratio = 0.5,
 	batchSize = 50
 ): Generator<ReadonlyArray<T>, void, unknown> =>
-	batches(
-		batchSize,
-		buffer.splice(0, buffer.length * ratio) as ReadonlyArray<T>
-	);
+	batches(batchSize, buffer.splice(0, buffer.length * ratio));
 
 function* batches<T>(
 	batchSize: number,
