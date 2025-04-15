@@ -16,7 +16,8 @@ export const findOneOccurrence = async <T extends NonNullish, U>(
 	predicate: Predicate<U, T>,
 	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
 	items: AsyncGenerator<T, unknown, unknown>
-): Promise<T | null> => genFind(batchMapGen(fetcher, predicate, items));
+): Promise<T | null> =>
+	genFind(mapGen(predicate, batchFetchGen(fetcher, items)));
 
 const genFind = async <T extends NonNullish>(
 	items: AsyncGenerator<T | null, unknown, unknown>
@@ -28,14 +29,21 @@ const genFind = async <T extends NonNullish>(
 	return null;
 };
 
-async function* batchMapGen<T extends NonNullish, U>(
-	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
-	predicate: Predicate<U, T>,
+async function* mapGen<T, U>(
+	functor: (item: T) => U,
 	items: AsyncGenerator<T, unknown, unknown>
-): AsyncGenerator<T | null, void, unknown> {
+): AsyncGenerator<U, void, unknown> {
+	for await (const item of items) {
+		yield functor(item);
+	}
+}
+
+async function* batchFetchGen<T extends NonNullish, U>(
+	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
+	items: AsyncGenerator<T, unknown, unknown>
+): AsyncGenerator<U, void, unknown> {
 	for await (const batch of batchGenerator(items)) {
-		const fetchedItems = await fetcher(batch);
-		yield* fetchedItems.map(predicate);
+		yield* await fetcher(batch);
 	}
 }
 
