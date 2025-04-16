@@ -12,19 +12,39 @@ export type Predicate<S, T extends NonNullish> = (item: S) => T | null;
  * @param items - An asynchronous generator that provides the items to search through.
  * @returns A promise that resolves to the first item that satisfies the predicate, or null if no such item is found.
  */
-export async function findOneOccurrence<T extends NonNullish, U>(
+export const findOneOccurrence = async <T extends NonNullish, U>(
 	predicate: Predicate<U, T>,
 	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
 	items: AsyncGenerator<T, unknown, unknown>
-): Promise<T | null> {
-	for await (const batch of batchGenerator(items)) {
-		const fetchedItems = await fetcher(batch);
-		// findMap
-		const found = fetchedItems.map(predicate).find((item) => item != null);
-		if (found != null) return found;
+): Promise<T | null> =>
+	genFind(mapGen(predicate, batchFetchGen(fetcher, items)));
+
+const genFind = async <T extends NonNullish>(
+	items: AsyncGenerator<T | null, unknown, unknown>
+): Promise<T | null> => {
+	for await (const item of items) {
+		if (item != null) return item;
 	}
 	// if no item is found, return null
 	return null;
+};
+
+async function* mapGen<T, U>(
+	functor: (item: T) => U,
+	items: AsyncGenerator<T, unknown, unknown>
+): AsyncGenerator<U, void, unknown> {
+	for await (const item of items) {
+		yield functor(item);
+	}
+}
+
+async function* batchFetchGen<T extends NonNullish, U>(
+	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
+	items: AsyncGenerator<T, unknown, unknown>
+): AsyncGenerator<U, void, unknown> {
+	for await (const batch of batchGenerator(items)) {
+		yield* await fetcher(batch);
+	}
 }
 
 /**
@@ -39,6 +59,7 @@ async function* batchGenerator<T>(
 	sampledCount = 50,
 	fallbackCount = 1000
 ): AsyncGenerator<ReadonlyArray<T>, void, unknown> {
+	// Buffers are intentionally mutable (T[]) as they are consumed by mutBatchGen via splice.
 	const sampledItems: T[] = [];
 	const fallbackItems: T[] = [];
 	// main loop for sampling and yielding in different frequencies
@@ -50,10 +71,10 @@ async function* batchGenerator<T>(
 		}
 		// yield a batch of items if the sampled or fallback items reach each threshold
 		if (sampledItems.length >= sampledCount) {
-			yield* mutBatchGen(sampledItems);
+			yield* mutBatchGen(sampledItems, 0.5);
 		}
 		if (fallbackItems.length >= fallbackCount) {
-			yield* mutBatchGen(fallbackItems);
+			yield* mutBatchGen(fallbackItems, 0.5);
 		}
 	}
 	// yield remaining items
@@ -70,7 +91,7 @@ async function* batchGenerator<T>(
  */
 const mutBatchGen = <T>(
 	buffer: T[],
-	ratio = 0.5,
+	ratio = 1.0,
 	batchSize = 50
 ): Generator<ReadonlyArray<T>, void, unknown> =>
 	batches(batchSize, buffer.splice(0, buffer.length * ratio));
