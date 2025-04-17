@@ -37,6 +37,11 @@ const direction = {
 	desc: 'older',
 } as const satisfies Record<Order, string>;
 
+const boundaryParam = {
+	asc: 'rvendid',
+	desc: 'rvstartid',
+} as const satisfies Record<Order, string>;
+
 const getPageRevisions = <Slot extends string = 'main'>(
 	data: WikipediaResponse<Slot>
 ): ReadonlyArray<Revision<Slot>> => data?.query?.pages?.[0]?.revisions ?? [];
@@ -109,14 +114,17 @@ export async function fetchRevisionTexts(
  * Fetches all revisions of a Wikipedia page as an async generator.
  *
  * The default order is ascending (= newer last = older first), but can be changed to descending.
+ * If `uptoRevId` is provided, fetching stops at the timestamp of that revision ID.
  *
  * see https://www.mediawiki.org/wiki/API:Revisions
  */
 export async function* fetchAllRevisions(
 	baseUrl: URL,
 	pageId: number,
-	order: Order = 'asc'
+	options?: { order?: Order; uptoRevId?: number }
 ): AsyncGenerator<number, void, unknown> {
+	const order = options?.order ?? 'asc';
+	const uptoRevId = options?.uptoRevId;
 	const dir = direction[order];
 	try {
 		let continueParam: string | null = null;
@@ -128,6 +136,10 @@ export async function* fetchAllRevisions(
 			url.searchParams.append('rvprop', 'ids');
 			url.searchParams.append('rvlimit', 'max');
 			url.searchParams.append('rvdir', dir);
+			if (uptoRevId != null) {
+				const paramName = boundaryParam[order];
+				url.searchParams.append(paramName, uptoRevId.toString());
+			}
 			url.searchParams.append('formatversion', '2');
 			url.searchParams.append('format', 'json');
 			url.searchParams.append('origin', '*');
