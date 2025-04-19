@@ -44,6 +44,56 @@ describe('SearchForm', () => {
 		expect(wikiId).toEqual('enwp');
 	});
 
+	it('renders the uptoRevId input field', () => {
+		render(<SearchForm {...defaultProps} />);
+		expect(
+			screen.getByLabelText(/Search up to Rev ID \(optional\):/i)
+		).toBeInTheDocument();
+	});
+
+	it('populates the uptoRevId input with the revisionId from searchState', () => {
+		render(
+			<SearchForm
+				{...defaultProps}
+				searchState={{
+					wiki: { id: 'enwp', name: 'English Wikipedia', url: new URL('https://en.wikipedia.org') },
+					pageTitle: 'Test Page',
+					targetText: 'Test Text',
+					revisionId: 12345,
+					error: null,
+					searchCount: 0,
+				}}
+			/>
+		);
+		const uptoRevIdInput = screen.getByLabelText(/Search up to Rev ID \(optional\):/i) as HTMLInputElement;
+		expect(uptoRevIdInput.value).toBe('12345');
+	});
+
+	it('submits form with correct FormData including uptoRevId', () => {
+		render(<SearchForm {...defaultProps} />);
+		const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
+		const textArea = screen.getByLabelText(/Text to Find:/i);
+		const uptoRevIdInput = screen.getByLabelText(/Search up to Rev ID \(optional\):/i);
+		const button = screen.getByRole('button', { name: /Find An Occurrence/i });
+
+		fireEvent.change(titleInput, { target: { value: 'Albert Einstein' } });
+		fireEvent.change(textArea, { target: { value: 'relativity' } });
+		fireEvent.change(uptoRevIdInput, { target: { value: '67890' } });
+		fireEvent.click(button);
+
+		expect(mockFormAction).toHaveBeenCalledTimes(1);
+
+		// Verify the FormData contains correct values
+		const formDataArg = mockFormAction.mock.calls[0]?.[0];
+		expect(formDataArg.get('pageTitle')).toBe('Albert Einstein');
+		expect(formDataArg.get('targetText')).toBe('relativity');
+		expect(formDataArg.get('uptoRevId')).toBe('67890');
+
+		// Verify wiki is correctly selected
+		const wikiId = formDataArg.get('wikiId') as string;
+		expect(wikiId).toEqual('enwp');
+	});
+
 	it('does not submit when inputs are empty', () => {
 		render(<SearchForm {...defaultProps} />);
 		const button = screen.getByRole('button', { name: /Find An Occurrence/i });
