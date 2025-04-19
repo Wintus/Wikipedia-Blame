@@ -15,6 +15,7 @@ The application utilizes modern React features, specifically the `useActionState
 - Support for both English (en.wikipedia.org) and Japanese (ja.wikipedia.org) Wikipedia.
 - Efficient search algorithm:
 	- Fetches revision IDs using an async generator to handle potentially long histories without loading everything at once.
+- Iterative searching: Automatically populates the 'up to revision ID' field after a successful search, making it easy to find subsequent occurrences by searching again.
 	- Uses randomized sampling (`item-finder.ts`) to prioritize checking likely revisions first.
 	- Fetches revision content in batches (up to 50) as needed.
 - Direct links to the specific revision where the text was found.
@@ -37,16 +38,16 @@ The application employs an action-state driven architecture centered around Reac
 2. **Action Execution (`searchActions.ts`):**
 	- The `searchAction` function receives form data and the previous state.
 	- It validates input and fetches the Wikipedia page ID using `fetchPageId` (`WikipediaAPI.ts`).
-	- It initiates fetching all revision IDs using the `fetchAllRevisions` async generator (`WikipediaAPI.ts`).
+	- It initiates fetching revision IDs using the `fetchAllRevisions` async generator (`WikipediaAPI.ts`), optionally passing an `uptoRevId` to limit the search range based on form input.
 	- It calls `findOneOccurrence` (`item-finder.ts`), passing the revision ID generator, a function to fetch revision text (`fetchRevisionTexts`), and a predicate to check for the target text.
 3. **Search Algorithm (`item-finder.ts`):**
 	- `findOneOccurrence` consumes revision IDs from the generator.
 	- `itemGenerator` implements a sampling strategy, buffering IDs and yielding batches for checking based on frequency (sampling vs. fallback).
 	- `fetchInBatch` calls `fetchRevisionTexts` for required batches.
 	- The predicate checks the fetched text content.
-4. **State Update:** `searchAction` returns the new `SearchState` (including the found `revisionId` or an error).
+4. **State Update:** `searchAction` returns the new `SearchState` (including the found `revisionId`) or an error.
 `useActionState` updates the application state.
-5. **UI Rendering:** `App.tsx` passes the `searchResult` and `isPending` status to `ResultView.tsx` for display.
+5. **UI Rendering:** `App.tsx` passes the `searchResult` (containing the found `revisionId`) and `isPending` status down to `SearchForm.tsx` (for default value population) and `ResultView.tsx` (for display).
 
 This approach collocates data fetching and state logic within the action, simplifying component responsibilities and leveraging React's built-in pending state management.
 See `architecture-overview.md` for a visual flow diagram.

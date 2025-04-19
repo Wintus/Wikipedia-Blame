@@ -40,11 +40,12 @@ graph TD
   1. Page ID retrieval
   2. Revision fetching
   3. Occurrence finding
+- Handles optional `uptoRevId` form input to limit the revision range passed to the API.
 - Returns comprehensive search state
 
 ### Component Responsibilities
 - App: State management
-- SearchForm: User input collection
+- SearchForm: User input collection, including optional 'up to revision ID', populated with the previous result.
 - ResultView: Result rendering
 
 ## Technical Stack
