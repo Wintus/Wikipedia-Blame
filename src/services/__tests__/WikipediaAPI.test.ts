@@ -149,6 +149,81 @@ describe('WikipediaAPI', () => {
 			expect(revisions.length).toBe(3);
 		});
 
+		it('includes rvendid when order is asc and uptoRevId is provided', async () => {
+			const mockResponse = {
+				json: vi
+					.fn()
+					.mockResolvedValue({ query: { pages: [{ revisions: [] }] } }),
+			};
+			mockFetch.mockResolvedValue(mockResponse);
+
+			const all = fetchAllRevisions(baseUrl, 1234, {
+				order: 'asc',
+				uptoRevId: 9999,
+			});
+			await Array.fromAsync(all); // Consume the generator to trigger fetch
+
+			const expectedUrl = new URL('/w/api.php', baseUrl);
+			expectedUrl.searchParams.set('action', 'query');
+			expectedUrl.searchParams.set('prop', 'revisions');
+			expectedUrl.searchParams.set('pageids', '1234');
+			expectedUrl.searchParams.set('rvprop', 'ids');
+			expectedUrl.searchParams.set('rvlimit', 'max');
+			expectedUrl.searchParams.set('rvdir', 'newer');
+			expectedUrl.searchParams.set('rvendid', '9999'); // Check this param
+			expectedUrl.searchParams.set('formatversion', '2');
+			expectedUrl.searchParams.set('format', 'json');
+			expectedUrl.searchParams.set('origin', '*');
+
+			expect(mockFetch).toHaveBeenCalledWith(expectedUrl);
+		});
+
+		it('includes rvstartid when order is desc and uptoRevId is provided', async () => {
+			const mockResponse = {
+				json: vi
+					.fn()
+					.mockResolvedValue({ query: { pages: [{ revisions: [] }] } }),
+			};
+			mockFetch.mockResolvedValue(mockResponse);
+
+			const all = fetchAllRevisions(baseUrl, 1234, {
+				order: 'desc',
+				uptoRevId: 8888,
+			});
+			await Array.fromAsync(all); // Consume the generator
+
+			const expectedUrl = new URL('/w/api.php', baseUrl);
+			expectedUrl.searchParams.set('action', 'query');
+			expectedUrl.searchParams.set('prop', 'revisions');
+			expectedUrl.searchParams.set('pageids', '1234');
+			expectedUrl.searchParams.set('rvprop', 'ids');
+			expectedUrl.searchParams.set('rvlimit', 'max');
+			expectedUrl.searchParams.set('rvdir', 'older');
+			expectedUrl.searchParams.set('rvstartid', '8888'); // Check this param
+			expectedUrl.searchParams.set('formatversion', '2');
+			expectedUrl.searchParams.set('format', 'json');
+			expectedUrl.searchParams.set('origin', '*');
+
+			expect(mockFetch).toHaveBeenCalledWith(expectedUrl);
+		});
+
+		it('does not include boundary params when uptoRevId is not provided', async () => {
+			const mockResponse = {
+				json: vi
+					.fn()
+					.mockResolvedValue({ query: { pages: [{ revisions: [] }] } }),
+			};
+			mockFetch.mockResolvedValue(mockResponse);
+
+			const all = fetchAllRevisions(baseUrl, 1234, { order: 'desc' }); // No uptoRevId
+			await Array.fromAsync(all); // Consume the generator
+
+			expect(mockFetch).toHaveBeenCalled();
+			const actualUrl: URL = mockFetch.mock.calls[0]?.[0];
+			expect(actualUrl.searchParams.has('rvstartid')).toBe(false);
+			expect(actualUrl.searchParams.has('rvendid')).toBe(false);
+		});
+
 		it('returns empty array on network error', async () => {
 			mockFetch.mockRejectedValue(new Error('Network error'));
 

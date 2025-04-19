@@ -56,7 +56,10 @@ export async function searchAction(
 		}
 
 		// Fetch all revisions
-		const revisions = fetchAllRevisions(baseUrl, pageId);
+		const uptoRevIdStr = formData.get('uptoRevId')?.toString();
+		const uptoRevId = uptoRevIdStr ? parseInt(uptoRevIdStr, 10) : undefined;
+		const options = uptoRevId ? { uptoRevId } : {};
+		const revisions = fetchAllRevisions(baseUrl, pageId, options);
 
 		// Find occurrence of target text
 		const foundRevisionId = await findOneOccurrence(

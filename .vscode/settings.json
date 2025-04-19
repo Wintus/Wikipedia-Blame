@@ -13,6 +13,7 @@
 		"rvdir",
 		"rvlimit",
 		"rvprop",
-		"rvslots"
+		"rvslots",
+		"upto",
 	]
 }

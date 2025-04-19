@@ -5,7 +5,7 @@ import { ResultView } from './components/ResultView';
 import { searchAction, defaultSearchResult } from './actions/searchActions';
 
 function App() {
-	const [searchResult, formAction, isPending] = useActionState(
+	const [searchState, formAction, isPending] = useActionState(
 		searchAction,
 		defaultSearchResult
 	);
@@ -17,9 +17,13 @@ function App() {
 				<p>Find an occurrence of text in a Wikipedia article</p>
 			</header>
 			<main>
-				<SearchForm formAction={formAction} isPending={isPending} />
-				{searchResult.searchCount > 0 && (
-					<ResultView result={searchResult} isPending={isPending} />
+				<SearchForm
+					formAction={formAction}
+					isPending={isPending}
+					searchState={searchState}
+				/>
+				{searchState.searchCount > 0 && (
+					<ResultView result={searchState} isPending={isPending} />
 				)}
 			</main>
 		</div>
