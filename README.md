@@ -59,15 +59,6 @@ This approach collocates data fetching and state logic within the action, simpli
 	- **`App.tsx`**: Main application component, orchestrates state and components.
 	- **`main.tsx`**: Application entry point.
 
-## Future Extensions
-
-- Find first/last _deletion_ of text.
-- Allow user selection to search further if multiple occurrences exist.
-- Implement visual highlighting of the found text within the revision content.
-- Support for additional Wikipedia languages.
-- More robust error handling and user feedback.
-- Advanced caching strategies.
-
 ## Deployment Details
 
 - Configured for automatic deployment to GitHub Pages via GitHub Actions.
@@ -76,3 +67,12 @@ This approach collocates data fetching and state logic within the action, simpli
 - Automatically builds and deploys on pushes to the main branch.
 - Uses the latest GitHub Pages deployment methods.
 - Supports manual deployment via GitHub Actions workflow dispatch.
+
+## Future Extensions
+
+- Find first/last _deletion_ of text.
+- Allow user selection to search further if multiple occurrences exist.
+- Implement visual highlighting of the found text within the revision content.
+- Support for additional Wikipedia languages.
+- More robust error handling and user feedback.
+- Advanced caching strategies.
