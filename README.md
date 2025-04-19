@@ -4,7 +4,8 @@ A tool for finding when specific text first appeared in a Wikipedia article's hi
 
 ## Project Overview
 
-Wikipedia-Blame is a React-based single-page application that helps users identify the revision where specific text was introduced into a Wikipedia article. It leverages the Wikipedia API and an efficient search algorithm to analyze revision history.
+Wikipedia-Blame is a React-based single-page application that helps users identify the revision where specific text was introduced into a Wikipedia article.
+It leverages the Wikipedia API and an efficient search algorithm to analyze revision history.
 
 The application utilizes modern React features, specifically the `useActionState` hook, for streamlined form handling and state management.
 
@@ -43,10 +44,12 @@ The application employs an action-state driven architecture centered around Reac
 	- `itemGenerator` implements a sampling strategy, buffering IDs and yielding batches for checking based on frequency (sampling vs. fallback).
 	- `fetchInBatch` calls `fetchRevisionTexts` for required batches.
 	- The predicate checks the fetched text content.
-4. **State Update:** `searchAction` returns the new `SearchState` (including the found `revisionId` or an error). `useActionState` updates the application state.
+4. **State Update:** `searchAction` returns the new `SearchState` (including the found `revisionId` or an error).
+`useActionState` updates the application state.
 5. **UI Rendering:** `App.tsx` passes the `searchResult` and `isPending` status to `ResultView.tsx` for display.
 
-This approach collocates data fetching and state logic within the action, simplifying component responsibilities and leveraging React's built-in pending state management. See `architecture-overview.md` for a visual flow diagram.
+This approach collocates data fetching and state logic within the action, simplifying component responsibilities and leveraging React's built-in pending state management.
+See `architecture-overview.md` for a visual flow diagram.
 
 ## Project Structure
 
