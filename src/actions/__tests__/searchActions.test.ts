@@ -153,4 +153,48 @@ describe('searchAction', () => {
 			error: 'An unknown error occurred',
 		});
 	});
+
+	it('calls fetchAllRevisions with uptoRevId when provided in form data', async () => {
+		// Mock API calls
+		vi.spyOn(WikipediaAPI, 'fetchPageId').mockResolvedValue(123);
+		const fetchAllRevisionsMock = vi
+			.spyOn(WikipediaAPI, 'fetchAllRevisions')
+			.mockResolvedValue(createAsyncGenerator([1, 2, 3]));
+		vi.spyOn(RevisionFinder, 'findOneOccurrence').mockResolvedValue(2);
+		vi.spyOn(WikipediaAPI, 'fetchRevisionTexts').mockResolvedValue([
+			{ rev: 2, text: 'Contains Test Text' },
+		]);
+
+		const formData = createFormData({ uptoRevId: '456' });
+
+		await searchAction(defaultPrevState, formData);
+
+		expect(fetchAllRevisionsMock).toHaveBeenCalledWith(
+			expect.anything(), // baseUrl
+			expect.anything(), // pageId
+			{ uptoRevId: 456 }
+		);
+	});
+
+	it('calls fetchAllRevisions without uptoRevId when not provided in form data', async () => {
+		// Mock API calls
+		vi.spyOn(WikipediaAPI, 'fetchPageId').mockResolvedValue(123);
+		const fetchAllRevisionsMock = vi
+			.spyOn(WikipediaAPI, 'fetchAllRevisions')
+			.mockResolvedValue(createAsyncGenerator([1, 2, 3]));
+		vi.spyOn(RevisionFinder, 'findOneOccurrence').mockResolvedValue(2);
+		vi.spyOn(WikipediaAPI, 'fetchRevisionTexts').mockResolvedValue([
+			{ rev: 2, text: 'Contains Test Text' },
+		]);
+
+		const formData = createFormData(); // No uptoRevId
+
+		await searchAction(defaultPrevState, formData);
+
+		expect(fetchAllRevisionsMock).toHaveBeenCalledWith(
+			expect.anything(), // baseUrl
+			expect.anything(), // pageId
+			{} // Should be empty object
+		);
+	});
 });
