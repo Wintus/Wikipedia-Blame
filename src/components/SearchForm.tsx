@@ -1,17 +1,21 @@
 import { useState } from 'react';
-import { type SearchState, type WikiSite, WIKI_SITES } from '../wiki';
+import { type SearchState, type WikiSite } from '../wiki';
 import { WikiSelector } from './WikiSelector';
 
 interface SearchFormProps {
 	formAction: (formData: FormData) => void;
 	isPending: boolean;
-	searchState?: SearchState;
+	searchState: SearchState;
 }
 
-export function SearchForm({ formAction, isPending, searchState }: SearchFormProps) {
-	const [pageTitle, setPageTitle] = useState('');
-	const [targetText, setTargetText] = useState('');
-	const [selectedWiki, setSelectedWiki] = useState<WikiSite>(WIKI_SITES.ENWP);
+export function SearchForm({
+	formAction,
+	isPending,
+	searchState,
+}: SearchFormProps) {
+	const [pageTitle, setPageTitle] = useState(searchState.pageTitle);
+	const [targetText, setTargetText] = useState(searchState.targetText);
+	const [selectedWiki, setSelectedWiki] = useState<WikiSite>(searchState.wiki);
 
 	return (
 		<form action={formAction} className="search-form" name="searchForm">
@@ -48,7 +52,7 @@ export function SearchForm({ formAction, isPending, searchState }: SearchFormPro
 					type="number"
 					id="uptoRevId"
 					name="uptoRevId"
-					defaultValue={searchState?.revisionId ?? ''}
+					defaultValue={searchState.revisionId?.toString() ?? ''}
 					placeholder="Enter a revision ID to search up to"
 				/>
 			</div>

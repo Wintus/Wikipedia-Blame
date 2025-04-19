@@ -1,12 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { SearchForm } from '../SearchForm';
 
 describe('SearchForm', () => {
 	const mockFormAction = vi.fn();
+	const defaultSearchState = {
+		wiki: {
+			id: 'enwp',
+			name: 'English Wikipedia',
+			url: new URL('https://en.wikipedia.org'),
+		},
+		pageTitle: 'Initial Title',
+		targetText: 'Initial Text',
+		revisionId: null,
+		error: null,
+		searchCount: 0,
+	};
 	const defaultProps = {
 		formAction: mockFormAction,
 		isPending: false,
+		searchState: defaultSearchState,
 	};
 
 	beforeEach(() => {
@@ -54,18 +68,17 @@ describe('SearchForm', () => {
 	it('populates the uptoRevId input with the revisionId from searchState', () => {
 		render(
 			<SearchForm
-				{...defaultProps}
+				formAction={mockFormAction}
+				isPending={false}
 				searchState={{
-					wiki: { id: 'enwp', name: 'English Wikipedia', url: new URL('https://en.wikipedia.org') },
-					pageTitle: 'Test Page',
-					targetText: 'Test Text',
+					...defaultSearchState,
 					revisionId: 12345,
-					error: null,
-					searchCount: 0,
 				}}
 			/>
 		);
-		const uptoRevIdInput = screen.getByLabelText(/Search up to Rev ID \(optional\):/i) as HTMLInputElement;
+		const uptoRevIdInput = screen.getByLabelText(
+			/Search up to Rev ID \(optional\):/i
+		) as HTMLInputElement;
 		expect(uptoRevIdInput.value).toBe('12345');
 	});
 
@@ -73,7 +86,9 @@ describe('SearchForm', () => {
 		render(<SearchForm {...defaultProps} />);
 		const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
 		const textArea = screen.getByLabelText(/Text to Find:/i);
-		const uptoRevIdInput = screen.getByLabelText(/Search up to Rev ID \(optional\):/i);
+		const uptoRevIdInput = screen.getByLabelText(
+			/Search up to Rev ID \(optional\):/i
+		);
 		const button = screen.getByRole('button', { name: /Find An Occurrence/i });
 
 		fireEvent.change(titleInput, { target: { value: 'Albert Einstein' } });
@@ -94,16 +109,29 @@ describe('SearchForm', () => {
 		expect(wikiId).toEqual('enwp');
 	});
 
-	it('does not submit when inputs are empty', () => {
-		render(<SearchForm {...defaultProps} />);
+	it('does not submit when inputs are empty', async () => {
+		render(
+			<SearchForm
+				{...defaultProps}
+				searchState={{
+					...defaultSearchState,
+					pageTitle: '',
+					targetText: '',
+				}}
+			/>
+		);
 		const button = screen.getByRole('button', { name: /Find An Occurrence/i });
-		fireEvent.click(button);
+		await userEvent.click(button);
 		expect(mockFormAction).not.toHaveBeenCalled();
 	});
 
 	it('disables the button when isPending is true', () => {
 		render(
-			<SearchForm formAction={defaultProps.formAction} isPending={true} />
+			<SearchForm
+				formAction={mockFormAction}
+				isPending={true}
+				searchState={defaultSearchState}
+			/>
 		);
 		const button = screen.getByRole('button');
 		expect(button).toBeDisabled();
@@ -123,6 +151,41 @@ describe('SearchForm', () => {
 		expect(wikiSelector.value).toBe('jawp');
 
 		fireEvent.submit(screen.getByRole('form'));
+		expect(wikiSelector.value).toBe('jawp');
+	});
+
+	it('renders initial values from searchState', () => {
+		render(
+			<SearchForm
+				formAction={mockFormAction}
+				isPending={false}
+				searchState={{
+					wiki: {
+						id: 'jawp',
+						name: 'Japanese Wikipedia',
+						url: new URL('https://ja.wikipedia.org'),
+					},
+					pageTitle: 'Initial Page Title',
+					targetText: 'Initial Target Text',
+					revisionId: null,
+					error: null,
+					searchCount: 0,
+				}}
+			/>
+		);
+
+		const titleInput = screen.getByLabelText(
+			/Wiki Article Title:/i
+		) as HTMLInputElement;
+		const textArea = screen.getByLabelText(
+			/Text to Find:/i
+		) as HTMLTextAreaElement;
+		const wikiSelector = screen.getByLabelText(
+			/Wiki Site:/i
+		) as HTMLSelectElement;
+
+		expect(titleInput.value).toBe('Initial Page Title');
+		expect(textArea.value).toBe('Initial Target Text');
 		expect(wikiSelector.value).toBe('jawp');
 	});
 });
