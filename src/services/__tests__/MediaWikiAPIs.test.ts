@@ -3,7 +3,7 @@ import {
 	fetchPageId,
 	fetchRevisionTexts,
 	fetchAllRevisions,
-} from '../WikipediaAPI';
+} from '../MediaWikiAPIs';
 import { WIKI_SITES } from '../../wiki';
 
 describe('WikipediaAPI', () => {

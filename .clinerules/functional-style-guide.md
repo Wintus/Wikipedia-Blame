@@ -8,13 +8,13 @@ This guide outlines the preferred functional programming practices for this proj
 
 	- Prefer standalone functions over class methods
 	- Export individual functions rather than object/class collections
-	- Example: Using `export function fetchAllRevisions()` instead of `WikipediaAPI.getAllRevisions()`
+	- Example: Using `export function fetchAllRevisions()` instead of `MediaWikiAPIs.getAllRevisions()`
 
 2. **Dependency Injection**
 
 	- Pass dependencies explicitly as function parameters
 	- Avoid direct imports within functions when the dependency can be injected
-	- Example: `function findOneOccurrence(targetText, fetcher, revisions)` instead of directly using WikipediaAPI
+	- Example: `function findOneOccurrence(targetText, fetcher, revisions)` instead of directly using MediaWikiAPIs
 
 3. **Function Composition**
 

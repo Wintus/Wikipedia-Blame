@@ -1,5 +1,6 @@
 /**
- * Service for interacting with the Wikipedia API
+ * Service for interacting with the MediaWiki APIs
+ * using both the Action API and the REST API
  *
  * note: `rvcontentformat-main=text/plain` is unavailable for regular pages
  */

@@ -11,9 +11,11 @@
 		"rvcontentformat",
 		"rvcontinue",
 		"rvdir",
+		"rvendid",
 		"rvlimit",
 		"rvprop",
 		"rvslots",
+		"rvstartid",
 		"upto",
 	]
 }

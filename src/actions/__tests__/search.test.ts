@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { searchAction } from '../searchActions';
+import { searchAction } from '../search';
 import { WIKI_SITES, type SearchState } from '../../wiki';
-import * as WikipediaAPI from '../../services/WikipediaAPI';
-import * as RevisionFinder from '../../utils/item-finder';
+import * as MediaWikiAPIs from '../../services/MediaWikiAPIs';
+import * as ItemFinder from '../../utils/item-finder';
 
 async function* createAsyncGenerator<T>(
 	items: ReadonlyArray<T>
@@ -58,12 +58,12 @@ describe('searchAction', () => {
 
 	it('handles successful search flow', async () => {
 		// Mock API calls
-		vi.spyOn(WikipediaAPI, 'fetchPageId').mockResolvedValue(123);
-		vi.spyOn(WikipediaAPI, 'fetchAllRevisions').mockResolvedValue(
+		vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockResolvedValue(123);
+		vi.spyOn(MediaWikiAPIs, 'fetchAllRevisions').mockResolvedValue(
 			createAsyncGenerator([1, 2, 3])
 		);
-		vi.spyOn(RevisionFinder, 'findOneOccurrence').mockResolvedValue(2);
-		vi.spyOn(WikipediaAPI, 'fetchRevisionTexts').mockResolvedValue([
+		vi.spyOn(ItemFinder, 'findOneOccurrence').mockResolvedValue(2);
+		vi.spyOn(MediaWikiAPIs, 'fetchRevisionTexts').mockResolvedValue([
 			{ rev: 2, text: 'Contains Test Text' },
 		]);
 
@@ -82,7 +82,7 @@ describe('searchAction', () => {
 
 	it('handles page not found error', async () => {
 		// Mock pageId as null
-		vi.spyOn(WikipediaAPI, 'fetchPageId').mockResolvedValue(null);
+		vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockResolvedValue(null);
 
 		const formData = createFormData();
 
@@ -99,11 +99,11 @@ describe('searchAction', () => {
 
 	it('handles text not found in revisions', async () => {
 		// Mock successful page and revision fetch, but no text found
-		vi.spyOn(WikipediaAPI, 'fetchPageId').mockResolvedValue(123);
-		vi.spyOn(WikipediaAPI, 'fetchAllRevisions').mockResolvedValue(
+		vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockResolvedValue(123);
+		vi.spyOn(MediaWikiAPIs, 'fetchAllRevisions').mockResolvedValue(
 			createAsyncGenerator([1, 2, 3])
 		);
-		vi.spyOn(RevisionFinder, 'findOneOccurrence').mockResolvedValue(null);
+		vi.spyOn(ItemFinder, 'findOneOccurrence').mockResolvedValue(null);
 
 		const formData = createFormData();
 
@@ -120,7 +120,7 @@ describe('searchAction', () => {
 
 	it('handles API exceptions gracefully', async () => {
 		// Mock API throwing an exception
-		vi.spyOn(WikipediaAPI, 'fetchPageId').mockRejectedValue(
+		vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockRejectedValue(
 			new Error('Network error')
 		);
 
@@ -139,7 +139,7 @@ describe('searchAction', () => {
 
 	it('handles non-Error exceptions', async () => {
 		// Mock API throwing a non-Error object
-		vi.spyOn(WikipediaAPI, 'fetchPageId').mockRejectedValue('Unknown error');
+		vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockRejectedValue('Unknown error');
 
 		const formData = createFormData();
 
@@ -156,12 +156,12 @@ describe('searchAction', () => {
 
 	it('calls fetchAllRevisions with uptoRevId when provided in form data', async () => {
 		// Mock API calls
-		vi.spyOn(WikipediaAPI, 'fetchPageId').mockResolvedValue(123);
+		vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockResolvedValue(123);
 		const fetchAllRevisionsMock = vi
-			.spyOn(WikipediaAPI, 'fetchAllRevisions')
+			.spyOn(MediaWikiAPIs, 'fetchAllRevisions')
 			.mockResolvedValue(createAsyncGenerator([1, 2, 3]));
-		vi.spyOn(RevisionFinder, 'findOneOccurrence').mockResolvedValue(2);
-		vi.spyOn(WikipediaAPI, 'fetchRevisionTexts').mockResolvedValue([
+		vi.spyOn(ItemFinder, 'findOneOccurrence').mockResolvedValue(2);
+		vi.spyOn(MediaWikiAPIs, 'fetchRevisionTexts').mockResolvedValue([
 			{ rev: 2, text: 'Contains Test Text' },
 		]);
 
@@ -178,12 +178,12 @@ describe('searchAction', () => {
 
 	it('calls fetchAllRevisions without uptoRevId when not provided in form data', async () => {
 		// Mock API calls
-		vi.spyOn(WikipediaAPI, 'fetchPageId').mockResolvedValue(123);
+		vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockResolvedValue(123);
 		const fetchAllRevisionsMock = vi
-			.spyOn(WikipediaAPI, 'fetchAllRevisions')
+			.spyOn(MediaWikiAPIs, 'fetchAllRevisions')
 			.mockResolvedValue(createAsyncGenerator([1, 2, 3]));
-		vi.spyOn(RevisionFinder, 'findOneOccurrence').mockResolvedValue(2);
-		vi.spyOn(WikipediaAPI, 'fetchRevisionTexts').mockResolvedValue([
+		vi.spyOn(ItemFinder, 'findOneOccurrence').mockResolvedValue(2);
+		vi.spyOn(MediaWikiAPIs, 'fetchRevisionTexts').mockResolvedValue([
 			{ rev: 2, text: 'Contains Test Text' },
 		]);
 
