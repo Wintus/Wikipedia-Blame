@@ -57,6 +57,18 @@ export function SearchForm({
 				/>
 			</div>
 
+			<fieldset className="form-group">
+				<legend>Search Order:</legend>
+				<label>
+					<input type="radio" name="order" value="asc" defaultChecked />
+					Ascending (Older First)
+				</label>
+				<label>
+					<input type="radio" name="order" value="desc" />
+					Descending (Newer First)
+				</label>
+			</fieldset>
+
 			<button type="submit" disabled={isPending}>
 				{isPending ? 'Searching...' : 'Find An Occurrence'}
 			</button>

@@ -188,4 +188,41 @@ describe('SearchForm', () => {
 		expect(textArea.value).toBe('Initial Target Text');
 		expect(wikiSelector.value).toBe('jawp');
 	});
+
+	it('renders the order radio buttons', () => {
+		render(<SearchForm {...defaultProps} />);
+		expect(
+			screen.getByLabelText(/Ascending \(Older First\)/i)
+		).toBeInTheDocument();
+		expect(
+			screen.getByLabelText(/Descending \(Newer First\)/i)
+		).toBeInTheDocument();
+	});
+
+	it('submits form with correct FormData including order', () => {
+		render(<SearchForm {...defaultProps} />);
+		const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
+		const textArea = screen.getByLabelText(/Text to Find:/i);
+		const descendingRadio = screen.getByLabelText(
+			/Descending \(Newer First\)/i
+		);
+		const button = screen.getByRole('button', { name: /Find An Occurrence/i });
+
+		fireEvent.change(titleInput, { target: { value: 'Albert Einstein' } });
+		fireEvent.change(textArea, { target: { value: 'relativity' } });
+		fireEvent.click(descendingRadio); // Select descending order
+		fireEvent.click(button);
+
+		expect(mockFormAction).toHaveBeenCalledTimes(1);
+
+		// Verify the FormData contains correct values
+		const formDataArg = mockFormAction.mock.calls[0]?.[0];
+		expect(formDataArg.get('pageTitle')).toBe('Albert Einstein');
+		expect(formDataArg.get('targetText')).toBe('relativity');
+		expect(formDataArg.get('order')).toBe('desc');
+
+		// Verify wiki is correctly selected
+		const wikiId = formDataArg.get('wikiId') as string;
+		expect(wikiId).toEqual('enwp');
+	});
 });
