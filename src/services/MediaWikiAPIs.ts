@@ -46,6 +46,7 @@ const boundaryParam = {
 const getPageRevisions = <Slot extends string = 'main'>(
 	data: WikipediaResponse<Slot>
 ): ReadonlyArray<Revision<Slot>> => data?.query?.pages?.[0]?.revisions ?? [];
+
 const convert = (revision: Revision<'main'>): RevisionResult => ({
 	rev: revision.revid,
 	text: revision?.slots?.main?.content ?? '',
@@ -61,16 +62,15 @@ export async function fetchPageId(
 	pageTitle: string
 ): Promise<number | null> {
 	try {
-		// Using the /page/{title}/bare endpoint from REST API
 		const url = new URL(`/w/rest.php/v1/page/${pageTitle}/bare`, baseUrl);
 		// guard
 		const response = await fetch(url);
 		if (!response.ok) {
 			return null;
 		}
-		// Return the page ID from the response
-		const data = await response.json();
-		return data.id;
+		// request
+		const page = await response.json();
+		return page.id;
 	} catch (error) {
 		console.error('Error fetching page ID:', error);
 		return null;
@@ -99,7 +99,6 @@ export async function fetchRevisionTexts(
 		`/w/api.php?action=query&prop=revisions&revids=${revIdsStr}&rvprop=ids|content&formatversion=2&format=json&origin=*&rvslots=main`,
 		baseUrl
 	);
-
 	try {
 		const response = await fetch(url);
 		const data = await response.json();
@@ -107,6 +106,7 @@ export async function fetchRevisionTexts(
 		return revisions;
 	} catch (error) {
 		console.error('Error fetching revision texts:', error);
+		console.warn('missing revision texts for:', revIds);
 		return [];
 	}
 }
@@ -145,15 +145,15 @@ export async function* fetchAllRevisions(
 			url.searchParams.append('format', 'json');
 			url.searchParams.append('origin', '*');
 			if (continueParam) url.searchParams.append('rvcontinue', continueParam);
-
+			// request
 			const response = await fetch(url);
 			const data: WikipediaResponse<never> = await response.json();
-
+			// iterate over the revisions
 			const pageRevs = getPageRevisions(data);
 			for (const rev of pageRevs) {
 				yield rev.revid;
 			}
-
+			// update the cursor
 			continueParam = data?.continue?.rvcontinue ?? null;
 		} while (continueParam);
 	} catch (error) {
