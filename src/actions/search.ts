@@ -57,14 +57,14 @@ export async function searchAction(
 
 		// Fetch all revisions
 		const uptoRevIdStr = formData.get('uptoRevId')?.toString();
-		const uptoRevId = uptoRevIdStr ? parseInt(uptoRevIdStr, 10) : undefined;
 		const order = formData.get('order')?.toString();
 		const options: { uptoRevId?: number; order?: 'asc' | 'desc' } = {};
-		if (uptoRevId) {
+		const uptoRevId = uptoRevIdStr ? Number.parseInt(uptoRevIdStr, 10) : NaN;
+		if (Number.isSafeInteger(uptoRevId)) {
 			options.uptoRevId = uptoRevId;
 		}
 		if (order === 'asc' || order === 'desc') {
-			options.order = order
+			options.order = order;
 		}
 		const revisions = fetchAllRevisions(baseUrl, pageId, options);
 
