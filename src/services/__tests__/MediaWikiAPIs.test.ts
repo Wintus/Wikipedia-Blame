@@ -178,7 +178,7 @@ describe('WikipediaAPI', () => {
 			expect(mockFetch).toHaveBeenCalledWith(expectedUrl);
 		});
 
-		it('includes rvstartid when order is desc and uptoRevId is provided', async () => {
+		it('includes rvendid when order is desc and uptoRevId is provided', async () => {
 			const mockResponse = {
 				json: vi
 					.fn()
@@ -199,7 +199,7 @@ describe('WikipediaAPI', () => {
 			expectedUrl.searchParams.set('rvprop', 'ids');
 			expectedUrl.searchParams.set('rvlimit', 'max');
 			expectedUrl.searchParams.set('rvdir', 'older');
-			expectedUrl.searchParams.set('rvstartid', '8888'); // Check this param
+			expectedUrl.searchParams.set('rvendid', '8888'); // Check this param
 			expectedUrl.searchParams.set('formatversion', '2');
 			expectedUrl.searchParams.set('format', 'json');
 			expectedUrl.searchParams.set('origin', '*');
@@ -220,7 +220,6 @@ describe('WikipediaAPI', () => {
 
 			expect(mockFetch).toHaveBeenCalled();
 			const actualUrl: URL = mockFetch.mock.calls[0]?.[0];
-			expect(actualUrl.searchParams.has('rvstartid')).toBe(false);
 			expect(actualUrl.searchParams.has('rvendid')).toBe(false);
 		});
 

@@ -15,15 +15,15 @@ type Revision<Slot extends string> = {
 	slots: { [key in Slot]: { content: string } };
 };
 
-type WikipediaPage<Slot extends string = 'main'> = {
+type Page<Slot extends string = 'main'> = {
 	pageid: number;
 	title: string;
 	revisions?: ReadonlyArray<Revision<Slot>>;
 };
 
-type WikipediaResponse<Slot extends string = 'main'> = {
+type RevisionsResponse<Slot extends string = 'main'> = {
 	query?: {
-		pages?: ReadonlyArray<WikipediaPage<Slot>>;
+		pages?: ReadonlyArray<Page<Slot>>;
 	};
 	continue?: {
 		continue?: string;
@@ -38,13 +38,8 @@ const direction = {
 	desc: 'older',
 } as const satisfies Record<Order, string>;
 
-const boundaryParam = {
-	asc: 'rvendid',
-	desc: 'rvstartid',
-} as const satisfies Record<Order, string>;
-
 const getPageRevisions = <Slot extends string = 'main'>(
-	data: WikipediaResponse<Slot>
+	data: RevisionsResponse<Slot>
 ): ReadonlyArray<Revision<Slot>> => data?.query?.pages?.[0]?.revisions ?? [];
 
 const convert = (revision: Revision<'main'>): RevisionResult => ({
@@ -78,7 +73,7 @@ export async function fetchPageId(
 }
 
 /**
- * Fetches the text content of multiple Wikipedia revisions using formatversion=2.
+ * Fetches the text content of multiple revisions using formatversion=2.
  *
  * see https://www.mediawiki.org/wiki/API:Revisions
  *
@@ -112,7 +107,7 @@ export async function fetchRevisionTexts(
 }
 
 /**
- * Fetches all revisions of a Wikipedia page as an async generator.
+ * Fetches all revisions of a page as an async generator.
  *
  * The default order is ascending (= newer last = older first), but can be changed to descending.
  * If `uptoRevId` is provided, fetching stops at the timestamp of that revision ID.
@@ -138,8 +133,7 @@ export async function* fetchAllRevisions(
 			url.searchParams.append('rvlimit', 'max');
 			url.searchParams.append('rvdir', dir);
 			if (uptoRevId != null) {
-				const paramName = boundaryParam[order];
-				url.searchParams.append(paramName, uptoRevId.toString());
+				url.searchParams.append('rvendid', uptoRevId.toString());
 			}
 			url.searchParams.append('formatversion', '2');
 			url.searchParams.append('format', 'json');
@@ -147,7 +141,7 @@ export async function* fetchAllRevisions(
 			if (continueParam) url.searchParams.append('rvcontinue', continueParam);
 			// request
 			const response = await fetch(url);
-			const data: WikipediaResponse<never> = await response.json();
+			const data: RevisionsResponse<never> = await response.json();
 			// iterate over the revisions
 			const pageRevs = getPageRevisions(data);
 			for (const rev of pageRevs) {

@@ -64,6 +64,10 @@ header p {
 	font-size: 16px;
 }
 
+.form-group input[type='radio'] {
+	width: auto;
+}
+
 .language-selector {
 	margin-bottom: 20px;
 }

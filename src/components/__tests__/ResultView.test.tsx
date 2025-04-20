@@ -11,6 +11,7 @@ describe('ResultView', () => {
 		revisionId: null,
 		error: null,
 		searchCount: 0,
+		order: 'asc' as const,
 		...overrides,
 	});
 

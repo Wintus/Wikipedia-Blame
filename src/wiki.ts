@@ -28,4 +28,5 @@ export type SearchState = {
 	revisionId: number | null;
 	error: string | null;
 	searchCount: number;
+	order: 'asc' | 'desc';
 };

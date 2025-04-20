@@ -57,8 +57,15 @@ export async function searchAction(
 
 		// Fetch all revisions
 		const uptoRevIdStr = formData.get('uptoRevId')?.toString();
-		const uptoRevId = uptoRevIdStr ? parseInt(uptoRevIdStr, 10) : undefined;
-		const options = uptoRevId ? { uptoRevId } : {};
+		const order = formData.get('order')?.toString();
+		const options: { uptoRevId?: number; order?: 'asc' | 'desc' } = {};
+		const uptoRevId = uptoRevIdStr ? Number.parseInt(uptoRevIdStr, 10) : NaN;
+		if (Number.isSafeInteger(uptoRevId)) {
+			options.uptoRevId = uptoRevId;
+		}
+		if (order === 'asc' || order === 'desc') {
+			options.order = order;
+		}
 		const revisions = fetchAllRevisions(baseUrl, pageId, options);
 
 		// Find occurrence of target text
@@ -77,6 +84,7 @@ export async function searchAction(
 			revisionId: foundRevisionId,
 			error: foundRevisionId ? null : 'Text not found in any revision',
 			searchCount: prevState.searchCount + 1,
+			order: order === 'asc' || order === 'desc' ? order : 'asc',
 		};
 	} catch (error) {
 		return {
@@ -88,6 +96,7 @@ export async function searchAction(
 				error instanceof Error ? error.message : 'An unknown error occurred',
 			revisionId: null,
 			searchCount: prevState.searchCount + 1,
+			order: prevState.order,
 		};
 	}
 }
@@ -99,4 +108,5 @@ export const defaultSearchResult = {
 	revisionId: null,
 	error: null,
 	searchCount: 0,
+	order: 'asc',
 } as const satisfies SearchState;
