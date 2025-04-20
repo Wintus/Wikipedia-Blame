@@ -38,11 +38,6 @@ const direction = {
 	desc: 'older',
 } as const satisfies Record<Order, string>;
 
-const boundaryParam = {
-	asc: 'rvendid',
-	desc: 'rvstartid',
-} as const satisfies Record<Order, string>;
-
 const getPageRevisions = <Slot extends string = 'main'>(
 	data: WikipediaResponse<Slot>
 ): ReadonlyArray<Revision<Slot>> => data?.query?.pages?.[0]?.revisions ?? [];
@@ -138,8 +133,7 @@ export async function* fetchAllRevisions(
 			url.searchParams.append('rvlimit', 'max');
 			url.searchParams.append('rvdir', dir);
 			if (uptoRevId != null) {
-				const paramName = boundaryParam[order];
-				url.searchParams.append(paramName, uptoRevId.toString());
+				url.searchParams.append('rvendid', uptoRevId.toString());
 			}
 			url.searchParams.append('formatversion', '2');
 			url.searchParams.append('format', 'json');
