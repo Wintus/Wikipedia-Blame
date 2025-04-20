@@ -28,7 +28,7 @@ graph TD
     A[App] -->|useActionState| B[Search State]
     B --> C[SearchForm]
     C -->|form action| D[Search Action]
-    D -->|API Calls| E[Wikipedia API]
+    D -->|API Calls| E[MediaWiki APIs]
     E -->|Result| F[Search State Update]
     F --> G[ResultView]
 ```

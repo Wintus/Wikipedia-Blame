@@ -5,7 +5,7 @@ A tool for finding when specific text first appeared in a Wikipedia article's hi
 ## Project Overview
 
 Wikipedia-Blame is a React-based single-page application that helps users identify the revision where specific text was introduced into a Wikipedia article.
-It leverages the Wikipedia API and an efficient search algorithm to analyze revision history.
+It leverages the MediaWiki APIs and an efficient search algorithm to analyze revision history.
 
 The application utilizes modern React features, specifically the `useActionState` hook, for streamlined form handling and state management.
 
@@ -26,7 +26,7 @@ The application utilizes modern React features, specifically the `useActionState
 - React v19 (`useActionState`)
 - TypeScript
 - Vite for build tooling
-- Wikipedia API (REST API for page ID, Query API for revisions)
+- MediaWiki APIs (REST API for page ID, Query API for revisions)
 - CSS Modules / Standard CSS for styling
 - GitHub Pages for hosting
 
@@ -37,8 +37,8 @@ The application employs an action-state driven architecture centered around Reac
 1. **Form Submission:** The `SearchForm` component uses a form action (`searchAction`) provided by `useActionState`.
 2. **Action Execution (`searchActions.ts`):**
 	- The `searchAction` function receives form data and the previous state.
-	- It validates input and fetches the Wikipedia page ID using `fetchPageId` (`WikipediaAPI.ts`).
-	- It initiates fetching revision IDs using the `fetchAllRevisions` async generator (`WikipediaAPI.ts`), optionally passing an `uptoRevId` to limit the search range based on form input.
+	- It validates input and fetches the Wikipedia page ID using `fetchPageId` (`MediaWikiAPIs.ts`).
+	- It initiates fetching revision IDs using the `fetchAllRevisions` async generator (`MediaWikiAPIs.ts`), optionally passing an `uptoRevId` to limit the search range based on form input.
 	- It calls `findOneOccurrence` (`item-finder.ts`), passing the revision ID generator, a function to fetch revision text (`fetchRevisionTexts`), and a predicate to check for the target text.
 3. **Search Algorithm (`item-finder.ts`):**
 	- `findOneOccurrence` consumes revision IDs from the generator.
@@ -55,9 +55,9 @@ See `architecture-overview.md` for a visual flow diagram.
 ## Project Structure
 
 - **`src/`**: Main source code directory.
-	- **`actions/`**: Contains the `useActionState` action logic (`searchActions.ts`).
+	- **`actions/`**: Contains the `useActionState` action logic (`search.ts`).
 	- **`components/`**: React UI components (`SearchForm.tsx`, `ResultView.tsx`, `WikiSelector.tsx`).
-	- **`services/`**: Wikipedia API interaction layer (`WikipediaAPI.ts`).
+	- **`services/`**: MediaWiki APIs interaction layer (`MediaWikiAPIs.ts`).
 	- **`utils/`**: Core search algorithm logic (`item-finder.ts`).
 	- **`wiki.ts`**: Type definitions and constants related to Wikipedia sites/search state.
 	- **`App.tsx`**: Main application component, orchestrates state and components.
