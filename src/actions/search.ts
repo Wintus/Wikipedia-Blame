@@ -3,7 +3,7 @@ import {
 	fetchAllRevisions,
 	fetchRevisionTexts,
 	type RevisionResult,
-} from '../services/WikipediaAPI';
+} from '../services/MediaWikiAPIs';
 import { findOneOccurrence } from '../utils/item-finder';
 import { type WikiSite, type SearchState, WIKI_SITES } from '../wiki';
 

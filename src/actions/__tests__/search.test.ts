@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { searchAction } from '../searchActions';
+import { searchAction } from '../search';
 import { WIKI_SITES, type SearchState } from '../../wiki';
-import * as WikipediaAPI from '../../services/WikipediaAPI';
+import * as WikipediaAPI from '../../services/MediaWikiAPIs';
 import * as RevisionFinder from '../../utils/item-finder';
 
 async function* createAsyncGenerator<T>(
