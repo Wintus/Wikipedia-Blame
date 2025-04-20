@@ -16,7 +16,8 @@ describe('SearchForm', () => {
 		revisionId: null,
 		error: null,
 		searchCount: 0,
-	};
+		order: 'asc',
+	} as const;
 	const defaultProps = {
 		formAction: mockFormAction,
 		isPending: false,
@@ -170,6 +171,7 @@ describe('SearchForm', () => {
 					revisionId: null,
 					error: null,
 					searchCount: 0,
+					order: 'asc',
 				}}
 			/>
 		);
@@ -197,6 +199,50 @@ describe('SearchForm', () => {
 		expect(
 			screen.getByLabelText(/Descending \(Newer First\)/i)
 		).toBeInTheDocument();
+	});
+
+	it('renders with correct defaultChecked based on searchState', () => {
+		const searchStateAsc = {
+			...defaultProps.searchState,
+			order: 'asc' as const,
+		};
+		render(<SearchForm {...defaultProps} searchState={searchStateAsc} />);
+		expect(
+			screen.getByLabelText(/Descending \(Newer First\)/i)
+		).toBeInTheDocument();
+	});
+
+	it('renders with correct defaultChecked based on searchState', () => {
+		const searchStateAsc = {
+			...defaultProps.searchState,
+			order: 'asc' as const,
+		};
+		const { rerender } = render(
+			<SearchForm {...defaultProps} searchState={searchStateAsc} />
+		);
+
+		const radioAsc = screen.getByLabelText(
+			/Ascending \(Older First\)/i
+		) as HTMLInputElement;
+		expect(radioAsc.defaultChecked).toBe(true);
+		const radioDesc = screen.getByLabelText(
+			/Descending \(Newer First\)/i
+		) as HTMLInputElement;
+		expect(radioDesc.defaultChecked).toBe(false);
+
+		const searchStateDesc = {
+			...defaultProps.searchState,
+			order: 'desc' as const,
+		};
+		rerender(<SearchForm {...defaultProps} searchState={searchStateDesc} />);
+		const radioAsc2 = screen.getByLabelText(
+			/Ascending \(Older First\)/i
+		) as HTMLInputElement;
+		expect(radioAsc2.defaultChecked).toBe(false);
+		const radioDesc2 = screen.getByLabelText(
+			/Descending \(Newer First\)/i
+		) as HTMLInputElement;
+		expect(radioDesc2.defaultChecked).toBe(true);
 	});
 
 	it('submits form with correct FormData including order', () => {
