@@ -24,7 +24,7 @@ a:hover {
 
 body {
 	margin: 0;
-	min-inline-size: 320px;
+	min-inline-size: 20rem;
 	min-block-size: 100vh;
 }
 
@@ -34,7 +34,7 @@ h1 {
 }
 
 button {
-	border-radius: 8px;
+	border-radius: 0.5rem;
 	border: 1px solid transparent;
 	padding-block: 0.6em;
 	padding-inline: 1.2em;
@@ -50,7 +50,7 @@ button:hover {
 }
 button:focus,
 button:focus-visible {
-	outline: 4px auto -webkit-focus-ring-color;
+	outline: 0.25rem auto -webkit-focus-ring-color;
 }
 
 @media (prefers-color-scheme: light) {
