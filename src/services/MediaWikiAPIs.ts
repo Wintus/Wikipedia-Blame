@@ -62,15 +62,15 @@ export async function fetchPageId(
 	pageTitle: string
 ): Promise<number | null> {
 	try {
-		// Using the /page/{title}/bare endpoint from REST API
 		const url = new URL(`/w/rest.php/v1/page/${pageTitle}/bare`, baseUrl);
 		// guard
 		const response = await fetch(url);
 		if (!response.ok) {
 			return null;
 		}
-		// Return the page ID from the response
+		// request
 		const data = await response.json();
+		// return the page ID
 		return data.id;
 	} catch (error) {
 		console.error('Error fetching page ID:', error);
@@ -145,15 +145,15 @@ export async function* fetchAllRevisions(
 			url.searchParams.append('format', 'json');
 			url.searchParams.append('origin', '*');
 			if (continueParam) url.searchParams.append('rvcontinue', continueParam);
-
+			// request
 			const response = await fetch(url);
 			const data: WikipediaResponse<never> = await response.json();
-
+			// iterate over the revisions
 			const pageRevs = getPageRevisions(data);
 			for (const rev of pageRevs) {
 				yield rev.revid;
 			}
-
+			// update the cursor
 			continueParam = data?.continue?.rvcontinue ?? null;
 		} while (continueParam);
 	} catch (error) {
