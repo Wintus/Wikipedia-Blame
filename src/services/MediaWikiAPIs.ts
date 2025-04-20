@@ -106,6 +106,7 @@ export async function fetchRevisionTexts(
 		return revisions;
 	} catch (error) {
 		console.error('Error fetching revision texts:', error);
+		console.warn('missing revision texts for:', revIds);
 		return [];
 	}
 }
