@@ -21,6 +21,10 @@ body {
 	max-width: 800px;
 	margin: 0 auto;
 	padding: 20px;
+	display: grid;
+	grid-template-rows: auto 1fr; /* Header auto, Main takes rest */
+	min-height: 90vh;
+	gap: 20px; /* Space between header and main */
 }
 
 header {
@@ -35,6 +39,13 @@ header h1 {
 
 header p {
 	color: #666;
+}
+
+main {
+	display: grid;
+	grid-template-rows: auto minmax(200px, auto); /* Row for form (auto height), Row for results (min 200px, auto grow) */
+	gap: 20px; /* Space between form and results */
+	align-content: start; /* Align items to the top if main area is tall */
 }
 
 .search-form {
