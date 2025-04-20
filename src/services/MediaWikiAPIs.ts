@@ -69,9 +69,8 @@ export async function fetchPageId(
 			return null;
 		}
 		// request
-		const data = await response.json();
-		// return the page ID
-		return data.id;
+		const page = await response.json();
+		return page.id;
 	} catch (error) {
 		console.error('Error fetching page ID:', error);
 		return null;
