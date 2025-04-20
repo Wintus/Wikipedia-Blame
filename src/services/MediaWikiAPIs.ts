@@ -46,6 +46,7 @@ const boundaryParam = {
 const getPageRevisions = <Slot extends string = 'main'>(
 	data: WikipediaResponse<Slot>
 ): ReadonlyArray<Revision<Slot>> => data?.query?.pages?.[0]?.revisions ?? [];
+
 const convert = (revision: Revision<'main'>): RevisionResult => ({
 	rev: revision.revid,
 	text: revision?.slots?.main?.content ?? '',
@@ -99,7 +100,6 @@ export async function fetchRevisionTexts(
 		`/w/api.php?action=query&prop=revisions&revids=${revIdsStr}&rvprop=ids|content&formatversion=2&format=json&origin=*&rvslots=main`,
 		baseUrl
 	);
-
 	try {
 		const response = await fetch(url);
 		const data = await response.json();

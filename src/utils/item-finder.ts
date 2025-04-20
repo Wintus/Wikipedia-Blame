@@ -1,5 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 type NonNullish = {};
+
 export type Predicate<S, T extends NonNullish> = (item: S) => T | null;
 
 /**
