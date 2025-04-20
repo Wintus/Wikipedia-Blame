@@ -197,4 +197,26 @@ describe('searchAction', () => {
 			{} // Should be empty object
 		);
 	});
+
+	it('calls fetchAllRevisions with order when provided in form data', async () => {
+		// Mock API calls
+		vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockResolvedValue(123);
+		const fetchAllRevisionsMock = vi
+			.spyOn(MediaWikiAPIs, 'fetchAllRevisions')
+			.mockResolvedValue(createAsyncGenerator([1, 2, 3]));
+		vi.spyOn(ItemFinder, 'findOneOccurrence').mockResolvedValue(2);
+		vi.spyOn(MediaWikiAPIs, 'fetchRevisionTexts').mockResolvedValue([
+			{ rev: 2, text: 'Contains Test Text' },
+		]);
+
+		const formData = createFormData({ order: 'desc' });
+
+		await searchAction(defaultPrevState, formData);
+
+		expect(fetchAllRevisionsMock).toHaveBeenCalledWith(
+			expect.anything(), // baseUrl
+			expect.anything(), // pageId
+			{ order: 'desc' }
+		);
+	});
 });
