@@ -142,14 +142,14 @@ button:disabled {
 
 .result-details p {
 	margin-block: 10px;
-  margin-inline: 0;
+	margin-inline: 0;
 }
 
 .revision-link {
 	display: inline-block;
 	margin-block-start: 0.9375rem;
 	padding-block: 0.625rem;
-  padding-inline: 0.9375rem;
+	padding-inline: 0.9375rem;
 	background-color: var(--secondary-color);
 	color: white;
 	text-decoration: none;
