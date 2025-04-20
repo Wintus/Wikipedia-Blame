@@ -18,7 +18,7 @@ describe('WikiSelector', () => {
 	it('renders select element with correct id', () => {
 		renderComponent();
 		const selectElement = screen.getByLabelText('Wiki Site:');
-		expect(selectElement).toHaveAttribute('id', 'wiki-select');
+		expect(selectElement).toHaveAttribute('id', 'wiki-id');
 	});
 
 	it('displays correct default wiki', () => {

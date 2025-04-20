@@ -17,9 +17,9 @@ export function WikiSelector({ selectedWiki, onChange }: WikiSelectorProps) {
 
 	return (
 		<div className="wiki-selector">
-			<label htmlFor="wiki-select">Wiki Site:</label>
+			<label htmlFor="wiki-id">Wiki Site:</label>
 			<select
-				id="wiki-select"
+				id="wiki-id"
 				name="wikiId"
 				key={selectedWiki.id}
 				defaultValue={selectedWiki.id}
