@@ -49,7 +49,8 @@ export function SearchForm({
 			<div className="form-group">
 				<label htmlFor="upto-rev-id">Search up to Rev ID (optional):</label>
 				<input
-					type="number"
+					type="text"
+					pattern="\d*"
 					id="upto-rev-id"
 					name="uptoRevId"
 					defaultValue={searchState.revisionId?.toString() ?? ''}
