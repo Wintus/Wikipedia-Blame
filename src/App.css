@@ -18,23 +18,24 @@ body {
 }
 
 .app {
-	max-width: 800px;
-	margin: 0 auto;
+	max-inline-size: 800px;
+	margin-block: 0;
+	margin-inline: auto;
 	padding: 20px;
 	display: grid;
 	grid-template-rows: auto 1fr; /* Header auto, Main takes rest */
-	min-height: 90vh;
+	min-block-size: 90vh;
 	gap: 20px; /* Space between header and main */
 }
 
 header {
 	text-align: center;
-	margin-bottom: 30px;
+	margin-block-end: 30px;
 }
 
 header h1 {
 	color: var(--primary-color);
-	margin-bottom: 10px;
+	margin-block-end: 10px;
 }
 
 header p {
@@ -53,22 +54,22 @@ main {
 	padding: 30px;
 	border-radius: 8px;
 	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-	margin-bottom: 20px;
+	margin-block-end: 20px;
 }
 
 .form-group {
-	margin-bottom: 20px;
+	margin-block-end: 20px;
 }
 
 .form-group label {
 	display: block;
-	margin-bottom: 5px;
+	margin-block-end: 5px;
 	font-weight: bold;
 }
 
 .form-group input,
 .form-group textarea {
-	width: 100%;
+	inline-size: 100%;
 	padding: 10px;
 	border: 1px solid #ddd;
 	border-radius: 4px;
@@ -76,15 +77,15 @@ main {
 }
 
 .form-group input[type='radio'] {
-	width: auto;
+	inline-size: auto;
 }
 
 .language-selector {
-	margin-bottom: 20px;
+	margin-block-end: 20px;
 }
 
 .language-selector select {
-	width: 100%;
+	inline-size: 100%;
 	padding: 10px;
 	border: 1px solid #ddd;
 	border-radius: 4px;
@@ -92,7 +93,7 @@ main {
 }
 
 button {
-	width: 100%;
+	inline-size: 100%;
 	padding: 12px;
 	background-color: var(--primary-color);
 	color: white;
@@ -136,17 +137,19 @@ button:disabled {
 
 .result-view.success h3 {
 	color: var(--secondary-color);
-	margin-bottom: 20px;
+	margin-block-end: 20px;
 }
 
 .result-details p {
-	margin: 10px 0;
+	margin-block: 10px;
+  margin-inline: 0;
 }
 
 .revision-link {
 	display: inline-block;
-	margin-top: 15px;
-	padding: 10px 15px;
+	margin-block-start: 15px;
+	padding-block: 10px;
+  padding-inline: 15px;
 	background-color: var(--secondary-color);
 	color: white;
 	text-decoration: none;
