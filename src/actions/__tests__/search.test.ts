@@ -21,6 +21,7 @@ describe('searchAction', () => {
 		revisionId: null,
 		error: null,
 		searchCount: 0,
+		order: 'asc',
 	} as const satisfies SearchState;
 	const defaultExpectedState = {
 		...defaultPrevState,
@@ -218,5 +219,31 @@ describe('searchAction', () => {
 			expect.anything(), // pageId
 			{ order: 'desc' }
 		);
+	});
+
+	it('returns the correct order in the search state', async () => {
+		// Mock API calls
+		vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockResolvedValue(123);
+		vi.spyOn(MediaWikiAPIs, 'fetchAllRevisions').mockResolvedValue(
+			createAsyncGenerator([1, 2, 3])
+		);
+		vi.spyOn(ItemFinder, 'findOneOccurrence').mockResolvedValue(2);
+		vi.spyOn(MediaWikiAPIs, 'fetchRevisionTexts').mockResolvedValue([
+			{ rev: 2, text: 'Contains Test Text' },
+		]);
+
+		const formDataAsc = createFormData({ order: 'asc' });
+		const resultAsc = await searchAction(
+			{ ...defaultPrevState, order: 'asc' },
+			formDataAsc
+		);
+		expect(resultAsc.order).toBe('asc');
+
+		const formDataDesc = createFormData({ order: 'desc' });
+		const resultDesc = await searchAction(
+			{ ...defaultPrevState, order: 'desc' },
+			formDataDesc
+		);
+		expect(resultDesc.order).toBe('desc');
 	});
 });

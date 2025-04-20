@@ -84,6 +84,7 @@ export async function searchAction(
 			revisionId: foundRevisionId,
 			error: foundRevisionId ? null : 'Text not found in any revision',
 			searchCount: prevState.searchCount + 1,
+			order: order === 'asc' || order === 'desc' ? order : 'asc',
 		};
 	} catch (error) {
 		return {
@@ -95,6 +96,7 @@ export async function searchAction(
 				error instanceof Error ? error.message : 'An unknown error occurred',
 			revisionId: null,
 			searchCount: prevState.searchCount + 1,
+			order: prevState.order,
 		};
 	}
 }
@@ -106,4 +108,5 @@ export const defaultSearchResult = {
 	revisionId: null,
 	error: null,
 	searchCount: 0,
+	order: 'asc',
 } as const satisfies SearchState;
