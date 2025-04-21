@@ -1,5 +1,4 @@
 import {
-	fetchPageId,
 	fetchAllRevisions,
 	fetchRevisionTexts,
 	type RevisionResult,
@@ -39,36 +38,39 @@ export async function searchAction(
 	const wiki: WikiSite = WIKI_SITES[wikiId];
 	const baseUrl = wiki.url;
 
+	// Get page ID from form data
+	const pageIdStr = formData.get('pageId')?.toString();
+
+	if (!pageIdStr) {
+		return {
+			...prevState,
+			wiki,
+			pageTitle,
+			targetText,
+			error:
+				'Page ID not found. Please wait for it to load or check the title.',
+			revisionId: null,
+			searchCount: prevState.searchCount + 1,
+			pageId: null,
+		};
+	}
+
+	const pageId = Number.parseInt(pageIdStr, 10);
+
+	if (!Number.isSafeInteger(pageId)) {
+		return {
+			...prevState,
+			wiki,
+			pageTitle,
+			targetText,
+			error: 'Invalid Page ID. Please check the title.',
+			revisionId: null,
+			searchCount: prevState.searchCount + 1,
+			pageId: null,
+		};
+	}
+
 	try {
-		// Get page ID from form data
-		const pageIdStr = formData.get('pageId')?.toString();
-
-		if (!pageIdStr) {
-			return {
-				...prevState,
-				wiki,
-				pageTitle,
-				targetText,
-				error: 'Page ID not found. Please wait for it to load or check the title.',
-				revisionId: null,
-				searchCount: prevState.searchCount + 1,
-			};
-		}
-
-		const pageId = Number.parseInt(pageIdStr, 10);
-
-		if (!Number.isSafeInteger(pageId)) {
-			return {
-				...prevState,
-				wiki,
-				pageTitle,
-				targetText,
-				error: 'Invalid Page ID. Please check the title.',
-				revisionId: null,
-				searchCount: prevState.searchCount + 1,
-			};
-		}
-
 		// Fetch all revisions
 		const uptoRevIdStr = formData.get('uptoRevId')?.toString();
 		const order = formData.get('order')?.toString();
@@ -99,6 +101,7 @@ export async function searchAction(
 			error: foundRevisionId ? null : 'Text not found in any revision',
 			searchCount: prevState.searchCount + 1,
 			order: order === 'asc' || order === 'desc' ? order : 'asc',
+			pageId,
 		};
 	} catch (error) {
 		return {
@@ -110,6 +113,7 @@ export async function searchAction(
 				error instanceof Error ? error.message : 'An unknown error occurred',
 			revisionId: null,
 			searchCount: prevState.searchCount + 1,
+			pageId,
 		};
 	}
 }
@@ -122,4 +126,5 @@ export const defaultSearchResult = {
 	error: null,
 	searchCount: 0,
 	order: 'asc',
+	pageId: null,
 } as const satisfies SearchState;
