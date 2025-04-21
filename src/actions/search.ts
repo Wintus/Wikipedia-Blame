@@ -40,16 +40,30 @@ export async function searchAction(
 	const baseUrl = wiki.url;
 
 	try {
-		// Fetch page ID
-		const pageId = await fetchPageId(baseUrl, pageTitle);
+		// Get page ID from form data
+		const pageIdStr = formData.get('pageId')?.toString();
 
-		if (!pageId) {
+		if (!pageIdStr) {
 			return {
 				...prevState,
 				wiki,
 				pageTitle,
 				targetText,
-				error: `Page "${pageTitle}" not found.`,
+				error: 'Page ID not found. Please wait for it to load or check the title.',
+				revisionId: null,
+				searchCount: prevState.searchCount + 1,
+			};
+		}
+
+		const pageId = Number.parseInt(pageIdStr, 10);
+
+		if (!Number.isSafeInteger(pageId)) {
+			return {
+				...prevState,
+				wiki,
+				pageTitle,
+				targetText,
+				error: 'Invalid Page ID. Please check the title.',
 				revisionId: null,
 				searchCount: prevState.searchCount + 1,
 			};
