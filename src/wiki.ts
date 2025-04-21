@@ -29,4 +29,5 @@ export type SearchState = {
 	error: string | null;
 	searchCount: number;
 	order: 'asc' | 'desc';
+	pageId: number | null;
 };
