@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SearchForm } from '../SearchForm';
+import * as MediaWikiAPIs from '../../services/MediaWikiAPIs';
 
 describe('SearchForm', () => {
 	const mockFormAction = vi.fn();
@@ -18,6 +19,27 @@ describe('SearchForm', () => {
 		searchCount: 0,
 		order: 'asc',
 	} as const;
+
+	const emptySearchState = {
+		wiki: {
+			id: 'enwp',
+			name: 'English Wikipedia',
+			url: new URL('https://en.wikipedia.org'),
+		},
+		pageTitle: '',
+		targetText: 'Initial Text',
+		revisionId: null,
+		error: null,
+		searchCount: 0,
+		order: 'asc',
+	} as const;
+
+	const emptySearchProps = {
+		formAction: mockFormAction,
+		isPending: false,
+		searchState: emptySearchState,
+	};
+
 	const defaultProps = {
 		formAction: mockFormAction,
 		isPending: false,
@@ -270,5 +292,55 @@ describe('SearchForm', () => {
 		// Verify wiki is correctly selected
 		const wikiId = formDataArg.get('wikiId') as string;
 		expect(wikiId).toEqual('enwp');
+	});
+
+	it('renders a hidden input field for pageId', () => {
+		render(<SearchForm {...defaultProps} />);
+		expect(screen.getByTestId('pageId-input')).toBeInTheDocument();
+	});
+
+	it('debounces the API call and updates pageId on success', async () => {
+		const mockFetchPageId = vi.fn().mockResolvedValue(123);
+		vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockImplementation(mockFetchPageId);
+
+		render(<SearchForm {...emptySearchProps} />);
+		mockFetchPageId.mockClear(); // Clear mock after initial render
+
+		const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
+
+		fireEvent.change(titleInput, { target: { value: 'New Title' } });
+		expect(mockFetchPageId).not.toHaveBeenCalled();
+
+		await waitFor(() => expect(mockFetchPageId).toHaveBeenCalledTimes(1), {
+			timeout: 500,
+		});
+		expect(mockFetchPageId).toHaveBeenCalledWith(
+			emptySearchProps.searchState.wiki.url,
+			'New Title'
+		);
+
+		const pageIdInput = screen.getByTestId('pageId-input') as HTMLInputElement;
+		expect(pageIdInput.value).toBe('123');
+	});
+
+	it('displays an error message when the API call fails', async () => {
+		const mockFetchPageId = vi.fn().mockRejectedValue(new Error('API Error'));
+		vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockImplementation(mockFetchPageId);
+
+		render(<SearchForm {...emptySearchProps} />);
+
+		const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
+
+		fireEvent.change(titleInput, { target: { value: 'Invalid Title' } });
+
+		await waitFor(() => expect(mockFetchPageId).toHaveBeenCalled(), {
+			timeout: 500,
+		});
+
+		const errorMessage = await screen.findByText(/Error fetching page ID/i);
+		expect(errorMessage).toBeInTheDocument();
+
+		const pageIdInput = screen.getByTestId('pageId-input') as HTMLInputElement;
+		expect(pageIdInput.value).toBe('');
 	});
 });
