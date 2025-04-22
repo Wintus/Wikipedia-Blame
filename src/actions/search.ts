@@ -12,8 +12,11 @@ export async function searchAction(
 ): Promise<SearchState> {
 	// Parse form data
 	const wikiId = formData.get('wikiId')?.toString().toUpperCase();
+	const pageIdStr = formData.get('pageId')?.toString();
 	const pageTitle = formData.get('pageTitle')?.toString().trim();
 	const targetText = formData.get('targetText')?.toString();
+	const order = formData.get('order')?.toString();
+	const uptoRevIdStr = formData.get('uptoRevId')?.toString();
 
 	// Validate inputs
 	if (
@@ -28,11 +31,8 @@ export async function searchAction(
 			searchCount: prevState.searchCount + 1,
 		};
 	}
-	const wiki: WikiSite = WIKI_SITES[wikiId];
+	const wiki = WIKI_SITES[wikiId] satisfies WikiSite;
 	const baseUrl = wiki.url;
-
-	// Get page ID from form data
-	const pageIdStr = formData.get('pageId')?.toString();
 
 	if (!pageIdStr) {
 		return {
@@ -47,7 +47,6 @@ export async function searchAction(
 	}
 
 	const pageId = Number.parseInt(pageIdStr, 10);
-
 	if (!Number.isSafeInteger(pageId)) {
 		return {
 			...prevState,
@@ -75,18 +74,18 @@ export async function searchAction(
 		};
 	}
 
+	// build options for fetching revisions
+	const options: { uptoRevId?: number; order?: 'asc' | 'desc' } = {};
+	if (order === 'asc' || order === 'desc') {
+		options.order = order;
+	}
+	const uptoRevId = uptoRevIdStr ? Number.parseInt(uptoRevIdStr, 10) : NaN;
+	if (Number.isSafeInteger(uptoRevId)) {
+		options.uptoRevId = uptoRevId;
+	}
+
 	try {
 		// Fetch all revisions
-		const uptoRevIdStr = formData.get('uptoRevId')?.toString();
-		const order = formData.get('order')?.toString();
-		const options: { uptoRevId?: number; order?: 'asc' | 'desc' } = {};
-		const uptoRevId = uptoRevIdStr ? Number.parseInt(uptoRevIdStr, 10) : NaN;
-		if (Number.isSafeInteger(uptoRevId)) {
-			options.uptoRevId = uptoRevId;
-		}
-		if (order === 'asc' || order === 'desc') {
-			options.order = order;
-		}
 		const revisions = fetchAllRevisions(baseUrl, pageId, options);
 
 		// Find occurrence of target text
