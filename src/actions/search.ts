@@ -45,13 +45,13 @@ export async function searchAction(
 		return {
 			...prevState,
 			wiki,
+			pageId: null,
 			pageTitle,
 			targetText,
+			revisionId: null,
 			error:
 				'Page ID not found. Please wait for it to load or check the title.',
-			revisionId: null,
 			searchCount: prevState.searchCount + 1,
-			pageId: null,
 		};
 	}
 
@@ -61,12 +61,12 @@ export async function searchAction(
 		return {
 			...prevState,
 			wiki,
+			pageId: null,
 			pageTitle,
 			targetText,
-			error: 'Invalid Page ID. Please check the title.',
 			revisionId: null,
+			error: 'Invalid Page ID. Please check the title.',
 			searchCount: prevState.searchCount + 1,
-			pageId: null,
 		};
 	}
 
@@ -95,36 +95,36 @@ export async function searchAction(
 		// Return updated search result
 		return {
 			wiki,
+			pageId,
 			pageTitle,
 			targetText,
 			revisionId: foundRevisionId,
+			order: order === 'asc' || order === 'desc' ? order : 'asc',
 			error: foundRevisionId ? null : 'Text not found in any revision',
 			searchCount: prevState.searchCount + 1,
-			order: order === 'asc' || order === 'desc' ? order : 'asc',
-			pageId,
 		};
 	} catch (error) {
 		return {
 			...prevState,
 			wiki,
+			pageId,
 			pageTitle,
 			targetText,
+			revisionId: null,
 			error:
 				error instanceof Error ? error.message : 'An unknown error occurred',
-			revisionId: null,
 			searchCount: prevState.searchCount + 1,
-			pageId,
 		};
 	}
 }
 
 export const defaultSearchResult = {
 	wiki: WIKI_SITES.ENWP,
+	pageId: null,
 	pageTitle: '',
 	targetText: '',
 	revisionId: null,
+	order: 'asc',
 	error: null,
 	searchCount: 0,
-	order: 'asc',
-	pageId: null,
 } as const satisfies SearchState;
