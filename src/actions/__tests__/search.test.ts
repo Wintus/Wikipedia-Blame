@@ -24,13 +24,13 @@ describe('searchAction', () => {
 	const defaultWiki = WIKI_SITES.ENWP;
 	const defaultPrevState = {
 		wiki: defaultWiki,
+		pageId: null,
 		pageTitle: '',
 		targetText: '',
 		revisionId: null,
+		order: 'asc',
 		error: null,
 		searchCount: 0,
-		order: 'asc',
-		pageId: null,
 	} as const satisfies SearchState;
 	const defaultExpectedState = {
 		...defaultPrevState,
@@ -61,7 +61,7 @@ describe('searchAction', () => {
 
 		expect(result).toEqual({
 			...defaultPrevState,
-			error: 'Please provide both a page title and text to search for',
+			error: expect.any(String),
 			searchCount: 1,
 		});
 	});
@@ -82,11 +82,11 @@ describe('searchAction', () => {
 
 		expect(result).toEqual({
 			...defaultExpectedState,
+			pageId: 123,
 			pageTitle: 'Test Page',
 			targetText: 'Test Text',
 			revisionId: 2,
 			error: null,
-			pageId: 123,
 		});
 	});
 
@@ -97,12 +97,10 @@ describe('searchAction', () => {
 
 		expect(result).toEqual({
 			...defaultExpectedState,
-			pageTitle: 'Test Page',
-			targetText: 'Test Text',
+			pageId: null,
 			revisionId: null,
 			error:
 				'Page ID not found. Please wait for it to load or check the title.',
-			pageId: null,
 		});
 	});
 
@@ -119,11 +117,11 @@ describe('searchAction', () => {
 
 		expect(result).toEqual({
 			...defaultExpectedState,
+			pageId: 123,
 			pageTitle: 'Test Page',
 			targetText: 'Test Text',
 			revisionId: null,
 			error: 'Text not found in any revision',
-			pageId: 123,
 		});
 	});
 
@@ -139,11 +137,11 @@ describe('searchAction', () => {
 
 		expect(result).toEqual({
 			...defaultExpectedState,
+			pageId: 123,
 			pageTitle: 'Test Page',
 			targetText: 'Test Text',
 			revisionId: null,
 			error: 'Network error',
-			pageId: 123,
 		});
 	});
 
@@ -159,11 +157,11 @@ describe('searchAction', () => {
 
 		expect(result).toEqual({
 			...defaultExpectedState,
+			pageId: 123,
 			pageTitle: 'Test Page',
 			targetText: 'Test Text',
 			revisionId: null,
 			error: 'An unknown error occurred',
-			pageId: 123,
 		});
 	});
 

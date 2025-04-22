@@ -18,13 +18,13 @@ describe('SearchForm', () => {
 			name: 'English Wikipedia',
 			url: new URL('https://en.wikipedia.org'),
 		},
+		pageId: null,
 		pageTitle: 'Initial Title',
 		targetText: 'Initial Text',
 		revisionId: null,
+		order: 'asc',
 		error: null,
 		searchCount: 0,
-		order: 'asc',
-		pageId: null,
 	} as const;
 
 	const emptySearchState = {
@@ -33,13 +33,13 @@ describe('SearchForm', () => {
 			name: 'English Wikipedia',
 			url: new URL('https://en.wikipedia.org'),
 		},
+		pageId: null,
 		pageTitle: '',
 		targetText: 'Initial Text',
 		revisionId: null,
+		order: 'asc',
 		error: null,
 		searchCount: 0,
-		order: 'asc',
-		pageId: null,
 	} as const;
 
 	const emptySearchProps = {
@@ -217,13 +217,13 @@ describe('SearchForm', () => {
 						name: 'Japanese Wikipedia',
 						url: new URL('https://ja.wikipedia.org'),
 					},
+					pageId: null,
 					pageTitle: 'Initial Page Title',
 					targetText: 'Initial Target Text',
 					revisionId: null,
+					order: 'asc',
 					error: null,
 					searchCount: 0,
-					order: 'asc',
-					pageId: null,
 				}}
 			/>
 		);

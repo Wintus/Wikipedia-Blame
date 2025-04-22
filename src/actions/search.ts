@@ -16,13 +16,6 @@ export async function searchAction(
 	const targetText = formData.get('targetText')?.toString();
 
 	// Validate inputs
-	if (!pageTitle || !targetText) {
-		return {
-			...prevState,
-			error: 'Please provide both a page title and text to search for',
-			searchCount: prevState.searchCount + 1,
-		};
-	}
 	if (
 		!wikiId ||
 		!((key: string): key is keyof typeof WIKI_SITES => key in WIKI_SITES)(
@@ -46,8 +39,6 @@ export async function searchAction(
 			...prevState,
 			wiki,
 			pageId: null,
-			pageTitle,
-			targetText,
 			revisionId: null,
 			error:
 				'Page ID not found. Please wait for it to load or check the title.',
@@ -62,10 +53,24 @@ export async function searchAction(
 			...prevState,
 			wiki,
 			pageId: null,
-			pageTitle,
-			targetText,
 			revisionId: null,
 			error: 'Invalid Page ID. Please check the title.',
+			searchCount: prevState.searchCount + 1,
+		};
+	}
+
+	if (!pageTitle) {
+		return {
+			...prevState,
+			error: 'Please provide a page title to search for',
+			searchCount: prevState.searchCount + 1,
+		};
+	}
+
+	if (!targetText) {
+		return {
+			...prevState,
+			error: 'Please provide a text to search for',
 			searchCount: prevState.searchCount + 1,
 		};
 	}
