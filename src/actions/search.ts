@@ -110,7 +110,6 @@ export async function searchAction(
 				error instanceof Error ? error.message : 'An unknown error occurred',
 			revisionId: null,
 			searchCount: prevState.searchCount + 1,
-			order: prevState.order,
 		};
 	}
 }
