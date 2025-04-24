@@ -1,7 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import {
+	render,
+	screen,
+	fireEvent,
+	waitFor,
+	act,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SearchForm } from '../SearchForm';
+import * as MediaWikiAPIs from '../../services/MediaWikiAPIs';
 
 describe('SearchForm', () => {
 	const mockFormAction = vi.fn();
@@ -11,13 +18,36 @@ describe('SearchForm', () => {
 			name: 'English Wikipedia',
 			url: new URL('https://en.wikipedia.org'),
 		},
+		pageId: null,
 		pageTitle: 'Initial Title',
 		targetText: 'Initial Text',
 		revisionId: null,
+		order: 'asc',
 		error: null,
 		searchCount: 0,
-		order: 'asc',
 	} as const;
+
+	const emptySearchState = {
+		wiki: {
+			id: 'enwp',
+			name: 'English Wikipedia',
+			url: new URL('https://en.wikipedia.org'),
+		},
+		pageId: null,
+		pageTitle: '',
+		targetText: 'Initial Text',
+		revisionId: null,
+		order: 'asc',
+		error: null,
+		searchCount: 0,
+	} as const;
+
+	const emptySearchProps = {
+		formAction: mockFormAction,
+		isPending: false,
+		searchState: emptySearchState,
+	};
+
 	const defaultProps = {
 		formAction: mockFormAction,
 		isPending: false,
@@ -26,24 +56,30 @@ describe('SearchForm', () => {
 
 	beforeEach(() => {
 		mockFormAction.mockClear();
+		const mockFetchPageId = vi.fn().mockResolvedValue(123);
+		vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockImplementation(mockFetchPageId);
 	});
 
-	it('renders form inputs and button', () => {
+	it('renders form inputs and button', async () => {
 		render(<SearchForm {...defaultProps} />);
 		expect(screen.getByLabelText(/Wiki Article Title:/i)).toBeInTheDocument();
 		expect(screen.getByLabelText(/Text to Find:/i)).toBeInTheDocument();
 		expect(
 			screen.getByRole('button', { name: /Find An Occurrence/i })
 		).toBeInTheDocument();
+		// suppress the warning due to delayed rendering by debouncing
+		await act(async () => {});
 	});
 
-	it('submits form with correct FormData', () => {
+	it('submits form with correct FormData', async () => {
 		render(<SearchForm {...defaultProps} />);
 		const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
 		const textArea = screen.getByLabelText(/Text to Find:/i);
 		const button = screen.getByRole('button', { name: /Find An Occurrence/i });
 
-		fireEvent.change(titleInput, { target: { value: 'Albert Einstein' } });
+		await act(async () => {
+			fireEvent.change(titleInput, { target: { value: 'Albert Einstein' } });
+		});
 		fireEvent.change(textArea, { target: { value: 'relativity' } });
 		fireEvent.click(button);
 
@@ -59,14 +95,16 @@ describe('SearchForm', () => {
 		expect(wikiId).toEqual('enwp');
 	});
 
-	it('renders the uptoRevId input field', () => {
+	it('renders the uptoRevId input field', async () => {
 		render(<SearchForm {...defaultProps} />);
 		expect(
 			screen.getByLabelText(/Search up to Rev ID \(optional\):/i)
 		).toBeInTheDocument();
+		// suppress the warning due to delayed rendering by debouncing
+		await act(async () => {});
 	});
 
-	it('populates the uptoRevId input with the revisionId from searchState', () => {
+	it('populates the uptoRevId input with the revisionId from searchState', async () => {
 		render(
 			<SearchForm
 				formAction={mockFormAction}
@@ -81,9 +119,11 @@ describe('SearchForm', () => {
 			/Search up to Rev ID \(optional\):/i
 		) as HTMLInputElement;
 		expect(uptoRevIdInput.value).toBe('12345');
+		// suppress the warning due to delayed rendering by debouncing
+		await act(async () => {});
 	});
 
-	it('submits form with correct FormData including uptoRevId', () => {
+	it('submits form with correct FormData including uptoRevId', async () => {
 		render(<SearchForm {...defaultProps} />);
 		const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
 		const textArea = screen.getByLabelText(/Text to Find:/i);
@@ -92,7 +132,9 @@ describe('SearchForm', () => {
 		);
 		const button = screen.getByRole('button', { name: /Find An Occurrence/i });
 
-		fireEvent.change(titleInput, { target: { value: 'Albert Einstein' } });
+		await act(async () => {
+			fireEvent.change(titleInput, { target: { value: 'Albert Einstein' } });
+		});
 		fireEvent.change(textArea, { target: { value: 'relativity' } });
 		fireEvent.change(uptoRevIdInput, { target: { value: '67890' } });
 		fireEvent.click(button);
@@ -124,9 +166,11 @@ describe('SearchForm', () => {
 		const button = screen.getByRole('button', { name: /Find An Occurrence/i });
 		await userEvent.click(button);
 		expect(mockFormAction).not.toHaveBeenCalled();
+		// suppress the warning due to delayed rendering by debouncing
+		await act(async () => {});
 	});
 
-	it('disables the button when isPending is true', () => {
+	it('disables the button when isPending is true', async () => {
 		render(
 			<SearchForm
 				formAction={mockFormAction}
@@ -136,14 +180,18 @@ describe('SearchForm', () => {
 		);
 		const button = screen.getByRole('button');
 		expect(button).toBeDisabled();
+		// suppress the warning due to delayed rendering by debouncing
+		await act(async () => {});
 	});
 
-	it('renders the WikiSelector component', () => {
+	it('renders the WikiSelector component', async () => {
 		render(<SearchForm {...defaultProps} />);
 		expect(screen.getByLabelText(/Wiki Site:/i)).toBeInTheDocument();
+		// suppress the warning due to delayed rendering by debouncing
+		await act(async () => {});
 	});
 
-	it('the selected option remains selected after form submission', () => {
+	it('the selected option remains selected after form submission', async () => {
 		render(<SearchForm {...defaultProps} />);
 		const wikiSelector =
 			screen.getByLabelText<HTMLSelectElement>(/Wiki Site:/i);
@@ -153,9 +201,12 @@ describe('SearchForm', () => {
 
 		fireEvent.submit(screen.getByRole('form'));
 		expect(wikiSelector.value).toBe('jawp');
+
+		// suppress the warning due to delayed rendering by debouncing
+		await act(async () => {});
 	});
 
-	it('renders initial values from searchState', () => {
+	it('renders initial values from searchState', async () => {
 		render(
 			<SearchForm
 				formAction={mockFormAction}
@@ -166,12 +217,13 @@ describe('SearchForm', () => {
 						name: 'Japanese Wikipedia',
 						url: new URL('https://ja.wikipedia.org'),
 					},
+					pageId: null,
 					pageTitle: 'Initial Page Title',
 					targetText: 'Initial Target Text',
 					revisionId: null,
+					order: 'asc',
 					error: null,
 					searchCount: 0,
-					order: 'asc',
 				}}
 			/>
 		);
@@ -189,9 +241,12 @@ describe('SearchForm', () => {
 		expect(titleInput.value).toBe('Initial Page Title');
 		expect(textArea.value).toBe('Initial Target Text');
 		expect(wikiSelector.value).toBe('jawp');
+
+		// suppress the warning due to delayed rendering by debouncing
+		await act(async () => {});
 	});
 
-	it('renders the order radio buttons', () => {
+	it('renders the order radio buttons', async () => {
 		render(<SearchForm {...defaultProps} />);
 		expect(
 			screen.getByLabelText(/Ascending \(Older First\)/i)
@@ -199,9 +254,11 @@ describe('SearchForm', () => {
 		expect(
 			screen.getByLabelText(/Descending \(Newer First\)/i)
 		).toBeInTheDocument();
+		// suppress the warning due to delayed rendering by debouncing
+		await act(async () => {});
 	});
 
-	it('renders with correct defaultChecked based on searchState', () => {
+	it('renders with correct defaultChecked based on searchState', async () => {
 		const searchStateAsc = {
 			...defaultProps.searchState,
 			order: 'asc' as const,
@@ -210,9 +267,11 @@ describe('SearchForm', () => {
 		expect(
 			screen.getByLabelText(/Descending \(Newer First\)/i)
 		).toBeInTheDocument();
+		// suppress the warning due to delayed rendering by debouncing
+		await act(async () => {});
 	});
 
-	it('renders with correct defaultChecked based on searchState', () => {
+	it('renders with correct defaultChecked based on searchState', async () => {
 		const searchStateAsc = {
 			...defaultProps.searchState,
 			order: 'asc' as const,
@@ -243,9 +302,12 @@ describe('SearchForm', () => {
 			/Descending \(Newer First\)/i
 		) as HTMLInputElement;
 		expect(radioDesc2.defaultChecked).toBe(true);
+
+		// suppress the warning due to delayed rendering by debouncing
+		await act(async () => {});
 	});
 
-	it('submits form with correct FormData including order', () => {
+	it('submits form with correct FormData including order', async () => {
 		render(<SearchForm {...defaultProps} />);
 		const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
 		const textArea = screen.getByLabelText(/Text to Find:/i);
@@ -254,7 +316,9 @@ describe('SearchForm', () => {
 		);
 		const button = screen.getByRole('button', { name: /Find An Occurrence/i });
 
-		fireEvent.change(titleInput, { target: { value: 'Albert Einstein' } });
+		await act(async () => {
+			fireEvent.change(titleInput, { target: { value: 'Albert Einstein' } });
+		});
 		fireEvent.change(textArea, { target: { value: 'relativity' } });
 		fireEvent.click(descendingRadio); // Select descending order
 		fireEvent.click(button);
@@ -270,5 +334,68 @@ describe('SearchForm', () => {
 		// Verify wiki is correctly selected
 		const wikiId = formDataArg.get('wikiId') as string;
 		expect(wikiId).toEqual('enwp');
+	});
+
+	it('renders a hidden input field for pageId', async () => {
+		render(<SearchForm {...defaultProps} />);
+		expect(screen.getByTestId('pageId-input')).toBeInTheDocument();
+		// suppress the warning due to delayed rendering by debouncing
+		await act(async () => {});
+	});
+
+	it('debounces the API call and updates pageId on success', async () => {
+		const mockFetchPageId = vi.fn().mockResolvedValue(123);
+		vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockImplementation(mockFetchPageId);
+
+		render(<SearchForm {...emptySearchProps} />);
+
+		const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
+
+		await act(async () => {
+			fireEvent.change(titleInput, { target: { value: 'New Title' } });
+		});
+		expect(mockFetchPageId).not.toHaveBeenCalled();
+
+		await waitFor(() => expect(mockFetchPageId).toHaveBeenCalledTimes(1), {
+			timeout: 500,
+		});
+		expect(mockFetchPageId).toHaveBeenCalledWith(
+			emptySearchProps.searchState.wiki.url,
+			'New Title'
+		);
+
+		const pageIdInput = screen.getByTestId('pageId-input') as HTMLInputElement;
+		expect(pageIdInput.value).toBe('123');
+	});
+
+	it('displays an error message when the API call fails', async () => {
+		const mockFetchPageId = vi.fn().mockRejectedValue(new Error('API Error'));
+		vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockImplementation(mockFetchPageId);
+		const consoleErrorSpy = vi
+			.spyOn(console, 'error')
+			.mockImplementation(() => {});
+
+		render(<SearchForm {...emptySearchProps} />);
+
+		const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
+
+		await act(async () => {
+			fireEvent.change(titleInput, { target: { value: 'Invalid Title' } });
+		});
+
+		await waitFor(() => expect(mockFetchPageId).toHaveBeenCalled(), {
+			timeout: 500,
+		});
+
+		const errorMessage = await screen.findByText(/Error fetching page ID/i);
+		expect(errorMessage).toBeInTheDocument();
+
+		const pageIdInput = screen.getByTestId('pageId-input') as HTMLInputElement;
+		expect(pageIdInput.value).toBe('');
+
+		expect(consoleErrorSpy).toHaveBeenCalledWith(
+			'Error fetching page ID:',
+			new Error('API Error')
+		);
 	});
 });

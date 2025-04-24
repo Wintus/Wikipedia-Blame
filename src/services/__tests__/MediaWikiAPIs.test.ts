@@ -41,22 +41,18 @@ describe('WikipediaAPI', () => {
 		it('returns null on network error', async () => {
 			mockFetch.mockRejectedValue(new Error('Network error'));
 
-			const pageId = await fetchPageId(baseUrl, 'Test Page');
-
-			expect(pageId).toBeNull();
-			expect(console.error).toHaveBeenCalledWith(
-				'Error fetching page ID:',
-				expect.any(Error)
+			await expect(fetchPageId(baseUrl, 'Test Page')).rejects.toThrow(
+				new Error('Network error')
 			);
 		});
 
 		it('returns null on unsuccessful response', async () => {
-			const mockResponse = { ok: false };
+			const mockResponse = { ok: false, statusText: 'Not Found' };
 			mockFetch.mockResolvedValue(mockResponse);
 
-			const pageId = await fetchPageId(baseUrl, 'Test Page');
-
-			expect(pageId).toBeNull();
+			await expect(fetchPageId(baseUrl, 'Test Page')).rejects.toThrow(
+				new Error('Failed to fetch page ID', { cause: mockResponse })
+			);
 		});
 	});
 

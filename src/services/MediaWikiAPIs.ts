@@ -51,25 +51,24 @@ const convert = (revision: Revision<'main'>): RevisionResult => ({
  * Fetches the page ID for a given title using the REST API
  *
  * see https://www.mediawiki.org/wiki/API:REST_API/Reference#Get_page
+ *
+ * Post-condition: this function may raise an error on request failed
  */
 export async function fetchPageId(
 	baseUrl: URL,
 	pageTitle: string
-): Promise<number | null> {
-	try {
-		const url = new URL(`/w/rest.php/v1/page/${pageTitle}/bare`, baseUrl);
-		// guard
-		const response = await fetch(url);
-		if (!response.ok) {
-			return null;
-		}
-		// request
-		const page = await response.json();
-		return page.id;
-	} catch (error) {
-		console.error('Error fetching page ID:', error);
-		return null;
+): Promise<number> {
+	const url = new URL(`/w/rest.php/v1/page/${pageTitle}/bare`, baseUrl);
+	// guard
+	const response = await fetch(url);
+	if (!response.ok) {
+		throw new Error('Failed to fetch page ID', {
+			cause: response,
+		});
 	}
+	// request
+	const page = await response.json();
+	return page.id;
 }
 
 /**

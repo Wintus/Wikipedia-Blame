@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { type SearchState, type WikiSite } from '../wiki';
 import { WikiSelector } from './WikiSelector';
+import useDebounce from '../hooks/useDebounce';
+import { fetchPageId } from '../services/MediaWikiAPIs';
 
 interface SearchFormProps {
 	formAction: (formData: FormData) => void;
@@ -16,11 +18,39 @@ export function SearchForm({
 	const [pageTitle, setPageTitle] = useState(searchState.pageTitle);
 	const [targetText, setTargetText] = useState(searchState.targetText);
 	const [selectedWiki, setSelectedWiki] = useState<WikiSite>(searchState.wiki);
+	const [pageId, setPageId] = useState<number | null>(null);
+	const [pageIdError, setPageIdError] = useState<string | null>(null);
+	const debouncedPageTitle = useDebounce(pageTitle, 300);
+
+	useEffect(() => {
+		setPageId(null);
+		setPageIdError(null);
+
+		if (!debouncedPageTitle) {
+			return;
+		}
+
+		fetchPageId(selectedWiki.url, debouncedPageTitle)
+			.then((id) => {
+				setPageId(id);
+			})
+			.catch((error) => {
+				console.error('Error fetching page ID:', error);
+				setPageIdError('Error fetching page ID. Please try again.');
+				setPageId(null);
+			});
+	}, [debouncedPageTitle, selectedWiki]);
 
 	return (
 		<form action={formAction} className="search-form" name="searchForm">
 			<WikiSelector selectedWiki={selectedWiki} onChange={setSelectedWiki} />
 
+			<input
+				type="hidden"
+				name="pageId"
+				value={pageId ?? ''}
+				data-testid="pageId-input"
+			/>
 			<div className="form-group">
 				<label htmlFor="page-title">Wiki Article Title:</label>
 				<input
@@ -32,6 +62,7 @@ export function SearchForm({
 					placeholder="e.g. Albert Einstein"
 					required
 				/>
+				{pageIdError && <div className="error-message">{pageIdError}</div>}
 			</div>
 
 			<div className="form-group">

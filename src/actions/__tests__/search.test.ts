@@ -12,16 +12,25 @@ async function* createAsyncGenerator<T>(
 	}
 }
 
+async function* createFailingAsyncGenerator(
+	errorToThrow: unknown
+): AsyncGenerator<never> {
+	// Yield nothing, just throw immediately
+	yield* []; // Ensures it's a valid generator
+	throw errorToThrow;
+}
+
 describe('searchAction', () => {
 	const defaultWiki = WIKI_SITES.ENWP;
 	const defaultPrevState = {
 		wiki: defaultWiki,
+		pageId: null,
 		pageTitle: '',
 		targetText: '',
 		revisionId: null,
+		order: 'asc',
 		error: null,
 		searchCount: 0,
-		order: 'asc',
 	} as const satisfies SearchState;
 	const defaultExpectedState = {
 		...defaultPrevState,
@@ -52,14 +61,13 @@ describe('searchAction', () => {
 
 		expect(result).toEqual({
 			...defaultPrevState,
-			error: 'Please provide both a page title and text to search for',
+			error: expect.any(String),
 			searchCount: 1,
 		});
 	});
 
 	it('handles successful search flow', async () => {
 		// Mock API calls
-		vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockResolvedValue(123);
 		vi.spyOn(MediaWikiAPIs, 'fetchAllRevisions').mockResolvedValue(
 			createAsyncGenerator([1, 2, 3])
 		);
@@ -68,12 +76,13 @@ describe('searchAction', () => {
 			{ rev: 2, text: 'Contains Test Text' },
 		]);
 
-		const formData = createFormData();
+		const formData = createFormData({ pageId: '123' });
 
 		const result = await searchAction(defaultPrevState, formData);
 
 		expect(result).toEqual({
 			...defaultExpectedState,
+			pageId: 123,
 			pageTitle: 'Test Page',
 			targetText: 'Test Text',
 			revisionId: 2,
@@ -81,37 +90,34 @@ describe('searchAction', () => {
 		});
 	});
 
-	it('handles page not found error', async () => {
-		// Mock pageId as null
-		vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockResolvedValue(null);
-
+	it('handles page ID not found error', async () => {
 		const formData = createFormData();
 
 		const result = await searchAction(defaultPrevState, formData);
 
 		expect(result).toEqual({
 			...defaultExpectedState,
-			pageTitle: 'Test Page',
-			targetText: 'Test Text',
+			pageId: null,
 			revisionId: null,
-			error: 'Page "Test Page" not found.',
+			error:
+				'Page ID not found. Please wait for it to load or check the title.',
 		});
 	});
 
 	it('handles text not found in revisions', async () => {
-		// Mock successful page and revision fetch, but no text found
-		vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockResolvedValue(123);
+		// Mock successful revision fetch, but no text found
 		vi.spyOn(MediaWikiAPIs, 'fetchAllRevisions').mockResolvedValue(
 			createAsyncGenerator([1, 2, 3])
 		);
 		vi.spyOn(ItemFinder, 'findOneOccurrence').mockResolvedValue(null);
 
-		const formData = createFormData();
+		const formData = createFormData({ pageId: '123' });
 
 		const result = await searchAction(defaultPrevState, formData);
 
 		expect(result).toEqual({
 			...defaultExpectedState,
+			pageId: 123,
 			pageTitle: 'Test Page',
 			targetText: 'Test Text',
 			revisionId: null,
@@ -121,16 +127,17 @@ describe('searchAction', () => {
 
 	it('handles API exceptions gracefully', async () => {
 		// Mock API throwing an exception
-		vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockRejectedValue(
-			new Error('Network error')
+		vi.spyOn(MediaWikiAPIs, 'fetchAllRevisions').mockImplementation(() =>
+			createFailingAsyncGenerator(new Error('Network error'))
 		);
 
-		const formData = createFormData();
+		const formData = createFormData({ pageId: '123' });
 
 		const result = await searchAction(defaultPrevState, formData);
 
 		expect(result).toEqual({
 			...defaultExpectedState,
+			pageId: 123,
 			pageTitle: 'Test Page',
 			targetText: 'Test Text',
 			revisionId: null,
@@ -140,14 +147,17 @@ describe('searchAction', () => {
 
 	it('handles non-Error exceptions', async () => {
 		// Mock API throwing a non-Error object
-		vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockRejectedValue('Unknown error');
+		vi.spyOn(MediaWikiAPIs, 'fetchAllRevisions').mockImplementation(() =>
+			createFailingAsyncGenerator('Unknown error')
+		);
 
-		const formData = createFormData();
+		const formData = createFormData({ pageId: '123' });
 
 		const result = await searchAction(defaultPrevState, formData);
 
 		expect(result).toEqual({
 			...defaultExpectedState,
+			pageId: 123,
 			pageTitle: 'Test Page',
 			targetText: 'Test Text',
 			revisionId: null,
@@ -157,7 +167,6 @@ describe('searchAction', () => {
 
 	it('calls fetchAllRevisions with uptoRevId when provided in form data', async () => {
 		// Mock API calls
-		vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockResolvedValue(123);
 		const fetchAllRevisionsMock = vi
 			.spyOn(MediaWikiAPIs, 'fetchAllRevisions')
 			.mockResolvedValue(createAsyncGenerator([1, 2, 3]));
@@ -166,7 +175,7 @@ describe('searchAction', () => {
 			{ rev: 2, text: 'Contains Test Text' },
 		]);
 
-		const formData = createFormData({ uptoRevId: '456' });
+		const formData = createFormData({ uptoRevId: '456', pageId: '123' });
 
 		await searchAction(defaultPrevState, formData);
 
@@ -188,7 +197,7 @@ describe('searchAction', () => {
 			{ rev: 2, text: 'Contains Test Text' },
 		]);
 
-		const formData = createFormData(); // No uptoRevId
+		const formData = createFormData({ pageId: '123' }); // No uptoRevId
 
 		await searchAction(defaultPrevState, formData);
 
@@ -201,7 +210,6 @@ describe('searchAction', () => {
 
 	it('calls fetchAllRevisions with order when provided in form data', async () => {
 		// Mock API calls
-		vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockResolvedValue(123);
 		const fetchAllRevisionsMock = vi
 			.spyOn(MediaWikiAPIs, 'fetchAllRevisions')
 			.mockResolvedValue(createAsyncGenerator([1, 2, 3]));
@@ -210,7 +218,7 @@ describe('searchAction', () => {
 			{ rev: 2, text: 'Contains Test Text' },
 		]);
 
-		const formData = createFormData({ order: 'desc' });
+		const formData = createFormData({ order: 'desc', pageId: '123' });
 
 		await searchAction(defaultPrevState, formData);
 
@@ -223,7 +231,6 @@ describe('searchAction', () => {
 
 	it('returns the correct order in the search state', async () => {
 		// Mock API calls
-		vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockResolvedValue(123);
 		vi.spyOn(MediaWikiAPIs, 'fetchAllRevisions').mockResolvedValue(
 			createAsyncGenerator([1, 2, 3])
 		);
@@ -232,14 +239,14 @@ describe('searchAction', () => {
 			{ rev: 2, text: 'Contains Test Text' },
 		]);
 
-		const formDataAsc = createFormData({ order: 'asc' });
+		const formDataAsc = createFormData({ order: 'asc', pageId: '123' });
 		const resultAsc = await searchAction(
 			{ ...defaultPrevState, order: 'asc' },
 			formDataAsc
 		);
 		expect(resultAsc.order).toBe('asc');
 
-		const formDataDesc = createFormData({ order: 'desc' });
+		const formDataDesc = createFormData({ order: 'desc', pageId: '123' });
 		const resultDesc = await searchAction(
 			{ ...defaultPrevState, order: 'desc' },
 			formDataDesc

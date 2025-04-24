@@ -1,5 +1,4 @@
 import {
-	fetchPageId,
 	fetchAllRevisions,
 	fetchRevisionTexts,
 	type RevisionResult,
@@ -13,17 +12,13 @@ export async function searchAction(
 ): Promise<SearchState> {
 	// Parse form data
 	const wikiId = formData.get('wikiId')?.toString().toUpperCase();
+	const pageIdStr = formData.get('pageId')?.toString();
 	const pageTitle = formData.get('pageTitle')?.toString().trim();
 	const targetText = formData.get('targetText')?.toString();
+	const order = formData.get('order')?.toString();
+	const uptoRevIdStr = formData.get('uptoRevId')?.toString();
 
 	// Validate inputs
-	if (!pageTitle || !targetText) {
-		return {
-			...prevState,
-			error: 'Please provide both a page title and text to search for',
-			searchCount: prevState.searchCount + 1,
-		};
-	}
 	if (
 		!wikiId ||
 		!((key: string): key is keyof typeof WIKI_SITES => key in WIKI_SITES)(
@@ -36,36 +31,61 @@ export async function searchAction(
 			searchCount: prevState.searchCount + 1,
 		};
 	}
-	const wiki: WikiSite = WIKI_SITES[wikiId];
+	const wiki = WIKI_SITES[wikiId] satisfies WikiSite;
 	const baseUrl = wiki.url;
 
+	if (!pageIdStr) {
+		return {
+			...prevState,
+			wiki,
+			pageId: null,
+			revisionId: null,
+			error:
+				'Page ID not found. Please wait for it to load or check the title.',
+			searchCount: prevState.searchCount + 1,
+		};
+	}
+
+	const pageId = Number.parseInt(pageIdStr, 10);
+	if (!Number.isSafeInteger(pageId)) {
+		return {
+			...prevState,
+			wiki,
+			pageId: null,
+			revisionId: null,
+			error: 'Invalid Page ID. Please check the title.',
+			searchCount: prevState.searchCount + 1,
+		};
+	}
+
+	if (!pageTitle) {
+		return {
+			...prevState,
+			error: 'Please provide a page title to search for',
+			searchCount: prevState.searchCount + 1,
+		};
+	}
+
+	if (!targetText) {
+		return {
+			...prevState,
+			error: 'Please provide a text to search for',
+			searchCount: prevState.searchCount + 1,
+		};
+	}
+
+	// build options for fetching revisions
+	const options: { uptoRevId?: number; order?: 'asc' | 'desc' } = {};
+	if (order === 'asc' || order === 'desc') {
+		options.order = order;
+	}
+	const uptoRevId = uptoRevIdStr ? Number.parseInt(uptoRevIdStr, 10) : NaN;
+	if (Number.isSafeInteger(uptoRevId)) {
+		options.uptoRevId = uptoRevId;
+	}
+
 	try {
-		// Fetch page ID
-		const pageId = await fetchPageId(baseUrl, pageTitle);
-
-		if (!pageId) {
-			return {
-				...prevState,
-				wiki,
-				pageTitle,
-				targetText,
-				error: `Page "${pageTitle}" not found.`,
-				revisionId: null,
-				searchCount: prevState.searchCount + 1,
-			};
-		}
-
 		// Fetch all revisions
-		const uptoRevIdStr = formData.get('uptoRevId')?.toString();
-		const order = formData.get('order')?.toString();
-		const options: { uptoRevId?: number; order?: 'asc' | 'desc' } = {};
-		const uptoRevId = uptoRevIdStr ? Number.parseInt(uptoRevIdStr, 10) : NaN;
-		if (Number.isSafeInteger(uptoRevId)) {
-			options.uptoRevId = uptoRevId;
-		}
-		if (order === 'asc' || order === 'desc') {
-			options.order = order;
-		}
 		const revisions = fetchAllRevisions(baseUrl, pageId, options);
 
 		// Find occurrence of target text
@@ -79,34 +99,36 @@ export async function searchAction(
 		// Return updated search result
 		return {
 			wiki,
+			pageId,
 			pageTitle,
 			targetText,
 			revisionId: foundRevisionId,
+			order: order === 'asc' || order === 'desc' ? order : 'asc',
 			error: foundRevisionId ? null : 'Text not found in any revision',
 			searchCount: prevState.searchCount + 1,
-			order: order === 'asc' || order === 'desc' ? order : 'asc',
 		};
 	} catch (error) {
 		return {
 			...prevState,
 			wiki,
+			pageId,
 			pageTitle,
 			targetText,
+			revisionId: null,
 			error:
 				error instanceof Error ? error.message : 'An unknown error occurred',
-			revisionId: null,
 			searchCount: prevState.searchCount + 1,
-			order: prevState.order,
 		};
 	}
 }
 
 export const defaultSearchResult = {
 	wiki: WIKI_SITES.ENWP,
+	pageId: null,
 	pageTitle: '',
 	targetText: '',
 	revisionId: null,
+	order: 'asc',
 	error: null,
 	searchCount: 0,
-	order: 'asc',
 } as const satisfies SearchState;
