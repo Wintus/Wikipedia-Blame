@@ -1,14 +1,10 @@
-import { useActionState } from 'react';
 import './App.css';
 import { SearchForm } from './components/SearchForm';
 import { ResultView } from './components/ResultView';
-import { searchAction, defaultSearchResult } from './actions/search';
+import { useSearchActionState } from './hooks/useSearchActionState';
 
 function App() {
-	const [searchState, formAction, isPending] = useActionState(
-		searchAction,
-		defaultSearchResult
-	);
+	const [searchState, formAction, isPending] = useSearchActionState();
 
 	return (
 		<div className="app">
