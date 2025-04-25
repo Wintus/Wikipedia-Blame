@@ -19,7 +19,7 @@ export const WIKI_SITES = {
 		name: 'Japanese Wikipedia',
 		url: new URL('https://ja.wikipedia.org'),
 	},
-} as const satisfies Record<WikiSite['id'], WikiSite>;
+} as const satisfies Record<Uppercase<WikiSite['id']>, WikiSite>;
 
 export type SearchState = {
 	wiki: WikiSite;
