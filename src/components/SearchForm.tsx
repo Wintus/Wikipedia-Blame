@@ -120,7 +120,9 @@ export function SearchForm({
 
 if (import.meta.vitest) {
 	const { describe, it, expect, vi, beforeEach } = await import('vitest');
-	const { render, screen, fireEvent, waitFor, act } = await import('@testing-library/react');
+	const { render, screen, fireEvent, waitFor, act } = await import(
+		'@testing-library/react'
+	);
 	const userEvent = (await import('@testing-library/user-event')).default;
 	const MediaWikiAPIs = await import('../services/MediaWikiAPIs');
 

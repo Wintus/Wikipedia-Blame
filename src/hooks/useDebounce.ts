@@ -34,7 +34,8 @@ if (import.meta.vitest) {
 	describe('useDebounce', () => {
 		it('should debounce the value', async () => {
 			const { result, rerender } = renderHook(
-				({ value, delay }: { value: string; delay: number }) => useDebounce(value, delay),
+				({ value, delay }: { value: string; delay: number }) =>
+					useDebounce(value, delay),
 				{
 					initialProps: { value: 'initial', delay: 100 },
 				}
@@ -80,7 +81,8 @@ if (import.meta.vitest) {
 
 		it('should update immediately if delay is 0', async () => {
 			const { result, rerender } = renderHook(
-				({ value, delay }: { value: string; delay: number }) => useDebounce(value, delay),
+				({ value, delay }: { value: string; delay: number }) =>
+					useDebounce(value, delay),
 				{
 					initialProps: { value: 'initial', delay: 0 },
 				}

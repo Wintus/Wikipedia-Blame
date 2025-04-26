@@ -9,13 +9,13 @@ export type Predicate<S, T extends NonNullish> = (item: S) => T | null;
  * @template T - The type of the items in the input generator.
  * @template U - The type of the items returned by the fetcher function.
  * @param predicate - A function that takes an item and returns a value or null if the condition is not met.
- * @param fetcher - A function that fetches a batch of items and returns a promise resolving to an array of items.
+ * @param fetcher - An async generator function that takes a batch of items and yields the fetched/processed items.
  * @param items - An asynchronous generator that provides the items to search through.
  * @returns A promise that resolves to the first item that satisfies the predicate, or null if no such item is found.
  */
 export const findOneOccurrence = async <T extends NonNullish, U>(
 	predicate: Predicate<U, T>,
-	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
+	fetcher: (items: ReadonlyArray<T>) => AsyncGenerator<U, unknown, unknown>,
 	items: AsyncGenerator<T, unknown, unknown>
 ): Promise<T | null> =>
 	genFind(mapGen(predicate, batchFetchGen(fetcher, items)));
@@ -39,12 +39,20 @@ async function* mapGen<T, U>(
 	}
 }
 
+/**
+ * Takes batches from batchGenerator and yields items fetched by the fetcher async generator.
+ * @template T - Type of items yielded by the input items generator (e.g., revision IDs).
+ * @template U - Type of items yielded by the fetcher generator (e.g., RevisionResult).
+ * @param fetcher - An async generator function that fetches/processes a batch of T and yields U.
+ * @param items - An async generator yielding items of type T.
+ * @returns An async generator yielding items of type U.
+ */
 async function* batchFetchGen<T extends NonNullish, U>(
-	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
+	fetcher: (items: ReadonlyArray<T>) => AsyncGenerator<U, unknown, unknown>,
 	items: AsyncGenerator<T, unknown, unknown>
 ): AsyncGenerator<U, void, unknown> {
 	for await (const batch of batchGenerator(items)) {
-		yield* await fetcher(batch);
+		yield* fetcher(batch);
 	}
 }
 
@@ -131,7 +139,9 @@ if (import.meta.vitest) {
 
 		describe('findOneOccurrence', () => {
 			it('returns null for empty items', async () => {
-				const mockFetcher = vi.fn();
+				const mockFetcher = vi.fn().mockResolvedValue(
+					createAsyncGenerator([])
+				);
 				const result = await findOneOccurrence(
 					createTextDetector('test'),
 					mockFetcher,
@@ -143,11 +153,11 @@ if (import.meta.vitest) {
 			});
 
 			it('searches full list when sampling fails', async () => {
-				const mockFetcher = vi.fn().mockResolvedValueOnce([
-					{ rev: 12345, text: 'Some text' },
-					{ rev: 67890, text: 'Another text' },
-					{ rev: 54321, text: 'Contains test text' },
-				]);
+				const mockFetcher = vi.fn().mockImplementationOnce(async function*() {
+					yield { rev: 12345, text: 'Some text' };
+					yield { rev: 67890, text: 'Another text' };
+					yield { rev: 54321, text: 'Contains test text' };
+				});
 
 				const items = [12345, 67890, 54321];
 				const result = await findOneOccurrence(
@@ -163,11 +173,13 @@ if (import.meta.vitest) {
 			it('returns null when no item contains target text', async () => {
 				const mockFetcher = vi
 					.fn()
-					.mockResolvedValueOnce([
-						{ rev: 12345, text: 'Some text' },
-						{ rev: 67890, text: 'Another text' },
-					])
-					.mockResolvedValueOnce([{ rev: 54321, text: 'More text' }]);
+					.mockImplementationOnce(async function*() {
+						yield { rev: 12345, text: 'Some text' };
+						yield { rev: 67890, text: 'Another text' };
+					})
+					.mockImplementationOnce(async function*() {
+						yield { rev: 54321, text: 'More text' };
+					});
 
 				const items = [12345, 67890, 54321];
 				const result = await findOneOccurrence(

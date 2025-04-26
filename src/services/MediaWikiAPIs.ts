@@ -5,6 +5,8 @@
  * note: `rvcontentformat-main=text/plain` is unavailable for regular pages
  */
 
+import { JSONParser } from '@streamparser/json-whatwg';
+
 export type RevisionResult = {
 	rev: number;
 	text: string;
@@ -73,16 +75,17 @@ export async function fetchPageId(
 
 /**
  * Fetches the text content of multiple revisions using formatversion=2.
- *
- * see https://www.mediawiki.org/wiki/API:Revisions
+ * Uses streaming JSON parsing for potentially large responses.
  *
  * Precondition: The number of revision IDs cannot exceed 50 due to API limitations.
  * Precondition: The revision IDs is assumed of a single page.
+ * @returns An async generator yielding RevisionResult objects as they are parsed.
+ * @throws {Error} If the fetch request fails or the response body is missing.
  */
-export async function fetchRevisionTexts(
+export async function* fetchRevisionTexts(
 	baseUrl: URL,
 	revIds: ReadonlyArray<number>
-): Promise<ReadonlyArray<RevisionResult>> {
+): AsyncGenerator<RevisionResult, void, unknown> {
 	if (revIds.length > 50) {
 		throw new Error(
 			'The number of revision IDs cannot exceed 50 due to API limitations.'
@@ -93,15 +96,36 @@ export async function fetchRevisionTexts(
 		`/w/api.php?action=query&prop=revisions&revids=${revIdsStr}&rvprop=ids|content&formatversion=2&format=json&origin=*&rvslots=main`,
 		baseUrl
 	);
+
+	// Create a JSON parser to handle the streaming response
+	const parser = new JSONParser({
+		paths: ['$.query.pages.*.revisions.*'],
+		keepStack: false,
+	});
+
 	try {
 		const response = await fetch(url);
-		const data = await response.json();
-		const revisions = getPageRevisions(data).map(convert);
-		return revisions;
+		if (!response.ok || !response.body) {
+			throw new Error(`Failed to fetch revision texts: ${response.statusText}`);
+		}
+
+		const elemStream = response.body.pipeThrough(parser);
+		for await (const { value, stack } of elemStream) {
+			if (value == null) {
+				continue;
+			}
+			if (stack[4]?.key !== 'revisions') {
+				continue;
+			}
+			if (typeof value === 'object' && 'revid' in value && 'slots' in value) {
+				yield convert(value as Revision<'main'>);
+			}
+		}
 	} catch (error) {
 		console.error('Error fetching revision texts:', error);
 		console.warn('missing revision texts for:', revIds);
-		return [];
+		// Re-throw the error to signal failure
+		throw error;
 	}
 }
 
@@ -154,7 +178,9 @@ export async function* fetchAllRevisions(
 	}
 }
 if (import.meta.vitest) {
-	const { describe, it, expect, vi, beforeEach, afterEach } = await import('vitest');
+	const { describe, it, expect, vi, beforeEach, afterEach } = await import(
+		'vitest'
+	);
 	const { WIKI_SITES } = await import('../wiki');
 
 	describe('WikipediaAPI', () => {
@@ -207,54 +233,64 @@ if (import.meta.vitest) {
 			});
 		});
 
-		describe('fetchRevisionTexts', () => {
+		describe('fetchRevisionTexts', async () => {
 			it('fetches revision texts successfully', async () => {
-				const mockResponse = {
-					json: vi.fn().mockResolvedValue({
-						query: {
-							pages: [
-								{
-									revisions: [
-										{
-											revid: 12345,
-											slots: { main: { content: 'Test content' } },
-										},
-									],
-								},
-							],
-						},
-					}),
+				const mockApiResponse = {
+					query: {
+						pages: [
+							{
+								pageid: 123,
+								title: 'dummy',
+								revisions: [
+									{ revid: 1, slots: { main: { content: 'Content 1' } } },
+									{ revid: 2, slots: { main: { content: 'Content 2' } } },
+								],
+							},
+						],
+					},
+				} satisfies RevisionsResponse<'main'>;
+				const jsonString = JSON.stringify(mockApiResponse);
+				const encoder = new TextEncoder();
+				const encoded = encoder.encode(jsonString);
+
+				const mockStream = new ReadableStream({
+					start(controller) {
+						controller.enqueue(encoded);
+						controller.close();
+					},
+				});
+
+				const mockFetchResponse = {
+					ok: true,
+					body: mockStream,
+					statusText: 'OK',
 				};
-				mockFetch.mockResolvedValue(mockResponse);
+				mockFetch.mockResolvedValue(mockFetchResponse);
 
-				const revisions = await fetchRevisionTexts(baseUrl, [12345]);
+				const revisions = fetchRevisionTexts(baseUrl, [1, 2]);
+				const revisionsArray = await Array.fromAsync(revisions);
 
-				const expectedUrl = new URL(
-					`/w/api.php?action=query&prop=revisions&revids=12345&rvprop=ids|content&formatversion=2&format=json&origin=*&rvslots=main`,
-					baseUrl
-				);
-				expect(mockFetch).toHaveBeenCalledWith(expectedUrl);
-				expect(revisions).toEqual([{ rev: 12345, text: 'Test content' }]);
+				expect(revisionsArray).toEqual([
+					{ rev: 1, text: 'Content 1' },
+					{ rev: 2, text: 'Content 2' },
+				]);
 			});
 
 			it('returns empty array on network error', async () => {
 				mockFetch.mockRejectedValue(new Error('Network error'));
 
-				const revisions = await fetchRevisionTexts(baseUrl, [12345]);
+				const revisions = fetchRevisionTexts(baseUrl, [12345]);
 
-				expect(revisions).toEqual([]);
-				expect(console.error).toHaveBeenCalledWith(
-					'Error fetching revision texts:',
-					expect.any(Error)
-				);
+				await expect(Array.fromAsync(revisions)).rejects.toThrow();
 			});
 
 			it('throws error when revision IDs exceed 50', async () => {
 				const largeRevisionList = Array.from({ length: 51 }, (_, i) => i);
 
-				await expect(
-					fetchRevisionTexts(baseUrl, largeRevisionList)
-				).rejects.toThrow('The number of revision IDs cannot exceed 50');
+				const revisions = fetchRevisionTexts(baseUrl, largeRevisionList);
+				await expect(Array.fromAsync(revisions)).rejects.toThrow(
+					'The number of revision IDs cannot exceed 50'
+				);
 			});
 		});
 
