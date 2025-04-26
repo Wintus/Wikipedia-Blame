@@ -6,6 +6,7 @@ import { type SearchState, WIKI_SITES } from '../../wiki';
 describe('ResultView', () => {
 	const createResult = (overrides: Partial<SearchState> = {}): SearchState => ({
 		wiki: WIKI_SITES.ENWP,
+		pageId: null,
 		pageTitle: '',
 		targetText: '',
 		revisionId: null,
