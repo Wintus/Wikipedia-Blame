@@ -5,6 +5,7 @@ import { useSearchActionState } from './hooks/useSearchActionState';
 
 function App() {
 	const [searchState, formAction, isPending] = useSearchActionState();
+	const hasSearched = searchState.searchCount > 0;
 
 	return (
 		<div className="app">
@@ -18,7 +19,7 @@ function App() {
 					isPending={isPending}
 					searchState={searchState}
 				/>
-				{searchState.searchCount > 0 && (
+				{hasSearched && (
 					<ResultView result={searchState} isPending={isPending} />
 				)}
 			</main>
