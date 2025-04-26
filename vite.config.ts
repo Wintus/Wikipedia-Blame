@@ -8,7 +8,10 @@ export default defineConfig({
 	test: {
 		globals: true,
 		environment: 'happy-dom',
-		include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+		includeSource: ['src/**/*.{js,ts,jsx,tsx}'],
 		setupFiles: './src/setupTests.ts',
 	},
+  define: {
+    'import.meta.vitest': 'undefined',
+  },
 });

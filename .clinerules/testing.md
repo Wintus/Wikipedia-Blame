@@ -2,13 +2,13 @@
 
 ## Overview
 This rule enforces Test-Driven Development (TDD) practices by ensuring every source file has corresponding tests that follow our naming convention.
+See the Vitest in-source testing guide for more information: https://vitest.dev/guide/in-source
 
 ## Test File Pattern
-- Test files must be located in `__tests__/$basename.test.$ext` relative to the source file
-- Example: For `src/components/SearchForm.tsx` → `src/components/__tests__/SearchForm.test.tsx`
+- Tests must be located in the same file as the source code, within an `if (import.meta.vitest)` block.
 
 ## Workflow Requirements
-1. Every new source file must have a corresponding test file
+1. Every new source file should have a corresponding test block
 2. Tests should be written before or alongside implementation (TDD approach)
 3. Run tests after every significant code change using `npm test`
 4. Tests must pass before committing changes
