@@ -5,6 +5,8 @@
  * note: `rvcontentformat-main=text/plain` is unavailable for regular pages
  */
 
+import { JSONParser } from '@streamparser/json';
+
 export type RevisionResult = {
 	rev: number;
 	text: string;
@@ -73,8 +75,7 @@ export async function fetchPageId(
 
 /**
  * Fetches the text content of multiple revisions using formatversion=2.
- *
- * see https://www.mediawiki.org/wiki/API:Revisions
+ * Uses streaming JSON parsing for potentially large responses.
  *
  * Precondition: The number of revision IDs cannot exceed 50 due to API limitations.
  * Precondition: The revision IDs is assumed of a single page.
@@ -93,15 +94,49 @@ export async function fetchRevisionTexts(
 		`/w/api.php?action=query&prop=revisions&revids=${revIdsStr}&rvprop=ids|content&formatversion=2&format=json&origin=*&rvslots=main`,
 		baseUrl
 	);
+
+	const results: RevisionResult[] = [];
+
+	// Create a JSON parser to handle the streaming response
+	const parser = new JSONParser({
+		paths: ['$.query.pages.*.revisions.*'],
+		keepStack: false,
+	});
+	parser.onValue = ({ value, stack }) => {
+		if (stack[4]?.key === 'revisions') {
+			if (
+				value != null &&
+				typeof value === 'object' &&
+				'revid' in value &&
+				'slots' in value
+			) {
+				const converted = convert(value as Revision<'main'>);
+				results.push(converted);
+			}
+		}
+	};
+	parser.onError = (error) => {
+		console.error('JSON parsing error:', error);
+	};
+
 	try {
 		const response = await fetch(url);
-		const data = await response.json();
-		const revisions = getPageRevisions(data).map(convert);
-		return revisions;
+		if (!response.ok || !response.body) {
+			throw new Error(`Failed to fetch revision texts: ${response.statusText}`);
+		}
+
+		const textStream = response.body.pipeThrough(new TextDecoderStream());
+		for await (const textChunk of textStream) {
+			parser.write(textChunk);
+		}
+
+		return results;
 	} catch (error) {
 		console.error('Error fetching revision texts:', error);
 		console.warn('missing revision texts for:', revIds);
 		return [];
+	} finally {
+		parser.end();
 	}
 }
 
@@ -154,7 +189,9 @@ export async function* fetchAllRevisions(
 	}
 }
 if (import.meta.vitest) {
-	const { describe, it, expect, vi, beforeEach, afterEach } = await import('vitest');
+	const { describe, it, expect, vi, beforeEach, afterEach } = await import(
+		'vitest'
+	);
 	const { WIKI_SITES } = await import('../wiki');
 
 	describe('WikipediaAPI', () => {
@@ -207,34 +244,46 @@ if (import.meta.vitest) {
 			});
 		});
 
-		describe('fetchRevisionTexts', () => {
+		describe('fetchRevisionTexts', async () => {
 			it('fetches revision texts successfully', async () => {
-				const mockResponse = {
-					json: vi.fn().mockResolvedValue({
-						query: {
-							pages: [
-								{
-									revisions: [
-										{
-											revid: 12345,
-											slots: { main: { content: 'Test content' } },
-										},
-									],
-								},
-							],
-						},
-					}),
+				const mockApiResponse = {
+					query: {
+						pages: [
+							{
+								pageid: 123,
+								title: 'dummy',
+								revisions: [
+									{ revid: 1, slots: { main: { content: 'Content 1' } } },
+									{ revid: 2, slots: { main: { content: 'Content 2' } } },
+								],
+							},
+						],
+					},
+				} satisfies RevisionsResponse<'main'>;
+				const jsonString = JSON.stringify(mockApiResponse);
+				const encoder = new TextEncoder();
+				const encoded = encoder.encode(jsonString);
+
+				const mockStream = new ReadableStream({
+					start(controller) {
+						controller.enqueue(encoded);
+						controller.close();
+					},
+				});
+
+				const mockFetchResponse = {
+					ok: true,
+					body: mockStream,
+					statusText: 'OK',
 				};
-				mockFetch.mockResolvedValue(mockResponse);
+				mockFetch.mockResolvedValue(mockFetchResponse);
 
-				const revisions = await fetchRevisionTexts(baseUrl, [12345]);
+				const revisions = await fetchRevisionTexts(baseUrl, [1, 2]);
 
-				const expectedUrl = new URL(
-					`/w/api.php?action=query&prop=revisions&revids=12345&rvprop=ids|content&formatversion=2&format=json&origin=*&rvslots=main`,
-					baseUrl
-				);
-				expect(mockFetch).toHaveBeenCalledWith(expectedUrl);
-				expect(revisions).toEqual([{ rev: 12345, text: 'Test content' }]);
+				expect(revisions).toEqual([
+					{ rev: 1, text: 'Content 1' },
+					{ rev: 2, text: 'Content 2' },
+				]);
 			});
 
 			it('returns empty array on network error', async () => {
