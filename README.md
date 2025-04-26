@@ -17,7 +17,7 @@ The application utilizes modern React features, specifically the `useActionState
 	- Fetches revision IDs using an async generator to handle potentially long histories without loading everything at once.
 - Iterative searching: Automatically populates the 'up to revision ID' field after a successful search, making it easy to find subsequent occurrences by searching again.
 	- Uses randomized sampling (`item-finder.ts`) to prioritize checking likely revisions first.
-	- Fetches revision content in batches (up to 50) as needed.
+	- Fetches revision content using streaming JSON parsing (`@streamparser/json-whatwg`) for efficiency.
 - Direct links to the specific revision where the text was found.
 - Clear indication of loading states managed by `useActionState`.
 
@@ -39,11 +39,11 @@ The application employs an action-state driven architecture centered around Reac
 	- The `searchAction` function receives form data and the previous state.
 	- It validates input and fetches the Wikipedia page ID using `fetchPageId` (`MediaWikiAPIs.ts`).
 	- It initiates fetching revision IDs using the `fetchAllRevisions` async generator (`MediaWikiAPIs.ts`), optionally passing an `uptoRevId` to limit the search range based on form input.
-	- It calls `findOneOccurrence` (`item-finder.ts`), passing the revision ID generator, a function to fetch revision text (`fetchRevisionTexts`), and a predicate to check for the target text.
+	- It calls `findOneOccurrence` (`item-finder.ts`), passing the revision ID generator, the `fetchRevisionTexts` async generator function, and a predicate to check for the target text.
 3. **Search Algorithm (`item-finder.ts`):**
 	- `findOneOccurrence` consumes revision IDs from the generator.
 	- `itemGenerator` implements a sampling strategy, buffering IDs and yielding batches for checking based on frequency (sampling vs. fallback).
-	- `fetchInBatch` calls `fetchRevisionTexts` for required batches.
+	- `batchFetchGen` calls `fetchRevisionTexts` for required batches.
 	- The predicate checks the fetched text content.
 4. **State Update:** `searchAction` returns the new `SearchState` (including the found `revisionId`) or an error.
 `useActionState` updates the application state.
