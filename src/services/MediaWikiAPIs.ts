@@ -5,7 +5,7 @@
  * note: `rvcontentformat-main=text/plain` is unavailable for regular pages
  */
 
-import { JSONParser } from '@streamparser/json';
+import { JSONParser } from '@streamparser/json-whatwg';
 
 export type RevisionResult = {
 	rev: number;
@@ -102,22 +102,6 @@ export async function fetchRevisionTexts(
 		paths: ['$.query.pages.*.revisions.*'],
 		keepStack: false,
 	});
-	parser.onValue = ({ value, stack }) => {
-		if (stack[4]?.key === 'revisions') {
-			if (
-				value != null &&
-				typeof value === 'object' &&
-				'revid' in value &&
-				'slots' in value
-			) {
-				const converted = convert(value as Revision<'main'>);
-				results.push(converted);
-			}
-		}
-	};
-	parser.onError = (error) => {
-		console.error('JSON parsing error:', error);
-	};
 
 	try {
 		const response = await fetch(url);
@@ -125,9 +109,19 @@ export async function fetchRevisionTexts(
 			throw new Error(`Failed to fetch revision texts: ${response.statusText}`);
 		}
 
-		const textStream = response.body.pipeThrough(new TextDecoderStream());
-		for await (const textChunk of textStream) {
-			parser.write(textChunk);
+		const elemStream = response.body.pipeThrough(parser);
+		for await (const { value, stack } of elemStream) {
+			if (stack[4]?.key === 'revisions') {
+				if (
+					value != null &&
+					typeof value === 'object' &&
+					'revid' in value &&
+					'slots' in value
+				) {
+					const converted = convert(value as Revision<'main'>);
+					results.push(converted);
+				}
+			}
 		}
 
 		return results;
@@ -135,8 +129,6 @@ export async function fetchRevisionTexts(
 		console.error('Error fetching revision texts:', error);
 		console.warn('missing revision texts for:', revIds);
 		return [];
-	} finally {
-		parser.end();
 	}
 }
 
