@@ -111,15 +111,14 @@ export async function* fetchRevisionTexts(
 
 		const elemStream = response.body.pipeThrough(parser);
 		for await (const { value, stack } of elemStream) {
-			if (stack[4]?.key === 'revisions') {
-				if (
-					value != null &&
-					typeof value === 'object' &&
-					'revid' in value &&
-					'slots' in value
-				) {
-					yield convert(value as Revision<'main'>);
-				}
+			if (value == null) {
+				continue;
+			}
+			if (stack[4]?.key !== 'revisions') {
+				continue;
+			}
+			if (typeof value === 'object' && 'revid' in value && 'slots' in value) {
+				yield convert(value as Revision<'main'>);
 			}
 		}
 	} catch (error) {
