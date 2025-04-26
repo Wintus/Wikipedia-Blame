@@ -79,6 +79,8 @@ export async function fetchPageId(
  *
  * Precondition: The number of revision IDs cannot exceed 50 due to API limitations.
  * Precondition: The revision IDs is assumed of a single page.
+ * @returns An async generator yielding RevisionResult objects as they are parsed.
+ * @throws {Error} If the fetch request fails or the response body is missing.
  */
 export async function* fetchRevisionTexts(
 	baseUrl: URL,
