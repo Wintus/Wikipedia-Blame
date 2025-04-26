@@ -1,4 +1,3 @@
-import { type ChangeEvent } from 'react';
 import { type WikiSite, WIKI_SITES } from '../wiki';
 
 type WikiSelectorProps = {
@@ -7,8 +6,7 @@ type WikiSelectorProps = {
 };
 
 export function WikiSelector({ selectedWiki, onChange }: WikiSelectorProps) {
-	const handleChange = (e: ChangeEvent<HTMLSelectElement>) => {
-		const wikiId = e.target.value;
+	const handleChange = (wikiId: string) => {
 		const wiki = WIKI_SITES[wikiId.toUpperCase() as keyof typeof WIKI_SITES];
 		if (wiki) {
 			onChange(wiki);
@@ -23,7 +21,7 @@ export function WikiSelector({ selectedWiki, onChange }: WikiSelectorProps) {
 				name="wikiId"
 				key={selectedWiki.id}
 				defaultValue={selectedWiki.id}
-				onChange={handleChange}
+				onChange={(e) => handleChange(e.target.value)}
 			>
 				{Object.values(WIKI_SITES).map((wiki) => (
 					<option key={wiki.id} value={wiki.id}>

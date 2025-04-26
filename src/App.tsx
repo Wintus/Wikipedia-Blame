@@ -1,14 +1,11 @@
-import { useActionState } from 'react';
 import './App.css';
 import { SearchForm } from './components/SearchForm';
 import { ResultView } from './components/ResultView';
-import { searchAction, defaultSearchResult } from './actions/search';
+import { useSearchActionState } from './hooks/useSearchActionState';
 
 function App() {
-	const [searchState, formAction, isPending] = useActionState(
-		searchAction,
-		defaultSearchResult
-	);
+	const [searchState, formAction, isPending] = useSearchActionState();
+	const hasSearched = searchState.searchCount > 0;
 
 	return (
 		<div className="app">
@@ -22,7 +19,7 @@ function App() {
 					isPending={isPending}
 					searchState={searchState}
 				/>
-				{searchState.searchCount > 0 && (
+				{hasSearched && (
 					<ResultView result={searchState} isPending={isPending} />
 				)}
 			</main>
