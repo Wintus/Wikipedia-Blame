@@ -39,6 +39,14 @@ async function* mapGen<T, U>(
 	}
 }
 
+/**
+ * Takes batches from batchGenerator and yields items fetched by the fetcher async generator.
+ * @template T - Type of items yielded by the input items generator (e.g., revision IDs).
+ * @template U - Type of items yielded by the fetcher generator (e.g., RevisionResult).
+ * @param fetcher - An async generator function that fetches/processes a batch of T and yields U.
+ * @param items - An async generator yielding items of type T.
+ * @returns An async generator yielding items of type U.
+ */
 async function* batchFetchGen<T extends NonNullish, U>(
 	fetcher: (items: ReadonlyArray<T>) => AsyncGenerator<U, unknown, unknown>,
 	items: AsyncGenerator<T, unknown, unknown>
