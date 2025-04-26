@@ -16,6 +16,9 @@
 		"rvprop",
 		"rvslots",
 		"rvstartid",
+		"unstub",
 		"upto",
+		"vite",
+		"vitest",
 	]
 }
