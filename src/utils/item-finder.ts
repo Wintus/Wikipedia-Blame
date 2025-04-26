@@ -9,7 +9,7 @@ export type Predicate<S, T extends NonNullish> = (item: S) => T | null;
  * @template T - The type of the items in the input generator.
  * @template U - The type of the items returned by the fetcher function.
  * @param predicate - A function that takes an item and returns a value or null if the condition is not met.
- * @param fetcher - A function that fetches a batch of items and returns a promise resolving to an array of items.
+ * @param fetcher - An async generator function that takes a batch of items and yields the fetched/processed items.
  * @param items - An asynchronous generator that provides the items to search through.
  * @returns A promise that resolves to the first item that satisfies the predicate, or null if no such item is found.
  */
