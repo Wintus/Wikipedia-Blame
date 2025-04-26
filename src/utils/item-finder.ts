@@ -15,7 +15,7 @@ export type Predicate<S, T extends NonNullish> = (item: S) => T | null;
  */
 export const findOneOccurrence = async <T extends NonNullish, U>(
 	predicate: Predicate<U, T>,
-	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
+	fetcher: (items: ReadonlyArray<T>) => AsyncGenerator<U, unknown, unknown>,
 	items: AsyncGenerator<T, unknown, unknown>
 ): Promise<T | null> =>
 	genFind(mapGen(predicate, batchFetchGen(fetcher, items)));
@@ -40,11 +40,11 @@ async function* mapGen<T, U>(
 }
 
 async function* batchFetchGen<T extends NonNullish, U>(
-	fetcher: (items: ReadonlyArray<T>) => Promise<ReadonlyArray<U>>,
+	fetcher: (items: ReadonlyArray<T>) => AsyncGenerator<U, unknown, unknown>,
 	items: AsyncGenerator<T, unknown, unknown>
 ): AsyncGenerator<U, void, unknown> {
 	for await (const batch of batchGenerator(items)) {
-		yield* await fetcher(batch);
+		yield* fetcher(batch);
 	}
 }
 
@@ -131,7 +131,9 @@ if (import.meta.vitest) {
 
 		describe('findOneOccurrence', () => {
 			it('returns null for empty items', async () => {
-				const mockFetcher = vi.fn();
+				const mockFetcher = vi.fn().mockResolvedValue(
+					createAsyncGenerator([])
+				);
 				const result = await findOneOccurrence(
 					createTextDetector('test'),
 					mockFetcher,
@@ -143,11 +145,11 @@ if (import.meta.vitest) {
 			});
 
 			it('searches full list when sampling fails', async () => {
-				const mockFetcher = vi.fn().mockResolvedValueOnce([
-					{ rev: 12345, text: 'Some text' },
-					{ rev: 67890, text: 'Another text' },
-					{ rev: 54321, text: 'Contains test text' },
-				]);
+				const mockFetcher = vi.fn().mockImplementationOnce(async function*() {
+					yield { rev: 12345, text: 'Some text' };
+					yield { rev: 67890, text: 'Another text' };
+					yield { rev: 54321, text: 'Contains test text' };
+				});
 
 				const items = [12345, 67890, 54321];
 				const result = await findOneOccurrence(
@@ -163,11 +165,13 @@ if (import.meta.vitest) {
 			it('returns null when no item contains target text', async () => {
 				const mockFetcher = vi
 					.fn()
-					.mockResolvedValueOnce([
-						{ rev: 12345, text: 'Some text' },
-						{ rev: 67890, text: 'Another text' },
-					])
-					.mockResolvedValueOnce([{ rev: 54321, text: 'More text' }]);
+					.mockImplementationOnce(async function*() {
+						yield { rev: 12345, text: 'Some text' };
+						yield { rev: 67890, text: 'Another text' };
+					})
+					.mockImplementationOnce(async function*() {
+						yield { rev: 54321, text: 'More text' };
+					});
 
 				const items = [12345, 67890, 54321];
 				const result = await findOneOccurrence(

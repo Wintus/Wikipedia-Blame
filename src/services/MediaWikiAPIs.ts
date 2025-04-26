@@ -80,10 +80,10 @@ export async function fetchPageId(
  * Precondition: The number of revision IDs cannot exceed 50 due to API limitations.
  * Precondition: The revision IDs is assumed of a single page.
  */
-export async function fetchRevisionTexts(
+export async function* fetchRevisionTexts(
 	baseUrl: URL,
 	revIds: ReadonlyArray<number>
-): Promise<ReadonlyArray<RevisionResult>> {
+): AsyncGenerator<RevisionResult, void, unknown> {
 	if (revIds.length > 50) {
 		throw new Error(
 			'The number of revision IDs cannot exceed 50 due to API limitations.'
@@ -94,8 +94,6 @@ export async function fetchRevisionTexts(
 		`/w/api.php?action=query&prop=revisions&revids=${revIdsStr}&rvprop=ids|content&formatversion=2&format=json&origin=*&rvslots=main`,
 		baseUrl
 	);
-
-	const results: RevisionResult[] = [];
 
 	// Create a JSON parser to handle the streaming response
 	const parser = new JSONParser({
@@ -118,17 +116,15 @@ export async function fetchRevisionTexts(
 					'revid' in value &&
 					'slots' in value
 				) {
-					const converted = convert(value as Revision<'main'>);
-					results.push(converted);
+					yield convert(value as Revision<'main'>);
 				}
 			}
 		}
-
-		return results;
 	} catch (error) {
 		console.error('Error fetching revision texts:', error);
 		console.warn('missing revision texts for:', revIds);
-		return [];
+		// Re-throw the error to signal failure
+		throw error;
 	}
 }
 
@@ -270,9 +266,10 @@ if (import.meta.vitest) {
 				};
 				mockFetch.mockResolvedValue(mockFetchResponse);
 
-				const revisions = await fetchRevisionTexts(baseUrl, [1, 2]);
+				const revisions = fetchRevisionTexts(baseUrl, [1, 2]);
+				const revisionsArray = await Array.fromAsync(revisions);
 
-				expect(revisions).toEqual([
+				expect(revisionsArray).toEqual([
 					{ rev: 1, text: 'Content 1' },
 					{ rev: 2, text: 'Content 2' },
 				]);
@@ -281,21 +278,18 @@ if (import.meta.vitest) {
 			it('returns empty array on network error', async () => {
 				mockFetch.mockRejectedValue(new Error('Network error'));
 
-				const revisions = await fetchRevisionTexts(baseUrl, [12345]);
+				const revisions = fetchRevisionTexts(baseUrl, [12345]);
 
-				expect(revisions).toEqual([]);
-				expect(console.error).toHaveBeenCalledWith(
-					'Error fetching revision texts:',
-					expect.any(Error)
-				);
+				await expect(Array.fromAsync(revisions)).rejects.toThrow();
 			});
 
 			it('throws error when revision IDs exceed 50', async () => {
 				const largeRevisionList = Array.from({ length: 51 }, (_, i) => i);
 
-				await expect(
-					fetchRevisionTexts(baseUrl, largeRevisionList)
-				).rejects.toThrow('The number of revision IDs cannot exceed 50');
+				const revisions = fetchRevisionTexts(baseUrl, largeRevisionList);
+				await expect(Array.fromAsync(revisions)).rejects.toThrow(
+					'The number of revision IDs cannot exceed 50'
+				);
 			});
 		});
 

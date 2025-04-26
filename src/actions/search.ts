@@ -206,9 +206,9 @@ if (import.meta.vitest) {
 			vi.mocked(fetchAllRevisions).mockResolvedValue(
 				createAsyncGenerator([1, 2, 3])
 			);
-			vi.mocked(fetchRevisionTexts).mockResolvedValue([
-				{ rev: 2, text: 'Contains Test Text' },
-			]);
+			vi.mocked(fetchRevisionTexts).mockResolvedValue(
+				createAsyncGenerator([{ rev: 2, text: 'Contains Test Text' }])
+			);
 			vi.mocked(findOneOccurrence).mockResolvedValue(2);
 
 			const formData = createFormData({ pageId: '123' });
@@ -265,6 +265,9 @@ if (import.meta.vitest) {
 			vi.mocked(fetchAllRevisions).mockImplementation(() =>
 				createFailingAsyncGenerator(new Error('Network error'))
 			);
+			vi.mocked(fetchRevisionTexts).mockImplementation(() =>
+				createFailingAsyncGenerator(new Error('Network error'))
+			);
 
 			const formData = createFormData({ pageId: '123' });
 
@@ -306,9 +309,9 @@ if (import.meta.vitest) {
 				createAsyncGenerator([1, 2, 3])
 			);
 			vi.mocked(findOneOccurrence).mockResolvedValue(2);
-			vi.mocked(fetchRevisionTexts).mockResolvedValue([
-				{ rev: 2, text: 'Contains Test Text' },
-			]);
+			vi.mocked(fetchRevisionTexts).mockResolvedValue(
+				createAsyncGenerator([{ rev: 2, text: 'Contains Test Text' }])
+			);
 
 			const formData = createFormData({ uptoRevId: '456', pageId: '123' });
 
@@ -326,9 +329,9 @@ if (import.meta.vitest) {
 			mockedFetchAllRevisions.mockResolvedValue(
 				createAsyncGenerator([1, 2, 3])
 			);
-			vi.mocked(fetchRevisionTexts).mockResolvedValue([
-				{ rev: 2, text: 'Contains Test Text' },
-			]);
+			vi.mocked(fetchRevisionTexts).mockResolvedValue(
+				createAsyncGenerator([{ rev: 2, text: 'Contains Test Text' }])
+			);
 			vi.mocked(findOneOccurrence).mockResolvedValue(2);
 
 			const formData = createFormData({ pageId: '123' }); // No uptoRevId
@@ -347,9 +350,9 @@ if (import.meta.vitest) {
 			mockedFetchAllRevisions.mockResolvedValue(
 				createAsyncGenerator([1, 2, 3])
 			);
-			vi.mocked(fetchRevisionTexts).mockResolvedValue([
-				{ rev: 2, text: 'Contains Test Text' },
-			]);
+			vi.mocked(fetchRevisionTexts).mockResolvedValue(
+				createAsyncGenerator([{ rev: 2, text: 'Contains Test Text' }])
+			);
 			vi.mocked(findOneOccurrence).mockResolvedValue(2);
 
 			const formData = createFormData({ order: 'desc', pageId: '123' });
@@ -367,9 +370,9 @@ if (import.meta.vitest) {
 			vi.mocked(fetchAllRevisions).mockResolvedValue(
 				createAsyncGenerator([1, 2, 3])
 			);
-			vi.mocked(fetchRevisionTexts).mockResolvedValue([
-				{ rev: 2, text: 'Contains Test Text' },
-			]);
+			vi.mocked(fetchRevisionTexts).mockResolvedValue(
+				createAsyncGenerator([{ rev: 2, text: 'Contains Test Text' }])
+			);
 			vi.mocked(findOneOccurrence).mockResolvedValue(2);
 
 			const formDataAsc = createFormData({ order: 'asc', pageId: '123' });
