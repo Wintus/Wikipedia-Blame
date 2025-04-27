@@ -5,6 +5,7 @@ export function useSearchActionState() {
 	return useActionState(searchAction, defaultSearchResult);
 }
 
+// MARK: in-source tests
 if (import.meta.vitest) {
 	const { describe, it, expect, vi } = import.meta.vitest;
 	const { renderHook } = await import('@testing-library/react');

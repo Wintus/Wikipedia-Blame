@@ -33,6 +33,7 @@ export function WikiSelector({ selectedWiki, onChange }: WikiSelectorProps) {
 	);
 }
 
+// MARK: in-source tests
 if (import.meta.vitest) {
 	const { describe, it, expect, vi } = await import('vitest');
 	const { render, screen, fireEvent } = await import('@testing-library/react');

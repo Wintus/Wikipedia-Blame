@@ -56,6 +56,7 @@ export function ResultView({ result, isPending }: ResultViewProps) {
 	);
 }
 
+// MARK: in-source tests
 if (import.meta.vitest) {
 	const { describe, it, expect } = await import('vitest');
 	const { render, screen } = await import('@testing-library/react');

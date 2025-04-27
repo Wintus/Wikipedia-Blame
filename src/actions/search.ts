@@ -133,6 +133,7 @@ export const defaultSearchResult = {
 	searchCount: 0,
 } as const satisfies SearchState;
 
+// MARK: in-source tests
 if (import.meta.vitest) {
 	const { describe, it, expect, vi, beforeEach } = import.meta.vitest;
 

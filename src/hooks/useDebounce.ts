@@ -27,6 +27,7 @@ function useDebounce<T>(value: T, delay: number = 500): T {
 
 export default useDebounce;
 
+// MARK: in-source tests
 if (import.meta.vitest) {
 	const { describe, it, expect } = import.meta.vitest;
 	const { renderHook, act, waitFor } = await import('@testing-library/react');
