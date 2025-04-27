@@ -113,6 +113,8 @@ function* batches<T>(
 		yield array.slice(i, i + batchSize);
 	}
 }
+
+// MARK: in-source tests
 if (import.meta.vitest) {
 	const { describe, it, expect, vi, beforeEach } = import.meta.vitest;
 

@@ -177,6 +177,8 @@ export async function* fetchAllRevisions(
 		console.error('Error fetching all revisions:', error);
 	}
 }
+
+// MARK: in-source tests
 if (import.meta.vitest) {
 	const { describe, it, expect, vi, beforeEach, afterEach } = await import(
 		'vitest'

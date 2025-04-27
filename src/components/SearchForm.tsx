@@ -118,6 +118,7 @@ export function SearchForm({
 	);
 }
 
+// MARK: in-source tests
 if (import.meta.vitest) {
 	const { describe, it, expect, vi, beforeEach } = await import('vitest');
 	const { render, screen, fireEvent, waitFor, act } = await import(
