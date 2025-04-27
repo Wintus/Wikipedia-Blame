@@ -122,7 +122,7 @@ export function SearchForm({
 // MARK: in-source tests
 if (import.meta.vitest) {
 	const { describe, it, expect, vi, beforeEach } = await import('vitest');
-	const { render, screen, fireEvent, waitFor, act } = await import(
+	const { render, screen, act, fireEvent, waitFor } = await import(
 		'@testing-library/react'
 	);
 	const userEvent = (await import('@testing-library/user-event')).default;
@@ -181,18 +181,20 @@ if (import.meta.vitest) {
 		});
 
 		it('renders form inputs and button', async () => {
-			render(<SearchForm {...defaultProps} />);
+			await act(async () => {
+				render(<SearchForm {...defaultProps} />);
+			});
 			expect(screen.getByLabelText(/Wiki Article Title:/i)).toBeInTheDocument();
 			expect(screen.getByLabelText(/Text to Find:/i)).toBeInTheDocument();
 			expect(
 				screen.getByRole('button', { name: /Find An Occurrence/i })
 			).toBeInTheDocument();
-			// suppress the warning due to delayed rendering by debouncing
-			await act(async () => {});
 		});
 
 		it('submits form with correct FormData', async () => {
-			render(<SearchForm {...defaultProps} />);
+			await act(async () => {
+				render(<SearchForm {...defaultProps} />);
+			});
 			const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
 			const textArea = screen.getByLabelText(/Text to Find:/i);
 			const button = screen.getByRole('button', {
@@ -218,35 +220,37 @@ if (import.meta.vitest) {
 		});
 
 		it('renders the uptoRevId input field', async () => {
-			render(<SearchForm {...defaultProps} />);
+			await act(async () => {
+				render(<SearchForm {...defaultProps} />);
+			});
 			expect(
 				screen.getByLabelText(/Search up to Rev ID \(optional\):/i)
 			).toBeInTheDocument();
-			// suppress the warning due to delayed rendering by debouncing
-			await act(async () => {});
 		});
 
 		it('populates the uptoRevId input with the revisionId from searchState', async () => {
-			render(
-				<SearchForm
-					formAction={mockFormAction}
-					isPending={false}
-					searchState={{
-						...defaultSearchState,
-						revisionId: 12345,
-					}}
-				/>
-			);
+			await act(async () => {
+				render(
+					<SearchForm
+						formAction={mockFormAction}
+						isPending={false}
+						searchState={{
+							...defaultSearchState,
+							revisionId: 12345,
+						}}
+					/>
+				);
+			});
 			const uptoRevIdInput = screen.getByLabelText(
 				/Search up to Rev ID \(optional\):/i
 			) as HTMLInputElement;
 			expect(uptoRevIdInput.value).toBe('12345');
-			// suppress the warning due to delayed rendering by debouncing
-			await act(async () => {});
 		});
 
 		it('submits form with correct FormData including uptoRevId', async () => {
-			render(<SearchForm {...defaultProps} />);
+			await act(async () => {
+				render(<SearchForm {...defaultProps} />);
+			});
 			const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
 			const textArea = screen.getByLabelText(/Text to Find:/i);
 			const uptoRevIdInput = screen.getByLabelText(
@@ -277,82 +281,87 @@ if (import.meta.vitest) {
 		});
 
 		it('does not submit when inputs are empty', async () => {
-			render(
-				<SearchForm
-					{...defaultProps}
-					searchState={{
-						...defaultSearchState,
-						pageTitle: '',
-						targetText: '',
-					}}
-				/>
-			);
+			await act(async () => {
+				render(
+					<SearchForm
+						{...defaultProps}
+						searchState={{
+							...defaultSearchState,
+							pageTitle: '',
+							targetText: '',
+						}}
+					/>
+				);
+			});
 			const button = screen.getByRole('button', {
 				name: /Find An Occurrence/i,
 			});
 			await userEvent.click(button);
 			expect(mockFormAction).not.toHaveBeenCalled();
-			// suppress the warning due to delayed rendering by debouncing
-			await act(async () => {});
 		});
 
 		it('disables the button when isPending is true', async () => {
-			render(
-				<SearchForm
-					formAction={mockFormAction}
-					isPending={true}
-					searchState={defaultSearchState}
-				/>
-			);
+			await act(async () => {
+				render(
+					<SearchForm
+						formAction={mockFormAction}
+						isPending={true}
+						searchState={defaultSearchState}
+					/>
+				);
+			});
 			const button = screen.getByRole('button');
 			expect(button).toBeDisabled();
-			// suppress the warning due to delayed rendering by debouncing
-			await act(async () => {});
 		});
 
 		it('renders the WikiSelector component', async () => {
-			render(<SearchForm {...defaultProps} />);
+			await act(async () => {
+				render(<SearchForm {...defaultProps} />);
+			});
 			expect(screen.getByLabelText(/Wiki Site:/i)).toBeInTheDocument();
-			// suppress the warning due to delayed rendering by debouncing
-			await act(async () => {});
 		});
 
 		it('the selected option remains selected after form submission', async () => {
-			render(<SearchForm {...defaultProps} />);
+			await act(async () => {
+				render(<SearchForm {...defaultProps} />);
+			});
 			const wikiSelector =
 				screen.getByLabelText<HTMLSelectElement>(/Wiki Site:/i);
 
-			fireEvent.change(wikiSelector, { target: { value: 'jawp' } });
+			await act(async () => {
+				fireEvent.change(wikiSelector, { target: { value: 'jawp' } });
+			});
 			expect(wikiSelector.value).toBe('jawp');
 
-			fireEvent.submit(screen.getByRole('form'));
+			await act(async () => {
+				fireEvent.submit(screen.getByRole('form'));
+			});
 			expect(wikiSelector.value).toBe('jawp');
-
-			// suppress the warning due to delayed rendering by debouncing
-			await act(async () => {});
 		});
 
 		it('renders initial values from searchState', async () => {
-			render(
-				<SearchForm
-					formAction={mockFormAction}
-					isPending={false}
-					searchState={{
-						wiki: {
-							id: 'jawp',
-							name: 'Japanese Wikipedia',
-							url: new URL('https://ja.wikipedia.org'),
-						},
-						pageId: null,
-						pageTitle: 'Initial Page Title',
-						targetText: 'Initial Target Text',
-						revisionId: null,
-						order: 'asc',
-						error: null,
-						searchCount: 0,
-					}}
-				/>
-			);
+			await act(async () => {
+				render(
+					<SearchForm
+						formAction={mockFormAction}
+						isPending={false}
+						searchState={{
+							wiki: {
+								id: 'jawp',
+								name: 'Japanese Wikipedia',
+								url: new URL('https://ja.wikipedia.org'),
+							},
+							pageId: null,
+							pageTitle: 'Initial Page Title',
+							targetText: 'Initial Target Text',
+							revisionId: null,
+							order: 'asc',
+							error: null,
+							searchCount: 0,
+						}}
+					/>
+				);
+			});
 
 			const titleInput = screen.getByLabelText(
 				/Wiki Article Title:/i
@@ -367,21 +376,18 @@ if (import.meta.vitest) {
 			expect(titleInput.value).toBe('Initial Page Title');
 			expect(textArea.value).toBe('Initial Target Text');
 			expect(wikiSelector.value).toBe('jawp');
-
-			// suppress the warning due to delayed rendering by debouncing
-			await act(async () => {});
 		});
 
 		it('renders the order radio buttons', async () => {
-			render(<SearchForm {...defaultProps} />);
+			await act(async () => {
+				render(<SearchForm {...defaultProps} />);
+			});
 			expect(
 				screen.getByLabelText(/Ascending \(Older First\)/i)
 			).toBeInTheDocument();
 			expect(
 				screen.getByLabelText(/Descending \(Newer First\)/i)
 			).toBeInTheDocument();
-			// suppress the warning due to delayed rendering by debouncing
-			await act(async () => {});
 		});
 
 		it('renders with correct defaultChecked based on searchState', async () => {
@@ -389,12 +395,12 @@ if (import.meta.vitest) {
 				...defaultProps.searchState,
 				order: 'asc' as const,
 			};
-			render(<SearchForm {...defaultProps} searchState={searchStateAsc} />);
+			await act(async () => {
+				render(<SearchForm {...defaultProps} searchState={searchStateAsc} />);
+			});
 			expect(
 				screen.getByLabelText(/Descending \(Newer First\)/i)
 			).toBeInTheDocument();
-			// suppress the warning due to delayed rendering by debouncing
-			await act(async () => {});
 		});
 
 		it('renders with correct defaultChecked based on searchState', async () => {
@@ -402,8 +408,10 @@ if (import.meta.vitest) {
 				...defaultProps.searchState,
 				order: 'asc' as const,
 			};
-			const { rerender } = render(
-				<SearchForm {...defaultProps} searchState={searchStateAsc} />
+			const { rerender } = await act(async () =>
+				render(
+					<SearchForm {...emptySearchProps} searchState={searchStateAsc} />
+				)
 			);
 
 			const radioAsc = screen.getByLabelText(
@@ -419,7 +427,9 @@ if (import.meta.vitest) {
 				...defaultProps.searchState,
 				order: 'desc' as const,
 			};
-			rerender(<SearchForm {...defaultProps} searchState={searchStateDesc} />);
+			await act(async () =>
+				rerender(<SearchForm {...defaultProps} searchState={searchStateDesc} />)
+			);
 			const radioAsc2 = screen.getByLabelText(
 				/Ascending \(Older First\)/i
 			) as HTMLInputElement;
@@ -428,13 +438,12 @@ if (import.meta.vitest) {
 				/Descending \(Newer First\)/i
 			) as HTMLInputElement;
 			expect(radioDesc2.defaultChecked).toBe(true);
-
-			// suppress the warning due to delayed rendering by debouncing
-			await act(async () => {});
 		});
 
 		it('submits form with correct FormData including order', async () => {
-			render(<SearchForm {...defaultProps} />);
+			await act(async () => {
+				render(<SearchForm {...defaultProps} />);
+			});
 			const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
 			const textArea = screen.getByLabelText(/Text to Find:/i);
 			const descendingRadio = screen.getByLabelText(
@@ -446,10 +455,10 @@ if (import.meta.vitest) {
 
 			await act(async () => {
 				fireEvent.change(titleInput, { target: { value: 'Albert Einstein' } });
+				fireEvent.change(textArea, { target: { value: 'relativity' } });
+				fireEvent.click(descendingRadio); // Select descending order
+				fireEvent.click(button);
 			});
-			fireEvent.change(textArea, { target: { value: 'relativity' } });
-			fireEvent.click(descendingRadio); // Select descending order
-			fireEvent.click(button);
 
 			expect(mockFormAction).toHaveBeenCalledTimes(1);
 
@@ -465,10 +474,10 @@ if (import.meta.vitest) {
 		});
 
 		it('renders a hidden input field for pageId', async () => {
-			render(<SearchForm {...defaultProps} />);
+			await act(async () => {
+				render(<SearchForm {...defaultProps} />);
+			});
 			expect(screen.getByTestId('pageId-input')).toBeInTheDocument();
-			// suppress the warning due to delayed rendering by debouncing
-			await act(async () => {});
 		});
 
 		it('debounces the API call and updates pageId on success', async () => {
@@ -477,7 +486,9 @@ if (import.meta.vitest) {
 				mockFetchPageId
 			);
 
-			render(<SearchForm {...emptySearchProps} />);
+			await act(async () => {
+				render(<SearchForm {...emptySearchProps} />);
+			});
 
 			const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
 
