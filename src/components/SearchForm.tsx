@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { Suspense, useMemo, useState } from 'react';
 import { type WikiSite } from '../wiki';
 import { type SearchState } from '../state';
 import { WikiSelector } from './WikiSelector';
 import useDebounce from '../hooks/useDebounce';
 import { fetchPageId } from '../services/MediaWikiAPIs';
+import { PromiseResolver } from './PromiseResolver';
 
 interface SearchFormProps {
 	formAction: (formData: FormData) => void;
@@ -21,26 +22,25 @@ export function SearchForm({
 	const [selectedWiki, setSelectedWiki] = useState<WikiSite>(searchState.wiki);
 	const [pageId, setPageId] = useState<number | null>(null);
 	const [pageIdError, setPageIdError] = useState<string | null>(null);
-	const debouncedPageTitle = useDebounce(pageTitle, 300);
+	const debouncedPageTitle = useDebounce(pageTitle.trim(), 300);
 
-	useEffect(() => {
+	const pageIdPromise: Promise<void> = useMemo(async () => {
+		// reset
 		setPageId(null);
 		setPageIdError(null);
-
+		// guard
 		if (!debouncedPageTitle) {
 			return;
 		}
-
-		fetchPageId(selectedWiki.url, debouncedPageTitle)
-			.then((id) => {
-				setPageId(id);
-			})
-			.catch((error) => {
-				console.error('Error fetching page ID:', error);
-				setPageIdError('Error fetching page ID. Please try again.');
-				setPageId(null);
-			});
-	}, [debouncedPageTitle, selectedWiki]);
+		// fetch page ID
+		try {
+			const id = await fetchPageId(selectedWiki.url, debouncedPageTitle);
+			setPageId(id);
+		} catch (error) {
+			console.error('Error fetching page ID:', error);
+			setPageIdError('Error fetching page ID. Please try again.');
+		}
+	}, [selectedWiki, debouncedPageTitle]);
 
 	return (
 		<form action={formAction} className="search-form" name="searchForm">
@@ -63,7 +63,14 @@ export function SearchForm({
 					placeholder="e.g. Albert Einstein"
 					required
 				/>
-				{pageIdError && <div className="error-message">{pageIdError}</div>}
+				<Suspense
+					fallback={
+						<span className="loading-indicator">Checking title...</span>
+					}
+				>
+					<PromiseResolver promise={pageIdPromise} />
+					{pageIdError && <div className="error-message">{pageIdError}</div>}
+				</Suspense>
 			</div>
 
 			<div className="form-group">
@@ -121,10 +128,9 @@ export function SearchForm({
 
 // MARK: in-source tests
 if (import.meta.vitest) {
-	const { describe, it, expect, vi, beforeEach } = await import('vitest');
-	const { render, screen, act, fireEvent, waitFor } = await import(
-		'@testing-library/react'
-	);
+	const { describe, it, expect, vi, beforeEach } = import.meta.vitest;
+	const { render, screen, act, fireEvent, waitFor, waitForElementToBeRemoved } =
+		await import('@testing-library/react');
 	const userEvent = (await import('@testing-library/user-event')).default;
 	const MediaWikiAPIs = await import('../services/MediaWikiAPIs');
 
@@ -543,6 +549,47 @@ if (import.meta.vitest) {
 			expect(consoleErrorSpy).toHaveBeenCalledWith(
 				'Error fetching page ID:',
 				new Error('API Error')
+			);
+		});
+
+		it('renders PageIdFetcher within Suspense when debouncedPageTitle is present', async () => {
+			const mockPageTitle = 'Test Page';
+			const mockPageId = 123;
+
+			// Mock the fetchPageId to resolve
+			const mockFetchPageId = vi.spyOn(MediaWikiAPIs, 'fetchPageId');
+			mockFetchPageId.mockResolvedValue(mockPageId);
+
+			render(<SearchForm {...emptySearchProps} />);
+			await act(async () => {
+				userEvent.type(
+					screen.getByLabelText(/Wiki Article Title:/i),
+					mockPageTitle
+				);
+			});
+
+			// wait loading indicator appears and disappears
+			await waitFor(() =>
+				expect(screen.getByText('Checking title...')).toBeInTheDocument()
+			);
+			await waitForElementToBeRemoved(() =>
+				screen.getByText('Checking title...')
+			);
+
+			// Check if the PageIdFetcher is present
+			const pageIdInput =
+				await screen.findByTestId<HTMLInputElement>('pageId-input');
+			expect(pageIdInput).toBeInTheDocument();
+			// Check if the pageId is updated
+			await waitFor(() =>
+				expect(screen.getByTestId('pageId-input')).toHaveValue(
+					mockPageId.toString()
+				)
+			);
+
+			expect(mockFetchPageId).toHaveBeenCalledWith(
+				defaultProps.searchState.wiki.url,
+				mockPageTitle
 			);
 		});
 	});
