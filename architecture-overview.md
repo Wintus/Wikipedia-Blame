@@ -1,4 +1,4 @@
-# Action-State Driven Data Fetching Plan for Wikipedia Blame
+# Wikipedia Blame: Data Fetching Architecture
 
 ## Overview
 
