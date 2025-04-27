@@ -161,7 +161,9 @@ export async function* fetchAllRevisions(
 			url.searchParams.append('formatversion', '2');
 			url.searchParams.append('format', 'json');
 			url.searchParams.append('origin', '*');
-			if (continueParam) url.searchParams.append('rvcontinue', continueParam);
+			if (continueParam) {
+				url.searchParams.append('rvcontinue', continueParam);
+			}
 			// request
 			const response = await fetch(url);
 			const data: RevisionsResponse<never> = await response.json();

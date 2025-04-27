@@ -24,7 +24,9 @@ const genFind = async <T extends NonNullish>(
 	items: AsyncGenerator<T | null, unknown, unknown>
 ): Promise<T | null> => {
 	for await (const item of items) {
-		if (item != null) return item;
+		if (item != null) {
+			return item;
+		}
 	}
 	// if no item is found, return null
 	return null;
@@ -141,9 +143,7 @@ if (import.meta.vitest) {
 
 		describe('findOneOccurrence', () => {
 			it('returns null for empty items', async () => {
-				const mockFetcher = vi.fn().mockResolvedValue(
-					createAsyncGenerator([])
-				);
+				const mockFetcher = vi.fn().mockResolvedValue(createAsyncGenerator([]));
 				const result = await findOneOccurrence(
 					createTextDetector('test'),
 					mockFetcher,
@@ -155,7 +155,7 @@ if (import.meta.vitest) {
 			});
 
 			it('searches full list when sampling fails', async () => {
-				const mockFetcher = vi.fn().mockImplementationOnce(async function*() {
+				const mockFetcher = vi.fn().mockImplementationOnce(async function* () {
 					yield { rev: 12345, text: 'Some text' };
 					yield { rev: 67890, text: 'Another text' };
 					yield { rev: 54321, text: 'Contains test text' };
@@ -175,11 +175,11 @@ if (import.meta.vitest) {
 			it('returns null when no item contains target text', async () => {
 				const mockFetcher = vi
 					.fn()
-					.mockImplementationOnce(async function*() {
+					.mockImplementationOnce(async function* () {
 						yield { rev: 12345, text: 'Some text' };
 						yield { rev: 67890, text: 'Another text' };
 					})
-					.mockImplementationOnce(async function*() {
+					.mockImplementationOnce(async function* () {
 						yield { rev: 54321, text: 'More text' };
 					});
 
