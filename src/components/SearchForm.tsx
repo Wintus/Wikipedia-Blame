@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { type SearchState, type WikiSite } from '../wiki';
+import { type WikiSite } from '../wiki';
+import { type SearchState } from '../state';
 import { WikiSelector } from './WikiSelector';
 import useDebounce from '../hooks/useDebounce';
 import { fetchPageId } from '../services/MediaWikiAPIs';

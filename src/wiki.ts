@@ -20,14 +20,3 @@ export const WIKI_SITES = {
 		url: new URL('https://ja.wikipedia.org'),
 	},
 } as const satisfies Record<Uppercase<WikiSite['id']>, WikiSite>;
-
-export type SearchState = {
-	wiki: WikiSite;
-	pageId: number | null;
-	pageTitle: string;
-	targetText: string;
-	revisionId: number | null;
-	order: 'asc' | 'desc';
-	error: string | null;
-	searchCount: number;
-};
