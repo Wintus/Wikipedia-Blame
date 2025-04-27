@@ -20,6 +20,8 @@ jobs:
         run: npm install
       - name: Lint
         run: npm run lint
+      - name: Format check
+        run: npx prettier --check src
 
   type-check:
     name: Type Check
