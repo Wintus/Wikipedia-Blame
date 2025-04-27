@@ -1,4 +1,4 @@
-import { type SearchState } from '../wiki';
+import { type SearchState } from '../state';
 
 type ResultViewProps = {
 	result: SearchState;

@@ -4,7 +4,8 @@ import {
 	type RevisionResult,
 } from '../services/MediaWikiAPIs';
 import { findOneOccurrence } from '../utils/item-finder';
-import { type WikiSite, type SearchState, WIKI_SITES } from '../wiki';
+import { type WikiSite, WIKI_SITES } from '../wiki';
+import { type SearchState } from '../state';
 
 export async function searchAction(
 	prevState: SearchState,
