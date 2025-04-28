@@ -16,7 +16,9 @@ export function PageIdFetcher({ promise }: Props) {
 				value={id ?? ''}
 				data-testid="pageId-input"
 			/>
-			{error && <div className="error-message">{error}</div>}
+			<div className="status-message-container">
+				{error && <div className="error-message">{error}</div>}
+			</div>
 		</div>
 	);
 }

@@ -160,3 +160,15 @@ button:disabled {
 .revision-link:hover {
 	background-color: #27ae60;
 }
+
+.status-message-container {
+  min-height: 1.6em;
+  font-size: 0.875em;
+  margin-top: 5px;
+  color: #666;
+}
+
+.status-message-container .error-message {
+  color: var(--error-color);
+  font-weight: bold;
+}

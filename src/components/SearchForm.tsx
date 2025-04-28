@@ -54,7 +54,9 @@ export function SearchForm({
 				/>
 				<Suspense
 					fallback={
-						<span className="loading-indicator">Checking title...</span>
+						<div className="status-message-container">
+							<span className="loading-indicator">Checking title...</span>
+						</div>
 					}
 				>
 					<PageIdFetcher promise={pageIdPromise} />
