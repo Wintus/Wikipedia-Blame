@@ -157,20 +157,20 @@ export async function* fetchAllRevisions(
 		let continueParam: string | null = null;
 		do {
 			const url = new URL('/w/api.php', baseUrl);
-			url.searchParams.append('action', 'query');
-			url.searchParams.append('prop', 'revisions');
-			url.searchParams.append('pageids', pageId.toString());
-			url.searchParams.append('rvprop', 'ids');
-			url.searchParams.append('rvlimit', 'max');
-			url.searchParams.append('rvdir', dir);
+			url.searchParams.set('action', 'query');
+			url.searchParams.set('prop', 'revisions');
+			url.searchParams.set('pageids', pageId.toString());
+			url.searchParams.set('rvprop', 'ids');
+			url.searchParams.set('rvlimit', 'max');
+			url.searchParams.set('rvdir', dir);
 			if (uptoRevId != null) {
-				url.searchParams.append('rvendid', uptoRevId.toString());
+				url.searchParams.set('rvendid', uptoRevId.toString());
 			}
-			url.searchParams.append('formatversion', '2');
-			url.searchParams.append('format', 'json');
-			url.searchParams.append('origin', '*');
+			url.searchParams.set('formatversion', '2');
+			url.searchParams.set('format', 'json');
+			url.searchParams.set('origin', '*');
 			if (continueParam) {
-				url.searchParams.append('rvcontinue', continueParam);
+				url.searchParams.set('rvcontinue', continueParam);
 			}
 			// request
 			const response = await fetch(url);
