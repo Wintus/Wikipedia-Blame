@@ -363,17 +363,20 @@ if (import.meta.vitest) {
 				});
 				await Array.fromAsync(all); // Consume the generator to trigger fetch
 
+				const params = new URLSearchParams({
+					action: 'query',
+					prop: 'revisions',
+					pageids: '1234',
+					rvprop: 'ids',
+					rvlimit: 'max',
+					rvdir: 'newer',
+					formatversion: '2',
+					format: 'json',
+					origin: '*',
+				});
+				params.set('rvendid', '9999'); // Check this param
 				const expectedUrl = new URL('/w/api.php', baseUrl);
-				expectedUrl.searchParams.set('action', 'query');
-				expectedUrl.searchParams.set('prop', 'revisions');
-				expectedUrl.searchParams.set('pageids', '1234');
-				expectedUrl.searchParams.set('rvprop', 'ids');
-				expectedUrl.searchParams.set('rvlimit', 'max');
-				expectedUrl.searchParams.set('rvdir', 'newer');
-				expectedUrl.searchParams.set('formatversion', '2');
-				expectedUrl.searchParams.set('format', 'json');
-				expectedUrl.searchParams.set('origin', '*');
-				expectedUrl.searchParams.set('rvendid', '9999'); // Check this param
+				expectedUrl.search = params.toString();
 
 				expect(mockFetch).toHaveBeenCalledWith(expectedUrl);
 			});
@@ -392,17 +395,20 @@ if (import.meta.vitest) {
 				});
 				await Array.fromAsync(all); // Consume the generator
 
+				const params = new URLSearchParams({
+					action: 'query',
+					prop: 'revisions',
+					pageids: '1234',
+					rvprop: 'ids',
+					rvlimit: 'max',
+					rvdir: 'older',
+					formatversion: '2',
+					format: 'json',
+					origin: '*',
+				});
+				params.set('rvendid', '8888'); // Check this param
 				const expectedUrl = new URL('/w/api.php', baseUrl);
-				expectedUrl.searchParams.set('action', 'query');
-				expectedUrl.searchParams.set('prop', 'revisions');
-				expectedUrl.searchParams.set('pageids', '1234');
-				expectedUrl.searchParams.set('rvprop', 'ids');
-				expectedUrl.searchParams.set('rvlimit', 'max');
-				expectedUrl.searchParams.set('rvdir', 'older');
-				expectedUrl.searchParams.set('formatversion', '2');
-				expectedUrl.searchParams.set('format', 'json');
-				expectedUrl.searchParams.set('origin', '*');
-				expectedUrl.searchParams.set('rvendid', '8888'); // Check this param
+				expectedUrl.search = params.toString();
 
 				expect(mockFetch).toHaveBeenCalledWith(expectedUrl);
 			});
