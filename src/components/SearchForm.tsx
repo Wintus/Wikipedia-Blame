@@ -4,7 +4,7 @@ import { type SearchState } from '../state';
 import { WikiSelector } from './WikiSelector';
 import useDebounce from '../hooks/useDebounce';
 import { fetchPageId } from '../services/MediaWikiAPIs';
-import { PromiseResolver } from './PromiseResolver';
+import { PageIdFetcher } from './PageIdFetcher';
 
 interface SearchFormProps {
 	formAction: (formData: FormData) => void;
@@ -20,25 +20,20 @@ export function SearchForm({
 	const [pageTitle, setPageTitle] = useState(searchState.pageTitle);
 	const [targetText, setTargetText] = useState(searchState.targetText);
 	const [selectedWiki, setSelectedWiki] = useState<WikiSite>(searchState.wiki);
-	const [pageId, setPageId] = useState<number | null>(null);
-	const [pageIdError, setPageIdError] = useState<string | null>(null);
 	const debouncedPageTitle = useDebounce(pageTitle.trim(), 300);
 
-	const pageIdPromise: Promise<void> = useMemo(async () => {
-		// reset
-		setPageId(null);
-		setPageIdError(null);
+	const pageIdPromise = useMemo(async () => {
 		// guard
 		if (!debouncedPageTitle) {
-			return;
+			return {};
 		}
 		// fetch page ID
 		try {
 			const id = await fetchPageId(selectedWiki.url, debouncedPageTitle);
-			setPageId(id);
+			return { id: id.toString() };
 		} catch (error) {
 			console.error('Error fetching page ID:', error);
-			setPageIdError('Error fetching page ID. Please try again.');
+			return { error: 'Error fetching page ID. Please try again.' };
 		}
 	}, [selectedWiki, debouncedPageTitle]);
 
@@ -46,12 +41,6 @@ export function SearchForm({
 		<form action={formAction} className="search-form" name="searchForm">
 			<WikiSelector selectedWiki={selectedWiki} onChange={setSelectedWiki} />
 
-			<input
-				type="hidden"
-				name="pageId"
-				value={pageId ?? ''}
-				data-testid="pageId-input"
-			/>
 			<div className="form-group">
 				<label htmlFor="page-title">Wiki Article Title:</label>
 				<input
@@ -68,8 +57,7 @@ export function SearchForm({
 						<span className="loading-indicator">Checking title...</span>
 					}
 				>
-					<PromiseResolver promise={pageIdPromise} />
-					{pageIdError && <div className="error-message">{pageIdError}</div>}
+					<PageIdFetcher promise={pageIdPromise} />
 				</Suspense>
 			</div>
 
@@ -483,7 +471,9 @@ if (import.meta.vitest) {
 			await act(async () => {
 				render(<SearchForm {...defaultProps} />);
 			});
-			expect(screen.getByTestId('pageId-input')).toBeInTheDocument();
+			await waitFor(() => {
+				expect(screen.getByTestId('pageId-input')).toBeInTheDocument();
+			});
 		});
 
 		it('debounces the API call and updates pageId on success', async () => {
@@ -502,6 +492,12 @@ if (import.meta.vitest) {
 				fireEvent.change(titleInput, { target: { value: 'New Title' } });
 			});
 			expect(mockFetchPageId).not.toHaveBeenCalled();
+			const loadingIndicator = await screen.findByText('Checking title...');
+			expect(loadingIndicator).toBeInTheDocument();
+
+			await waitForElementToBeRemoved(() =>
+				screen.getByText('Checking title...')
+			);
 
 			await waitFor(() => expect(mockFetchPageId).toHaveBeenCalledTimes(1), {
 				timeout: 500,
@@ -511,9 +507,9 @@ if (import.meta.vitest) {
 				'New Title'
 			);
 
-			const pageIdInput = screen.getByTestId(
-				'pageId-input'
-			) as HTMLInputElement;
+			const pageIdInput =
+				await screen.findByTestId<HTMLInputElement>('pageId-input');
+			expect(pageIdInput).toBeInTheDocument();
 			expect(pageIdInput.value).toBe('123');
 		});
 
