@@ -91,11 +91,19 @@ export async function* fetchRevisionTexts(
 			'The number of revision IDs cannot exceed 50 due to API limitations.'
 		);
 	}
-	const revIdsStr = revIds.join('|');
-	const url = new URL(
-		`/w/api.php?action=query&prop=revisions&revids=${revIdsStr}&rvprop=ids|content&formatversion=2&format=json&origin=*&rvslots=main`,
-		baseUrl
-	);
+
+	const params = new URLSearchParams({
+		action: 'query',
+		prop: 'revisions',
+		revids: revIds.join('|'),
+		rvprop: 'ids|content',
+		rvslots: 'main',
+		formatversion: '2',
+		format: 'json',
+		origin: '*',
+	});
+	const url = new URL('/w/api.php', baseUrl);
+	url.search = params.toString();
 
 	// Create a JSON parser to handle the streaming response
 	const parser = new JSONParser({
