@@ -23,9 +23,11 @@ body {
 	margin-inline: auto;
 	padding: 1.25rem;
 	display: grid;
-	grid-template-rows: auto 1fr; /* Header auto, Main takes rest */
+	/* Header auto, Main takes rest */
+	grid-template-rows: auto 1fr;
 	min-block-size: 90vh;
-	gap: 1.25rem; /* Space between header and main */
+	/* Space between header and main */
+	gap: 1.25rem;
 }
 
 header {
@@ -44,9 +46,12 @@ header p {
 
 main {
 	display: grid;
-	grid-template-rows: auto minmax(12.5rem, auto); /* Row for form (auto height), Row for results (min 200px, auto grow) */
-	gap: 1.25rem; /* Space between form and results */
-	align-content: start; /* Align items to the top if main area is tall */
+	/* Row for form (auto height), Row for results (min 200px, auto grow) */
+	grid-template-rows: auto minmax(12.5rem, auto);
+	/* Space between form and results */
+	gap: 1.25rem;
+	/* Align items to the top if main area is tall */
+	align-content: start;
 }
 
 .search-form {
@@ -167,13 +172,13 @@ button:disabled {
 }
 
 .status-message-container {
-  min-block-size: 1.6em;
-  font-size: 0.875em;
-  margin-block-start: 0.3125em;
-  color: #666;
+	min-block-size: 1.6em;
+	font-size: 0.875em;
+	margin-block-start: 0.3125em;
+	color: #666;
 }
 
 .status-message-container .error-message {
-  color: var(--error-color);
-  font-weight: bold;
+	color: var(--error-color);
+	font-weight: bold;
 }
