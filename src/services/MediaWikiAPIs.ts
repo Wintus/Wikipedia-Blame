@@ -266,20 +266,18 @@ if (import.meta.vitest) {
 					},
 				} satisfies RevisionsResponse<'main'>;
 				const jsonString = JSON.stringify(mockApiResponse);
-				const encoder = new TextEncoder();
-				const encoded = encoder.encode(jsonString);
 
 				const mockStream = new ReadableStream({
 					start(controller) {
-						controller.enqueue(encoded);
+						controller.enqueue(jsonString);
 						controller.close();
 					},
-				});
+				}).pipeThrough(new TextEncoderStream());
 
 				const mockFetchResponse = {
 					ok: true,
-					body: mockStream,
 					statusText: 'OK',
+					body: mockStream,
 				};
 				mockFetch.mockResolvedValue(mockFetchResponse);
 
