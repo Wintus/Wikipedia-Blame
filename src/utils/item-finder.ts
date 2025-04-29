@@ -173,15 +173,11 @@ if (import.meta.vitest) {
 			});
 
 			it('returns null when no item contains target text', async () => {
-				const mockFetcher = vi
-					.fn()
-					.mockImplementationOnce(async function* () {
-						yield { rev: 12345, text: 'Some text' };
-						yield { rev: 67890, text: 'Another text' };
-					})
-					.mockImplementationOnce(async function* () {
-						yield { rev: 54321, text: 'More text' };
-					});
+				const mockFetcher = vi.fn().mockImplementationOnce(async function* () {
+					yield { rev: 12345, text: 'Some text' };
+					yield { rev: 67890, text: 'Another text' };
+					yield { rev: 54321, text: 'More text' };
+				});
 
 				const items = [12345, 67890, 54321];
 				const result = await findOneOccurrence(
