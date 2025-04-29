@@ -121,7 +121,7 @@ if (import.meta.vitest) {
 	const { describe, it, expect, vi, beforeEach } = import.meta.vitest;
 	const { render, screen, act, fireEvent, waitFor, waitForElementToBeRemoved } =
 		await import('@testing-library/react');
-	const userEvent = (await import('@testing-library/user-event')).default;
+	const { userEvent } = await import('@testing-library/user-event');
 	const MediaWikiAPIs = await import('../services/MediaWikiAPIs');
 
 	describe('SearchForm', () => {

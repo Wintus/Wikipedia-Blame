@@ -130,9 +130,7 @@ if (import.meta.vitest) {
 	async function* createAsyncGenerator<T>(
 		items: ReadonlyArray<T>
 	): AsyncGenerator<T> {
-		for (const item of items) {
-			yield item;
-		}
+		yield* items;
 	}
 
 	describe('RevisionFinder', () => {
@@ -143,53 +141,53 @@ if (import.meta.vitest) {
 
 		describe('findOneOccurrence', () => {
 			it('returns null for empty items', async () => {
+				// Arrange
 				const mockFetcher = vi.fn().mockResolvedValue(createAsyncGenerator([]));
+				// Act
 				const result = await findOneOccurrence(
 					createTextDetector('test'),
 					mockFetcher,
 					createAsyncGenerator([])
 				);
-
+				// Assert
 				expect(result).toBeNull();
 				expect(mockFetcher).not.toHaveBeenCalled();
 			});
 
 			it('searches full list when sampling fails', async () => {
+				// Arrange
+				const items = [12345, 67890, 54321];
 				const mockFetcher = vi.fn().mockImplementationOnce(async function* () {
 					yield { rev: 12345, text: 'Some text' };
 					yield { rev: 67890, text: 'Another text' };
 					yield { rev: 54321, text: 'Contains test text' };
 				});
-
-				const items = [12345, 67890, 54321];
+				// Act
 				const result = await findOneOccurrence(
 					createTextDetector('test'),
 					mockFetcher,
 					createAsyncGenerator(items)
 				);
-
+				// Assert
 				expect(result).toBe(54321);
 				expect(mockFetcher).toHaveBeenCalledTimes(1);
 			});
 
 			it('returns null when no item contains target text', async () => {
-				const mockFetcher = vi
-					.fn()
-					.mockImplementationOnce(async function* () {
-						yield { rev: 12345, text: 'Some text' };
-						yield { rev: 67890, text: 'Another text' };
-					})
-					.mockImplementationOnce(async function* () {
-						yield { rev: 54321, text: 'More text' };
-					});
-
+				// Arrange
 				const items = [12345, 67890, 54321];
+				const mockFetcher = vi.fn().mockImplementationOnce(async function* () {
+					yield { rev: 12345, text: 'Some text' };
+					yield { rev: 67890, text: 'Another text' };
+					yield { rev: 54321, text: 'More text' };
+				});
+				// Act
 				const result = await findOneOccurrence(
 					createTextDetector('test'),
 					mockFetcher,
 					createAsyncGenerator(items)
 				);
-
+				// Assert
 				expect(result).toBeNull();
 				expect(mockFetcher).toHaveBeenCalledTimes(1);
 			});

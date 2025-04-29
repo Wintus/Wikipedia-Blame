@@ -209,6 +209,7 @@ if (import.meta.vitest) {
 		});
 
 		afterEach(() => {
+			vi.clearAllMocks();
 			vi.unstubAllGlobals();
 		});
 
@@ -265,20 +266,18 @@ if (import.meta.vitest) {
 					},
 				} satisfies RevisionsResponse<'main'>;
 				const jsonString = JSON.stringify(mockApiResponse);
-				const encoder = new TextEncoder();
-				const encoded = encoder.encode(jsonString);
 
 				const mockStream = new ReadableStream({
 					start(controller) {
-						controller.enqueue(encoded);
+						controller.enqueue(jsonString);
 						controller.close();
 					},
-				});
+				}).pipeThrough(new TextEncoderStream());
 
 				const mockFetchResponse = {
 					ok: true,
-					body: mockStream,
 					statusText: 'OK',
+					body: mockStream,
 				};
 				mockFetch.mockResolvedValue(mockFetchResponse);
 
@@ -311,38 +310,38 @@ if (import.meta.vitest) {
 
 		describe('fetchAllRevisions', () => {
 			it('fetches all revisions successfully', async () => {
-				const mockResponses = [
-					{
-						json: vi.fn().mockResolvedValue({
-							query: {
-								pages: [
-									{
-										revisions: [{ revid: 12345 }, { revid: 67890 }],
-									},
-								],
-							},
-							continue: { rvcontinue: 'continue-token' },
-						}),
-					},
-					{
-						json: vi.fn().mockResolvedValue({
-							query: {
-								pages: [
-									{
-										revisions: [{ revid: 54321 }],
-									},
-								],
-							},
-						}),
-					},
-				];
-				mockFetch.mockImplementation(() => mockResponses.shift());
+				const mockResponse1 = {
+					json: vi.fn().mockResolvedValue({
+						query: {
+							pages: [
+								{
+									revisions: [{ revid: 12345 }, { revid: 67890 }],
+								},
+							],
+						},
+						continue: { rvcontinue: 'continue-token' },
+					}),
+				};
+				const mockResponse2 = {
+					json: vi.fn().mockResolvedValue({
+						query: {
+							pages: [
+								{
+									revisions: [{ revid: 54321 }],
+								},
+							],
+						},
+					}),
+				};
+				mockFetch
+					.mockImplementationOnce(() => Promise.resolve(mockResponse1))
+					.mockImplementationOnce(() => Promise.resolve(mockResponse2));
 
 				const all = fetchAllRevisions(baseUrl, 1234);
 				const revisions = await Array.fromAsync(all);
 
-				// Check that fetch was called at least once and the correct revisions are returned
-				expect(mockFetch).toHaveBeenCalled();
+				// Check that fetch was called twice and the correct revisions are returned
+				expect(mockFetch).toHaveBeenCalledTimes(2);
 				expect(revisions).toEqual(
 					expect.arrayContaining([12345, 67890, 54321])
 				);
