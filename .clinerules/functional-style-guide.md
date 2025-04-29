@@ -34,7 +34,7 @@ This guide outlines the preferred functional programming practices for this proj
 	- Use explicit TypeScript types and interfaces
 	- Leverage const assertions and satisfies operators
 	- Create default constants for complex objects
-	- Example: `export const defaultSearchResult = {...} as const satisfies SearchResult`
+	- Example: `export const initSearchState = {...} as const satisfies SearchState`
 
 6. **Single Responsibility**
 
