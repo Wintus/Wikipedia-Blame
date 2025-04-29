@@ -209,6 +209,7 @@ if (import.meta.vitest) {
 		});
 
 		afterEach(() => {
+			vi.clearAllMocks();
 			vi.unstubAllGlobals();
 		});
 
