@@ -1,8 +1,8 @@
 import { useActionState } from 'react';
-import { searchAction, defaultSearchResult } from '../actions/search';
+import { searchAction, initSearchState } from '../actions/search';
 
 export function useSearchActionState() {
-	return useActionState(searchAction, defaultSearchResult);
+	return useActionState(searchAction, initSearchState);
 }
 
 // MARK: in-source tests
@@ -16,7 +16,7 @@ if (import.meta.vitest) {
 	}));
 
 	describe('useSearchActionState', () => {
-		it('should call useActionState with searchAction and defaultSearchResult', () => {
+		it('should call useActionState with searchAction and initSearchState', () => {
 			// Arrange
 			const mockUseActionState = vi.mocked(useActionState);
 			// Act
@@ -24,7 +24,7 @@ if (import.meta.vitest) {
 			// Assert
 			expect(mockUseActionState).toHaveBeenCalledWith(
 				searchAction,
-				defaultSearchResult
+				initSearchState
 			);
 		});
 
@@ -32,7 +32,7 @@ if (import.meta.vitest) {
 			// Arrange
 			const mockUseActionState = vi.mocked(useActionState);
 			const mockReturnValue: [unknown, (formData: unknown) => void, boolean] = [
-				{ ...defaultSearchResult, searchCount: 1 },
+				{ ...initSearchState, searchCount: 1 },
 				vi.fn(),
 				true,
 			];

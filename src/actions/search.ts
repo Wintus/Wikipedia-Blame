@@ -123,7 +123,7 @@ export async function searchAction(
 	}
 }
 
-export const defaultSearchResult = {
+export const initSearchState = {
 	wiki: WIKI_SITES.ENWP,
 	pageId: null,
 	pageTitle: '',
