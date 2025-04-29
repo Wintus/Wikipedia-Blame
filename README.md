@@ -47,7 +47,7 @@ The application employs an action-state driven architecture centered around Reac
 	- The predicate checks the fetched text content.
 4. **State Update:** `searchAction` returns the new `SearchState` (including the found `revisionId`) or an error.
 `useActionState` updates the application state.
-5. **UI Rendering:** `App.tsx` passes the `searchResult` (containing the found `revisionId`) and `isPending` status down to `SearchForm.tsx` (for default value population) and `ResultView.tsx` (for display).
+5. **UI Rendering:** `App.tsx` passes the `searchState` (containing the found `revisionId`) and `isPending` status down to `SearchForm.tsx` (for default value population) and `ResultView.tsx` (for display).
 
 This approach collocates data fetching and state logic within the action, simplifying component responsibilities and leveraging React's built-in pending state management.
 See `architecture-overview.md` for a visual flow diagram.
