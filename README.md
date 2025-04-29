@@ -81,8 +81,3 @@ See `architecture-overview.md` for a visual flow diagram.
 - Support for additional Wikipedia languages.
 - More robust error handling and user feedback.
 - Advanced caching strategies.
-
-## Future Enhancements
-
-- In `src/components/SearchForm.tsx`, add a loading indicator (e.g., spinner icon or text)
-to provide visual feedback while the page ID is being fetched in the background.
