@@ -91,11 +91,19 @@ export async function* fetchRevisionTexts(
 			'The number of revision IDs cannot exceed 50 due to API limitations.'
 		);
 	}
-	const revIdsStr = revIds.join('|');
-	const url = new URL(
-		`/w/api.php?action=query&prop=revisions&revids=${revIdsStr}&rvprop=ids|content&formatversion=2&format=json&origin=*&rvslots=main`,
-		baseUrl
-	);
+
+	const params = new URLSearchParams({
+		action: 'query',
+		prop: 'revisions',
+		revids: revIds.join('|'),
+		rvprop: 'ids|content',
+		rvslots: 'main',
+		formatversion: '2',
+		format: 'json',
+		origin: '*',
+	});
+	const url = new URL('/w/api.php', baseUrl);
+	url.search = params.toString();
 
 	// Create a JSON parser to handle the streaming response
 	const parser = new JSONParser({
@@ -148,22 +156,25 @@ export async function* fetchAllRevisions(
 	try {
 		let continueParam: string | null = null;
 		do {
-			const url = new URL('/w/api.php', baseUrl);
-			url.searchParams.append('action', 'query');
-			url.searchParams.append('prop', 'revisions');
-			url.searchParams.append('pageids', pageId.toString());
-			url.searchParams.append('rvprop', 'ids');
-			url.searchParams.append('rvlimit', 'max');
-			url.searchParams.append('rvdir', dir);
+			const params = new URLSearchParams({
+				action: 'query',
+				prop: 'revisions',
+				pageids: pageId.toString(),
+				rvprop: 'ids',
+				rvlimit: 'max',
+				rvdir: dir,
+				formatversion: '2',
+				format: 'json',
+				origin: '*',
+			});
 			if (uptoRevId != null) {
-				url.searchParams.append('rvendid', uptoRevId.toString());
+				params.set('rvendid', uptoRevId.toString());
 			}
-			url.searchParams.append('formatversion', '2');
-			url.searchParams.append('format', 'json');
-			url.searchParams.append('origin', '*');
 			if (continueParam) {
-				url.searchParams.append('rvcontinue', continueParam);
+				params.set('rvcontinue', continueParam);
 			}
+			const url = new URL('/w/api.php', baseUrl);
+			url.search = params.toString();
 			// request
 			const response = await fetch(url);
 			const data: RevisionsResponse<never> = await response.json();
@@ -352,17 +363,20 @@ if (import.meta.vitest) {
 				});
 				await Array.fromAsync(all); // Consume the generator to trigger fetch
 
+				const params = new URLSearchParams({
+					action: 'query',
+					prop: 'revisions',
+					pageids: '1234',
+					rvprop: 'ids',
+					rvlimit: 'max',
+					rvdir: 'newer',
+					formatversion: '2',
+					format: 'json',
+					origin: '*',
+				});
+				params.set('rvendid', '9999'); // Check this param
 				const expectedUrl = new URL('/w/api.php', baseUrl);
-				expectedUrl.searchParams.set('action', 'query');
-				expectedUrl.searchParams.set('prop', 'revisions');
-				expectedUrl.searchParams.set('pageids', '1234');
-				expectedUrl.searchParams.set('rvprop', 'ids');
-				expectedUrl.searchParams.set('rvlimit', 'max');
-				expectedUrl.searchParams.set('rvdir', 'newer');
-				expectedUrl.searchParams.set('rvendid', '9999'); // Check this param
-				expectedUrl.searchParams.set('formatversion', '2');
-				expectedUrl.searchParams.set('format', 'json');
-				expectedUrl.searchParams.set('origin', '*');
+				expectedUrl.search = params.toString();
 
 				expect(mockFetch).toHaveBeenCalledWith(expectedUrl);
 			});
@@ -381,17 +395,20 @@ if (import.meta.vitest) {
 				});
 				await Array.fromAsync(all); // Consume the generator
 
+				const params = new URLSearchParams({
+					action: 'query',
+					prop: 'revisions',
+					pageids: '1234',
+					rvprop: 'ids',
+					rvlimit: 'max',
+					rvdir: 'older',
+					formatversion: '2',
+					format: 'json',
+					origin: '*',
+				});
+				params.set('rvendid', '8888'); // Check this param
 				const expectedUrl = new URL('/w/api.php', baseUrl);
-				expectedUrl.searchParams.set('action', 'query');
-				expectedUrl.searchParams.set('prop', 'revisions');
-				expectedUrl.searchParams.set('pageids', '1234');
-				expectedUrl.searchParams.set('rvprop', 'ids');
-				expectedUrl.searchParams.set('rvlimit', 'max');
-				expectedUrl.searchParams.set('rvdir', 'older');
-				expectedUrl.searchParams.set('rvendid', '8888'); // Check this param
-				expectedUrl.searchParams.set('formatversion', '2');
-				expectedUrl.searchParams.set('format', 'json');
-				expectedUrl.searchParams.set('origin', '*');
+				expectedUrl.search = params.toString();
 
 				expect(mockFetch).toHaveBeenCalledWith(expectedUrl);
 			});
