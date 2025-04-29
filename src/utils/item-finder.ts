@@ -130,9 +130,7 @@ if (import.meta.vitest) {
 	async function* createAsyncGenerator<T>(
 		items: ReadonlyArray<T>
 	): AsyncGenerator<T> {
-		for (const item of items) {
-			yield item;
-		}
+		yield* items;
 	}
 
 	describe('RevisionFinder', () => {
