@@ -15,7 +15,7 @@ export function WikiSelector({ selectedWiki, onChange }: WikiSelectorProps) {
 	};
 
 	return (
-		<div className="wiki-selector">
+		<div className="form-group">
 			<label htmlFor="wiki-url">Wiki Site:</label>
 			<select
 				id="wiki-url"

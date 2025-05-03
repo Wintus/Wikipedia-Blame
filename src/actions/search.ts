@@ -5,6 +5,7 @@ import {
 } from '../services/MediaWikiAPIs';
 import { findOneOccurrence } from '../utils/item-finder';
 import { type SearchState } from '../state';
+import { WIKI_SITES } from '../wiki';
 
 export async function searchAction(
 	prevState: SearchState,
@@ -97,7 +98,7 @@ export async function searchAction(
 			pageTitle,
 			targetText,
 			revisionId: foundRevisionId,
-			order: order === 'asc' || order === 'desc' ? order : 'asc',
+			order: options?.order ?? 'asc',
 			error: foundRevisionId ? null : 'Text not found in any revision',
 			searchCount: prevState.searchCount + 1,
 		};
@@ -117,7 +118,7 @@ export async function searchAction(
 }
 
 export const initSearchState = {
-	wikiUrl: new URL('https://en.wikipedia.org'),
+	wikiUrl: WIKI_SITES[0].url,
 	pageId: null,
 	pageTitle: '',
 	targetText: '',
