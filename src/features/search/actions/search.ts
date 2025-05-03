@@ -1,7 +1,6 @@
 import { fetchAllRevisions } from '../../../services/MediaWikiAPIs';
 import { genFindMap } from '../../../lib/async-generator';
 import { type SearchState } from '../state';
-import { WIKI_SITES } from '../../wikiSelector/wiki';
 
 export async function searchAction(
 	prevState: SearchState,
@@ -119,17 +118,6 @@ export async function searchAction(
 		};
 	}
 }
-
-export const initSearchState = {
-	wikiUrl: WIKI_SITES[0].url,
-	pageId: null,
-	pageTitle: '',
-	targetText: '',
-	revisionId: null,
-	order: 'asc',
-	error: null,
-	searchCount: 0,
-} as const satisfies SearchState;
 
 // MARK: in-source tests
 if (import.meta.vitest) {

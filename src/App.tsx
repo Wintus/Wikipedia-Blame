@@ -4,10 +4,20 @@ import { Form as SearchForm } from './features/search/components/Form';
 import { ResultView } from './features/search/components/ResultView';
 import { WikiSelector } from './features/wikiSelector/components/WikiSelector';
 import { PageTitleInput } from './features/pageInput/components/PageTitleInput';
-import {
-	searchAction,
-	initSearchState,
-} from './features/search/actions/search';
+import { searchAction } from './features/search/actions/search';
+import type { SearchState } from './features/search/state';
+import { WIKI_SITES } from './features/wikiSelector/wiki';
+
+const initSearchState = {
+	wikiUrl: WIKI_SITES[0].url,
+	pageId: null,
+	pageTitle: '',
+	targetText: '',
+	revisionId: null,
+	order: 'asc',
+	error: null,
+	searchCount: 0,
+} as const satisfies SearchState;
 
 function App() {
 	const [searchState, formAction, isPending] = useActionState(
