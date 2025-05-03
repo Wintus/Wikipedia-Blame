@@ -17,7 +17,6 @@ export function SearchForm({
 	searchState,
 }: SearchFormProps) {
 	const [pageTitle, setPageTitle] = useState(searchState.pageTitle);
-	const [targetText, setTargetText] = useState(searchState.targetText);
 	const [wikiUrl, setWikiUrl] = useState(searchState.wikiUrl);
 	const debouncedPageTitle = useDebounce(pageTitle.trim(), 300);
 
@@ -67,8 +66,7 @@ export function SearchForm({
 				<textarea
 					id="target-text"
 					name="targetText"
-					value={targetText}
-					onChange={(e) => setTargetText(e.target.value)}
+					defaultValue={searchState.targetText}
 					placeholder="Enter text to search for in the article's history"
 					required
 				/>
