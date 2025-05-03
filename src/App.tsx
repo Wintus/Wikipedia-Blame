@@ -1,8 +1,8 @@
 import './App.css';
 import { useActionState } from 'react';
-import { SearchForm } from './components/SearchForm';
-import { ResultView } from './components/ResultView';
-import { searchAction, initSearchState } from './actions/search';
+import { SearchForm } from './features/search/components/SearchForm';
+import { ResultView } from './features/search/components/ResultView';
+import { searchAction, initSearchState } from './features/search/actions/search';
 
 function App() {
 	const [searchState, formAction, isPending] = useActionState(

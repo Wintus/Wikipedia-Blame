@@ -1,6 +1,6 @@
 import { Suspense, useMemo, useState } from 'react';
-import useDebounce from '../hooks/useDebounce';
-import { fetchPageId } from '../services/MediaWikiAPIs';
+import useDebounce from '../../../hooks/useDebounce';
+import { fetchPageId } from '../../../services/MediaWikiAPIs';
 import { PageIdFetcher } from './PageIdFetcher';
 
 interface PageTitleInputProps {
@@ -63,7 +63,7 @@ if (import.meta.vitest) {
 		'@testing-library/react'
 	);
 	const { userEvent } = await import('@testing-library/user-event');
-	const MediaWikiAPIs = await import('../services/MediaWikiAPIs');
+	const MediaWikiAPIs = await import('../../../services/MediaWikiAPIs');
 
 	describe('PageTitleInput', () => {
 		const stubWikiUrl = new URL('https://en.wikipedia.org');

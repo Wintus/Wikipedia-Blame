@@ -1,7 +1,7 @@
-import { fetchAllRevisions } from '../services/MediaWikiAPIs';
-import { genFindMap } from '../lib/async-generator';
+import { fetchAllRevisions } from '../../../services/MediaWikiAPIs';
+import { genFindMap } from '../../../lib/async-generator';
 import { type SearchState } from '../state';
-import { WIKI_SITES } from '../wiki';
+import { WIKI_SITES } from '../../wikiSelector/wiki';
 
 export async function searchAction(
 	prevState: SearchState,
@@ -135,8 +135,8 @@ export const initSearchState = {
 if (import.meta.vitest) {
 	const { describe, it, expect, vi, beforeEach } = import.meta.vitest;
 
-	vi.mock(import('../services/MediaWikiAPIs'), { spy: true });
-	vi.mock(import('../lib/async-generator'), { spy: true });
+	vi.mock(import('../../../services/MediaWikiAPIs'), { spy: true });
+	vi.mock(import('../../../lib/async-generator'), { spy: true });
 
 	async function* createAsyncGenerator<T>(
 		items: ReadonlyArray<T>

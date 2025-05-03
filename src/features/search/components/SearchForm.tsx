@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { type SearchState } from '../state';
-import { WikiSelector } from './WikiSelector';
-import { PageTitleInput } from './PageTitleInput';
+import { WikiSelector } from '../../wikiSelector/components/WikiSelector';
+import { PageTitleInput } from '../../pageInput/components/PageTitleInput';
 
 interface SearchFormProps {
 	formAction: (formData: FormData) => void;
@@ -92,7 +92,7 @@ if (import.meta.vitest) {
 	const { describe, it, expect, vi, beforeEach, afterAll } = import.meta.vitest;
 	const { render, screen, act } = await import('@testing-library/react');
 	const { userEvent } = await import('@testing-library/user-event');
-	const MediaWikiAPIs = await import('../services/MediaWikiAPIs');
+	const MediaWikiAPIs = await import('../../../services/MediaWikiAPIs');
 
 	describe('SearchForm', () => {
 		const mockFormAction = vi.fn();
