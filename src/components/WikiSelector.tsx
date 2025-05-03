@@ -1,8 +1,8 @@
-import { type WikiSite, WIKI_SITES } from '../wiki';
+import { WIKI_SITES } from '../wiki';
 
 type WikiSelectorProps = {
-	selectedWiki: WikiSite['url'];
-	onChange: (wiki: WikiSite['url']) => void;
+	selectedWiki: URL;
+	onChange: (wiki: URL) => void;
 };
 
 export function WikiSelector({ selectedWiki, onChange }: WikiSelectorProps) {

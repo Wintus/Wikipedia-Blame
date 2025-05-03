@@ -2,7 +2,7 @@
  * Types for MediaWiki wikis and application state
  */
 
-export type WikiSite = {
+type WikiSite = {
 	id: string;
 	name: string;
 	url: URL;
