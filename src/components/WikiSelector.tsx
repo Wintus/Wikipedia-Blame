@@ -7,7 +7,7 @@ type WikiSelectorProps = {
 
 export function WikiSelector({ selectedWiki, onChange }: WikiSelectorProps) {
 	const handleChange = (wikiUrl: string) => {
-		const wiki = Object.values(WIKI_SITES).find((w) => w.url.href === wikiUrl);
+		const wiki = WIKI_SITES.find((w) => w.url.href === wikiUrl);
 		if (wiki == null) {
 			return;
 		}
@@ -24,7 +24,7 @@ export function WikiSelector({ selectedWiki, onChange }: WikiSelectorProps) {
 				defaultValue={selectedWiki.href}
 				onChange={(e) => handleChange(e.target.value)}
 			>
-				{Object.values(WIKI_SITES).map((wiki) => (
+				{WIKI_SITES.map((wiki) => (
 					<option key={wiki.id} value={wiki.url.href}>
 						{wiki.name} ({wiki.url.hostname})
 					</option>
@@ -86,11 +86,9 @@ if (import.meta.vitest) {
 		it('renders options with correct text and values', () => {
 			renderComponent();
 			const options = screen.getAllByRole('option') as HTMLOptionElement[];
-			expect(options.length).toBe(Object.keys(WIKI_SITES).length);
+			expect(options.length).toBe(WIKI_SITES.length);
 			for (const option of options) {
-				const foundWiki = Object.values(WIKI_SITES).find(
-					(w) => w.url.href === option.value
-				);
+				const foundWiki = WIKI_SITES.find((w) => w.url.href === option.value);
 				expect(foundWiki).toBeDefined();
 				expect(option.textContent).toContain(foundWiki?.name);
 				expect(option.textContent).toContain(foundWiki?.url.hostname);
