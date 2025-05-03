@@ -55,15 +55,36 @@ See `architecture-overview.md` for a visual flow diagram.
 
 ## Project Structure
 
+This project aims for a "package-by-feature" structure to improve modularity and colocation of related code.
+
 - **`src/`**: Main source code directory.
-	- **`actions/`**: Contains the `useActionState` action logic (`search.ts`).
-	- **`components/`**: React UI components (`SearchForm.tsx`, `ResultView.tsx`, `WikiSelector.tsx`).
-	- **`services/`**: MediaWiki APIs interaction layer (`MediaWikiAPIs.ts`).
+	- **`features/`**: Contains distinct application features.
+		- **`search/`**: Handles the core text searching functionality.
+			- **`components/`**: UI components specific to search (`SearchForm.tsx`, `ResultView.tsx`). `SearchForm` accepts other components (`WikiSelector`, `PageIdFetcher`) via props (slots) for composition.
+			- **`action.ts`**: The `useActionState` logic for handling search form submissions.
+			- **`state.ts`**: Type definitions specific to the search state.
+		- **`wikiSelector/`**: Handles selection of the target Wikipedia instance.
+			- **`components/`**: Contains `WikiSelector.tsx`.
+			- **`wikiTypes.ts`**: Types and constants related to Wikipedia sites (formerly `wiki.ts`).
+		- **`pageInput/`**: Handles fetching the Wikipedia Page ID.
+			- **`components/`**: Contains `PageTitleInput.tsx`.
+	- **`services/`**: Shared services, like `MediaWikiAPIs.ts`.
+	- **`hooks/`**: Shared custom hooks, like `useDebounce.ts`.
 	- **`lib/`**: general libraries (`async-generator.ts`).
-	- **`wiki.ts`**: Type definitions and constants related to Wikipedia sites.
-	- **`state.ts`**: Type definitions for application state (e.g., `SearchState`).
-	- **`App.tsx`**: Main application component, orchestrates state and components.
+	- **`App.tsx`**: Main application component. Orchestrates features, manages shared state (e.g., selected wiki, page ID), handles the search action state, and composes the UI by passing components as slots.
 	- **`main.tsx`**: Application entry point.
+	- **`App.css`**, **`index.css`**: Global styles.
+	- ... (other configuration and setup files)
+
+### Composition Approach
+
+Instead of direct imports between feature components, `App.tsx` acts as the orchestrator:
+1. It manages state shared across features (like selected wiki, page title, page ID).
+2. It utilizes `useActionState` (possibly via a custom hook) for the search form lifecycle.
+3. It renders `SearchForm` and `ResultView`.
+4. Crucially, it passes configured instances of `WikiSelector` and `PageIdFetcher` as props (slots) into `SearchForm`.
+5. `SearchForm` renders these slots in its structure.
+6. `ResultView` receives the comprehensive `searchState` object to display results or errors.
 
 ## Deployment Details
 
