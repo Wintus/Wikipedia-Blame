@@ -1,6 +1,6 @@
 import './App.css';
 import { useActionState, useState } from 'react';
-import { SearchForm } from './features/search/components/SearchForm';
+import { Form as SearchForm } from './features/search/components/Form';
 import { ResultView } from './features/search/components/ResultView';
 import { WikiSelector } from './features/wikiSelector/components/WikiSelector';
 import { PageTitleInput } from './features/pageInput/components/PageTitleInput';

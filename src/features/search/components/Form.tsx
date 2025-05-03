@@ -8,7 +8,7 @@ interface SearchFormProps {
 	pageTitleInput: React.ReactNode;
 }
 
-export function SearchForm({
+export function Form({
 	formAction,
 	isPending,
 	searchState,
@@ -144,7 +144,7 @@ if (import.meta.vitest) {
 		});
 
 		it('renders form inputs and button', async () => {
-			await act(async () => render(<SearchForm {...defaultProps} />));
+			await act(async () => render(<Form {...defaultProps} />));
 			expect(screen.getByLabelText(/Wiki Article Title:/i)).toBeInTheDocument();
 			expect(screen.getByLabelText(/Text to Find:/i)).toBeInTheDocument();
 			expect(
@@ -154,7 +154,7 @@ if (import.meta.vitest) {
 
 		it('submits form with correct FormData', async () => {
 			const user = userEvent.setup();
-			await act(async () => render(<SearchForm {...defaultProps} />));
+			await act(async () => render(<Form {...defaultProps} />));
 			const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
 			const textArea = screen.getByLabelText(/Text to Find:/i);
 			const button = screen.getByRole('button', {
@@ -180,14 +180,14 @@ if (import.meta.vitest) {
 		});
 
 		it('renders the startRevId input field', async () => {
-			await act(async () => render(<SearchForm {...defaultProps} />));
+			await act(async () => render(<Form {...defaultProps} />));
 			expect(
 				screen.getByLabelText(/Search from Rev ID \(optional\):/i)
 			).toBeInTheDocument();
 		});
 
 		it('renders the endRevId input field', async () => {
-			await act(async () => render(<SearchForm {...defaultProps} />));
+			await act(async () => render(<Form {...defaultProps} />));
 			expect(
 				screen.getByLabelText(/End Rev ID \(optional\):/i)
 			).toBeInTheDocument();
@@ -196,7 +196,7 @@ if (import.meta.vitest) {
 		it('does not populate the endRevId input with the revisionId from searchState', async () => {
 			await act(async () =>
 				render(
-					<SearchForm
+					<Form
 						formAction={mockFormAction}
 						isPending={false}
 						searchState={{
@@ -217,7 +217,7 @@ if (import.meta.vitest) {
 
 		it('submits form with correct FormData including endRevId', async () => {
 			const user = userEvent.setup();
-			await act(async () => render(<SearchForm {...defaultProps} />));
+			await act(async () => render(<Form {...defaultProps} />));
 			const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
 			const textArea = screen.getByLabelText(/Text to Find:/i);
 			const endRevIdInput = screen.getByLabelText(/End Rev ID \(optional\):/i);
@@ -250,7 +250,7 @@ if (import.meta.vitest) {
 			const user = userEvent.setup();
 			await act(async () =>
 				render(
-					<SearchForm
+					<Form
 						{...defaultProps}
 						searchState={{
 							...defaultSearchState,
@@ -270,7 +270,7 @@ if (import.meta.vitest) {
 		it('disables the button when isPending is true', async () => {
 			await act(async () =>
 				render(
-					<SearchForm
+					<Form
 						formAction={mockFormAction}
 						isPending={true}
 						searchState={defaultSearchState}
@@ -284,14 +284,14 @@ if (import.meta.vitest) {
 		});
 
 		it('renders the WikiSelector component', async () => {
-			await act(async () => render(<SearchForm {...defaultProps} />));
+			await act(async () => render(<Form {...defaultProps} />));
 			expect(screen.getByLabelText(/Wiki Site:/i)).toBeInTheDocument();
 		});
 
 		it('the selected option remains selected after form submission', async () => {
 			const { fireEvent } = await import('@testing-library/react');
 			const user = userEvent.setup();
-			await act(async () => render(<SearchForm {...defaultProps} />));
+			await act(async () => render(<Form {...defaultProps} />));
 			const wikiSelector =
 				await screen.findByLabelText<HTMLSelectElement>(/Wiki Site:/i);
 
@@ -315,7 +315,7 @@ if (import.meta.vitest) {
 		it('renders initial values from searchState', async () => {
 			await act(async () =>
 				render(
-					<SearchForm
+					<Form
 						formAction={mockFormAction}
 						isPending={false}
 						searchState={{
@@ -350,7 +350,7 @@ if (import.meta.vitest) {
 		});
 
 		it('renders the order radio buttons', async () => {
-			await act(async () => render(<SearchForm {...defaultProps} />));
+			await act(async () => render(<Form {...defaultProps} />));
 			expect(
 				screen.getByLabelText(/Ascending \(Older First\)/i)
 			).toBeInTheDocument();
@@ -365,7 +365,7 @@ if (import.meta.vitest) {
 				order: 'asc' as const,
 			};
 			await act(async () =>
-				render(<SearchForm {...defaultProps} searchState={searchStateAsc} />)
+				render(<Form {...defaultProps} searchState={searchStateAsc} />)
 			);
 			expect(
 				screen.getByLabelText(/Descending \(Newer First\)/i)
@@ -378,9 +378,7 @@ if (import.meta.vitest) {
 				order: 'asc' as const,
 			};
 			const { rerender } = await act(async () =>
-				render(
-					<SearchForm {...emptySearchProps} searchState={searchStateAsc} />
-				)
+				render(<Form {...emptySearchProps} searchState={searchStateAsc} />)
 			);
 
 			const radioAsc = screen.getByLabelText(
@@ -397,7 +395,7 @@ if (import.meta.vitest) {
 				order: 'desc' as const,
 			};
 			await act(async () =>
-				rerender(<SearchForm {...defaultProps} searchState={searchStateDesc} />)
+				rerender(<Form {...defaultProps} searchState={searchStateDesc} />)
 			);
 			const radioAsc2 = screen.getByLabelText(
 				/Ascending \(Older First\)/i
@@ -411,7 +409,7 @@ if (import.meta.vitest) {
 
 		it('submits form with correct FormData including order', async () => {
 			const user = userEvent.setup();
-			await act(async () => render(<SearchForm {...defaultProps} />));
+			await act(async () => render(<Form {...defaultProps} />));
 			const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
 			const textArea = screen.getByLabelText(/Text to Find:/i);
 			const descendingRadio = screen.getByLabelText(
