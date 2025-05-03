@@ -1,29 +1,25 @@
-import { useState } from 'react';
 import { type SearchState } from '../state';
-import { WikiSelector } from '../../wikiSelector/components/WikiSelector';
-import { PageTitleInput } from '../../pageInput/components/PageTitleInput';
 
 interface SearchFormProps {
 	formAction: (formData: FormData) => void;
 	isPending: boolean;
 	searchState: SearchState;
+	wikiSelector: React.ReactNode;
+	pageTitleInput: React.ReactNode;
 }
 
 export function SearchForm({
 	formAction,
 	isPending,
 	searchState,
+	wikiSelector,
+	pageTitleInput,
 }: SearchFormProps) {
-	const [wikiUrl, setWikiUrl] = useState(searchState.wikiUrl);
-
 	return (
 		<form action={formAction} className="search-form" name="searchForm">
-			<WikiSelector selectedWiki={wikiUrl} onChange={setWikiUrl} />
+			{wikiSelector}
 
-			<PageTitleInput
-				initialPageTitle={searchState.pageTitle}
-				wikiUrl={wikiUrl}
-			/>
+			{pageTitleInput}
 
 			<div className="form-group">
 				<label htmlFor="target-text">Text to Find:</label>
@@ -122,13 +118,17 @@ if (import.meta.vitest) {
 			formAction: mockFormAction,
 			isPending: false,
 			searchState: emptySearchState,
-		};
+			wikiSelector: null,
+			pageTitleInput: null,
+		} satisfies SearchFormProps;
 
 		const defaultProps = {
 			formAction: mockFormAction,
 			isPending: false,
 			searchState: defaultSearchState,
-		};
+			wikiSelector: null,
+			pageTitleInput: null,
+		} satisfies SearchFormProps;
 
 		const mockFetchPageId = vi.fn().mockResolvedValue(123);
 
@@ -203,6 +203,8 @@ if (import.meta.vitest) {
 							...defaultSearchState,
 							revisionId: 12345,
 						}}
+						wikiSelector={null}
+						pageTitleInput={null}
 					/>
 				)
 			);
@@ -272,6 +274,8 @@ if (import.meta.vitest) {
 						formAction={mockFormAction}
 						isPending={true}
 						searchState={defaultSearchState}
+						wikiSelector={null}
+						pageTitleInput={null}
 					/>
 				)
 			);
@@ -324,6 +328,8 @@ if (import.meta.vitest) {
 							error: null,
 							searchCount: 0,
 						}}
+						wikiSelector={null}
+						pageTitleInput={null}
 					/>
 				)
 			);

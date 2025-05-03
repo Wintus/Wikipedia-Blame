@@ -1,8 +1,13 @@
 import './App.css';
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import { SearchForm } from './features/search/components/SearchForm';
 import { ResultView } from './features/search/components/ResultView';
-import { searchAction, initSearchState } from './features/search/actions/search';
+import { WikiSelector } from './features/wikiSelector/components/WikiSelector';
+import { PageTitleInput } from './features/pageInput/components/PageTitleInput';
+import {
+	searchAction,
+	initSearchState,
+} from './features/search/actions/search';
 
 function App() {
 	const [searchState, formAction, isPending] = useActionState(
@@ -10,6 +15,7 @@ function App() {
 		initSearchState
 	);
 	const hasSearched = searchState.searchCount > 0;
+	const [wikiUrl, setWikiUrl] = useState(searchState.wikiUrl);
 
 	return (
 		<div className="app">
@@ -22,6 +28,15 @@ function App() {
 					formAction={formAction}
 					isPending={isPending}
 					searchState={searchState}
+					wikiSelector={
+						<WikiSelector selectedWiki={wikiUrl} onChange={setWikiUrl} />
+					}
+					pageTitleInput={
+						<PageTitleInput
+							initialPageTitle={searchState.pageTitle}
+							wikiUrl={wikiUrl}
+						/>
+					}
 				/>
 				{hasSearched && (
 					<ResultView result={searchState} isPending={isPending} />
@@ -32,3 +47,8 @@ function App() {
 }
 
 export default App;
+
+// MARK: in-source tests
+if (import.meta.vitest) {
+	// TODO: add tests for App component
+}
