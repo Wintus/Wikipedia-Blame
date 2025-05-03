@@ -26,7 +26,7 @@ export function ResultView({ result, isPending }: ResultViewProps) {
 	}
 
 	const revisionUrl = getRevisionUrl(
-		result.wiki.url,
+		result.wikiUrl,
 		result.revisionId
 	).toString();
 
@@ -60,13 +60,12 @@ export function ResultView({ result, isPending }: ResultViewProps) {
 if (import.meta.vitest) {
 	const { describe, it, expect } = await import('vitest');
 	const { render, screen } = await import('@testing-library/react');
-	const { WIKI_SITES } = await import('../wiki');
 
 	describe('ResultView', () => {
 		const createResult = (
 			overrides: Partial<SearchState> = {}
 		): SearchState => ({
-			wiki: WIKI_SITES.ENWP,
+			wikiUrl: new URL('https://en.wikipedia.org'),
 			pageId: null,
 			pageTitle: '',
 			targetText: '',

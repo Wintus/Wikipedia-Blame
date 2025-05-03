@@ -4,7 +4,6 @@ import {
 	type RevisionResult,
 } from '../services/MediaWikiAPIs';
 import { findOneOccurrence } from '../utils/item-finder';
-import { type WikiSite, WIKI_SITES } from '../wiki';
 import { type SearchState } from '../state';
 
 export async function searchAction(
@@ -12,7 +11,7 @@ export async function searchAction(
 	formData: FormData
 ): Promise<SearchState> {
 	// Parse form data
-	const wikiId = formData.get('wikiId')?.toString().toUpperCase();
+	const wikiUrlStr = formData.get('wikiUrl')?.toString();
 	const pageIdStr = formData.get('pageId')?.toString();
 	const pageTitle = formData.get('pageTitle')?.toString().trim();
 	const targetText = formData.get('targetText')?.toString();
@@ -20,25 +19,19 @@ export async function searchAction(
 	const uptoRevIdStr = formData.get('uptoRevId')?.toString();
 
 	// Validate inputs
-	if (
-		!wikiId ||
-		!((key: string): key is keyof typeof WIKI_SITES => key in WIKI_SITES)(
-			wikiId
-		)
-	) {
+	if (!wikiUrlStr || !URL.canParse(wikiUrlStr)) {
 		return {
 			...prevState,
-			error: `Invalid wiki site selected: ${wikiId}`,
+			error: `Invalid wiki site selected: ${wikiUrlStr}`,
 			searchCount: prevState.searchCount + 1,
 		};
 	}
-	const wiki = WIKI_SITES[wikiId] satisfies WikiSite;
-	const baseUrl = wiki.url;
+	const wikiUrl = new URL(wikiUrlStr);
 
 	if (!pageIdStr) {
 		return {
 			...prevState,
-			wiki,
+			wikiUrl,
 			pageId: null,
 			revisionId: null,
 			error:
@@ -51,7 +44,7 @@ export async function searchAction(
 	if (!Number.isSafeInteger(pageId)) {
 		return {
 			...prevState,
-			wiki,
+			wikiUrl,
 			pageId: null,
 			revisionId: null,
 			error: 'Invalid Page ID. Please check the title.',
@@ -87,19 +80,19 @@ export async function searchAction(
 
 	try {
 		// Fetch all revisions
-		const revisions = fetchAllRevisions(baseUrl, pageId, options);
+		const revisions = fetchAllRevisions(wikiUrl, pageId, options);
 
 		// Find occurrence of target text
 		const foundRevisionId = await findOneOccurrence(
 			(item: RevisionResult): number | null =>
 				item.text.includes(targetText) ? item.rev : null,
-			(revIds) => fetchRevisionTexts(baseUrl, revIds),
+			(revIds) => fetchRevisionTexts(wikiUrl, revIds),
 			revisions
 		);
 
 		// Return updated search result
 		return {
-			wiki,
+			wikiUrl,
 			pageId,
 			pageTitle,
 			targetText,
@@ -111,7 +104,7 @@ export async function searchAction(
 	} catch (error) {
 		return {
 			...prevState,
-			wiki,
+			wikiUrl,
 			pageId,
 			pageTitle,
 			targetText,
@@ -124,7 +117,7 @@ export async function searchAction(
 }
 
 export const initSearchState = {
-	wiki: WIKI_SITES.ENWP,
+	wikiUrl: new URL('https://en.wikipedia.org'),
 	pageId: null,
 	pageTitle: '',
 	targetText: '',
@@ -156,9 +149,8 @@ if (import.meta.vitest) {
 	}
 
 	describe('searchAction', () => {
-		const defaultWiki = WIKI_SITES.ENWP;
 		const defaultPrevState = {
-			wiki: defaultWiki,
+			wikiUrl: new URL('https://en.wikipedia.org'),
 			pageId: null,
 			pageTitle: '',
 			targetText: '',
@@ -178,7 +170,7 @@ if (import.meta.vitest) {
 
 		const createFormData = (overrides: Record<string, string> = {}) => {
 			const formData = new FormData();
-			formData.append('wikiId', defaultWiki.id);
+			formData.append('wikiUrl', 'https://en.wikipedia.org/');
 			formData.append('pageTitle', 'Test Page');
 			formData.append('targetText', 'Test Text');
 

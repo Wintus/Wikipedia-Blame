@@ -1,7 +1,5 @@
-import type { WikiSite } from './wiki';
-
 export type SearchState = {
-	wiki: WikiSite;
+	wikiUrl: URL;
 	pageId: number | null;
 	pageTitle: string;
 	targetText: string;

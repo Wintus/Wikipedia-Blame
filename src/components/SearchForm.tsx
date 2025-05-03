@@ -1,5 +1,4 @@
 import { Suspense, useMemo, useState } from 'react';
-import { type WikiSite } from '../wiki';
 import { type SearchState } from '../state';
 import { WikiSelector } from './WikiSelector';
 import useDebounce from '../hooks/useDebounce';
@@ -19,7 +18,7 @@ export function SearchForm({
 }: SearchFormProps) {
 	const [pageTitle, setPageTitle] = useState(searchState.pageTitle);
 	const [targetText, setTargetText] = useState(searchState.targetText);
-	const [selectedWiki, setSelectedWiki] = useState<WikiSite>(searchState.wiki);
+	const [wikiUrl, setWikiUrl] = useState(searchState.wikiUrl);
 	const debouncedPageTitle = useDebounce(pageTitle.trim(), 300);
 
 	const pageIdPromise = useMemo(async () => {
@@ -29,17 +28,17 @@ export function SearchForm({
 		}
 		// fetch page ID
 		try {
-			const id = await fetchPageId(selectedWiki.url, debouncedPageTitle);
+			const id = await fetchPageId(wikiUrl, debouncedPageTitle);
 			return { id: id.toString() };
 		} catch (error) {
 			console.error('Error fetching page ID:', error);
 			return { error: 'Error fetching page ID. Please try again.' };
 		}
-	}, [selectedWiki, debouncedPageTitle]);
+	}, [wikiUrl, debouncedPageTitle]);
 
 	return (
 		<form action={formAction} className="search-form" name="searchForm">
-			<WikiSelector selectedWiki={selectedWiki} onChange={setSelectedWiki} />
+			<WikiSelector selectedWiki={wikiUrl} onChange={setWikiUrl} />
 
 			<div className="form-group">
 				<label htmlFor="page-title">Wiki Article Title:</label>
@@ -127,11 +126,7 @@ if (import.meta.vitest) {
 	describe('SearchForm', () => {
 		const mockFormAction = vi.fn();
 		const defaultSearchState = {
-			wiki: {
-				id: 'enwp',
-				name: 'English Wikipedia',
-				url: new URL('https://en.wikipedia.org'),
-			},
+			wikiUrl: new URL('https://en.wikipedia.org'),
 			pageId: null,
 			pageTitle: 'Initial Title',
 			targetText: 'Initial Text',
@@ -142,11 +137,7 @@ if (import.meta.vitest) {
 		} as const satisfies SearchState;
 
 		const emptySearchState = {
-			wiki: {
-				id: 'enwp',
-				name: 'English Wikipedia',
-				url: new URL('https://en.wikipedia.org'),
-			},
+			wikiUrl: new URL('https://en.wikipedia.org'),
 			pageId: null,
 			pageTitle: '',
 			targetText: 'Initial Text',
@@ -211,8 +202,8 @@ if (import.meta.vitest) {
 			expect(formDataArg.get('targetText')).toBe('relativity');
 
 			// Verify wiki is correctly selected
-			const wikiId = formDataArg.get('wikiId') as string;
-			expect(wikiId).toEqual('enwp');
+			const wikiUrl = formDataArg.get('wikiUrl') as string;
+			expect(wikiUrl).toEqual('https://en.wikipedia.org/');
 		});
 
 		it('renders the uptoRevId input field', async () => {
@@ -272,8 +263,8 @@ if (import.meta.vitest) {
 			expect(formDataArg.get('uptoRevId')).toBe('67890');
 
 			// Verify wiki is correctly selected
-			const wikiId = formDataArg.get('wikiId') as string;
-			expect(wikiId).toEqual('enwp');
+			const wikiUrl = formDataArg.get('wikiUrl') as string;
+			expect(wikiUrl).toEqual('https://en.wikipedia.org/');
 		});
 
 		it('does not submit when inputs are empty', async () => {
@@ -325,14 +316,16 @@ if (import.meta.vitest) {
 				screen.getByLabelText<HTMLSelectElement>(/Wiki Site:/i);
 
 			await act(async () => {
-				fireEvent.change(wikiSelector, { target: { value: 'jawp' } });
+				fireEvent.change(wikiSelector, {
+					target: { value: 'https://ja.wikipedia.org/' },
+				});
 			});
-			expect(wikiSelector.value).toBe('jawp');
+			expect(wikiSelector.value).toBe('https://ja.wikipedia.org/');
 
 			await act(async () => {
 				fireEvent.submit(screen.getByRole('form'));
 			});
-			expect(wikiSelector.value).toBe('jawp');
+			expect(wikiSelector.value).toBe('https://ja.wikipedia.org/');
 		});
 
 		it('renders initial values from searchState', async () => {
@@ -342,11 +335,7 @@ if (import.meta.vitest) {
 						formAction={mockFormAction}
 						isPending={false}
 						searchState={{
-							wiki: {
-								id: 'jawp',
-								name: 'Japanese Wikipedia',
-								url: new URL('https://ja.wikipedia.org'),
-							},
+							wikiUrl: new URL('https://ja.wikipedia.org'),
 							pageId: null,
 							pageTitle: 'Initial Page Title',
 							targetText: 'Initial Target Text',
@@ -371,7 +360,7 @@ if (import.meta.vitest) {
 
 			expect(titleInput.value).toBe('Initial Page Title');
 			expect(textArea.value).toBe('Initial Target Text');
-			expect(wikiSelector.value).toBe('jawp');
+			expect(wikiSelector.value).toBe('https://ja.wikipedia.org/');
 		});
 
 		it('renders the order radio buttons', async () => {
@@ -465,8 +454,8 @@ if (import.meta.vitest) {
 			expect(formDataArg.get('order')).toBe('desc');
 
 			// Verify wiki is correctly selected
-			const wikiId = formDataArg.get('wikiId') as string;
-			expect(wikiId).toEqual('enwp');
+			const wikiUrl = formDataArg.get('wikiUrl') as string;
+			expect(wikiUrl).toEqual('https://en.wikipedia.org/');
 		});
 
 		it('renders a hidden input field for pageId', async () => {
@@ -505,7 +494,7 @@ if (import.meta.vitest) {
 				timeout: 500,
 			});
 			expect(mockFetchPageId).toHaveBeenCalledWith(
-				emptySearchProps.searchState.wiki.url,
+				emptySearchProps.searchState.wikiUrl,
 				'New Title'
 			);
 
@@ -586,7 +575,7 @@ if (import.meta.vitest) {
 			);
 
 			expect(mockFetchPageId).toHaveBeenCalledWith(
-				defaultProps.searchState.wiki.url,
+				defaultProps.searchState.wikiUrl,
 				mockPageTitle
 			);
 		});
