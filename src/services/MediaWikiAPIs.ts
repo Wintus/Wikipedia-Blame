@@ -196,10 +196,9 @@ if (import.meta.vitest) {
 	const { describe, it, expect, vi, beforeEach, afterEach } = await import(
 		'vitest'
 	);
-	const { WIKI_SITES } = await import('../wiki');
 
 	describe('WikipediaAPI', () => {
-		const baseUrl = WIKI_SITES.ENWP.url;
+		const baseUrl = new URL('https://en.wikipedia.org');
 		const mockFetch = vi.fn();
 		const mockConsoleError = vi.fn();
 
