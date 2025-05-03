@@ -7,7 +7,7 @@ type WikiSelectorProps = {
 
 export function WikiSelector({ selectedWiki, onChange }: WikiSelectorProps) {
 	const handleChange = (wikiId: string) => {
-		const wiki = WIKI_SITES[wikiId.toUpperCase() as keyof typeof WIKI_SITES];
+		const wiki = WIKI_SITES?.[wikiId.toUpperCase() as keyof typeof WIKI_SITES];
 		if (wiki) {
 			onChange(wiki);
 		}
