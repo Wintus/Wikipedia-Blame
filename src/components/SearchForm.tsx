@@ -139,7 +139,7 @@ if (import.meta.vitest) {
 			order: 'asc',
 			error: null,
 			searchCount: 0,
-		} as const;
+		} as const satisfies SearchState;
 
 		const emptySearchState = {
 			wiki: {
@@ -154,7 +154,7 @@ if (import.meta.vitest) {
 			order: 'asc',
 			error: null,
 			searchCount: 0,
-		} as const;
+		} as const satisfies SearchState;
 
 		const emptySearchProps = {
 			formAction: mockFormAction,
