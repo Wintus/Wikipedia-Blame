@@ -16,9 +16,11 @@
 		"rvprop",
 		"rvslots",
 		"rvstartid",
+		"streamparser",
 		"unstub",
 		"upto",
 		"vite",
 		"vitest",
+		"whatwg"
 	]
 }
