@@ -1,6 +1,5 @@
 import {
 	fetchAllRevisions,
-	fetchRevisionTexts,
 	type RevisionResult,
 } from '../services/MediaWikiAPIs';
 import { findOneOccurrence } from '../utils/item-finder';
@@ -87,7 +86,6 @@ export async function searchAction(
 		const foundRevisionId = await findOneOccurrence(
 			(item: RevisionResult): number | null =>
 				item.text.includes(targetText) ? item.rev : null,
-			(revIds) => fetchRevisionTexts(wikiUrl, revIds),
 			revisions
 		);
 
@@ -195,14 +193,17 @@ if (import.meta.vitest) {
 		});
 
 		it('handles successful search flow', async () => {
-			// Mock API calls
 			vi.mocked(fetchAllRevisions).mockResolvedValue(
-				createAsyncGenerator([1, 2, 3])
+				createAsyncGenerator([
+					{ rev: 1, text: 'Some text' },
+					{ rev: 2, text: 'Contains Test Text' },
+					{ rev: 3, text: 'More text' },
+				])
 			);
-			vi.mocked(fetchRevisionTexts).mockResolvedValue(
-				createAsyncGenerator([{ rev: 2, text: 'Contains Test Text' }])
-			);
-			vi.mocked(findOneOccurrence).mockResolvedValue(2);
+			vi.mocked(findOneOccurrence).mockResolvedValue({
+				rev: 2,
+				text: 'Contains Test Text',
+			});
 
 			const formData = createFormData({ pageId: '123' });
 
@@ -213,7 +214,7 @@ if (import.meta.vitest) {
 				pageId: 123,
 				pageTitle: 'Test Page',
 				targetText: 'Test Text',
-				revisionId: 2,
+				revisionId: { rev: 2, text: 'Contains Test Text' },
 				error: null,
 			});
 		});
@@ -235,7 +236,11 @@ if (import.meta.vitest) {
 		it('handles text not found in revisions', async () => {
 			// Mock successful revision fetch, but no text found
 			vi.mocked(fetchAllRevisions).mockResolvedValue(
-				createAsyncGenerator([1, 2, 3])
+				createAsyncGenerator([
+					{ rev: 1, text: 'Some text' },
+					{ rev: 2, text: 'Another text' },
+					{ rev: 3, text: 'More text' },
+				])
 			);
 			vi.mocked(findOneOccurrence).mockResolvedValue(null);
 
@@ -256,9 +261,6 @@ if (import.meta.vitest) {
 		it('handles API exceptions gracefully', async () => {
 			// Mock API throwing an exception
 			vi.mocked(fetchAllRevisions).mockImplementation(() =>
-				createFailingAsyncGenerator(new Error('Network error'))
-			);
-			vi.mocked(fetchRevisionTexts).mockImplementation(() =>
 				createFailingAsyncGenerator(new Error('Network error'))
 			);
 
@@ -299,12 +301,16 @@ if (import.meta.vitest) {
 		it('calls fetchAllRevisions with uptoRevId when provided in form data', async () => {
 			const mockedFetchAllRevisions = vi.mocked(fetchAllRevisions);
 			mockedFetchAllRevisions.mockResolvedValue(
-				createAsyncGenerator([1, 2, 3])
+				createAsyncGenerator([
+					{ rev: 1, text: 'Some text' },
+					{ rev: 2, text: 'Contains Test Text' },
+					{ rev: 3, text: 'More text' },
+				])
 			);
-			vi.mocked(findOneOccurrence).mockResolvedValue(2);
-			vi.mocked(fetchRevisionTexts).mockResolvedValue(
-				createAsyncGenerator([{ rev: 2, text: 'Contains Test Text' }])
-			);
+			vi.mocked(findOneOccurrence).mockResolvedValue({
+				rev: 2,
+				text: 'Contains Test Text',
+			});
 
 			const formData = createFormData({ uptoRevId: '456', pageId: '123' });
 
@@ -320,12 +326,16 @@ if (import.meta.vitest) {
 		it('calls fetchAllRevisions without uptoRevId when provided in form data', async () => {
 			const mockedFetchAllRevisions = vi.mocked(fetchAllRevisions);
 			mockedFetchAllRevisions.mockResolvedValue(
-				createAsyncGenerator([1, 2, 3])
+				createAsyncGenerator([
+					{ rev: 1, text: 'Some text' },
+					{ rev: 2, text: 'Contains Test Text' },
+					{ rev: 3, text: 'More text' },
+				])
 			);
-			vi.mocked(fetchRevisionTexts).mockResolvedValue(
-				createAsyncGenerator([{ rev: 2, text: 'Contains Test Text' }])
-			);
-			vi.mocked(findOneOccurrence).mockResolvedValue(2);
+			vi.mocked(findOneOccurrence).mockResolvedValue({
+				rev: 2,
+				text: 'Contains Test Text',
+			});
 
 			const formData = createFormData({ pageId: '123' }); // No uptoRevId
 
@@ -341,12 +351,16 @@ if (import.meta.vitest) {
 		it('calls fetchAllRevisions with order when provided in form data', async () => {
 			const mockedFetchAllRevisions = vi.mocked(fetchAllRevisions);
 			mockedFetchAllRevisions.mockResolvedValue(
-				createAsyncGenerator([1, 2, 3])
+				createAsyncGenerator([
+					{ rev: 1, text: 'Some text' },
+					{ rev: 2, text: 'Contains Test Text' },
+					{ rev: 3, text: 'More text' },
+				])
 			);
-			vi.mocked(fetchRevisionTexts).mockResolvedValue(
-				createAsyncGenerator([{ rev: 2, text: 'Contains Test Text' }])
-			);
-			vi.mocked(findOneOccurrence).mockResolvedValue(2);
+			vi.mocked(findOneOccurrence).mockResolvedValue({
+				rev: 2,
+				text: 'Contains Test Text',
+			});
 
 			const formData = createFormData({ order: 'desc', pageId: '123' });
 
@@ -361,12 +375,16 @@ if (import.meta.vitest) {
 
 		it('returns the correct order in the search state', async () => {
 			vi.mocked(fetchAllRevisions).mockResolvedValue(
-				createAsyncGenerator([1, 2, 3])
+				createAsyncGenerator([
+					{ rev: 1, text: 'Some text' },
+					{ rev: 2, text: 'Contains Test Text' },
+					{ rev: 3, text: 'More text' },
+				])
 			);
-			vi.mocked(fetchRevisionTexts).mockResolvedValue(
-				createAsyncGenerator([{ rev: 2, text: 'Contains Test Text' }])
-			);
-			vi.mocked(findOneOccurrence).mockResolvedValue(2);
+			vi.mocked(findOneOccurrence).mockResolvedValue({
+				rev: 2,
+				text: 'Contains Test Text',
+			});
 
 			const formDataAsc = createFormData({ order: 'asc', pageId: '123' });
 			const resultAsc = await searchAction(
