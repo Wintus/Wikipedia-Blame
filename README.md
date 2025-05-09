@@ -38,11 +38,9 @@ The application employs an action-state driven architecture centered around Reac
 	- The `searchAction` function receives form data and the previous state.
 	- It validates input and fetches the Wikipedia page ID using `fetchPageId` (`MediaWikiAPIs.ts`).
 	- It initiates fetching revision IDs using the `fetchAllRevisions` async generator (`MediaWikiAPIs.ts`), optionally passing an `uptoRevId` to limit the search range based on form input.
-	- It calls `findOneOccurrence` (`item-finder.ts`), passing the revision ID generator, the `fetchRevisionTexts` async generator function, and a predicate to check for the target text.
+	- It calls `genFindMap` (`item-finder.ts`), passing the revision generator and a predicate to check for the target text.
 3. **Search Algorithm (`item-finder.ts`):**
-	- `findOneOccurrence` consumes revision IDs from the generator.
-	- `itemGenerator` implements a sampling strategy, buffering IDs and yielding batches for checking based on frequency (sampling vs. fallback).
-	- `batchFetchGen` calls `fetchRevisionTexts` for required batches.
+	- `genFindMap` consumes revisions from the generator.
 	- The predicate checks the fetched text content.
 4. **State Update:** `searchAction` returns the new `SearchState` (including the found `revisionId`) or an error.
 `useActionState` updates the application state.
