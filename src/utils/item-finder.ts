@@ -77,15 +77,6 @@ async function* batchGenerator<T>(
 	}
 }
 
-function* batches<T>(
-	batchSize: number,
-	array: ReadonlyArray<T>
-): Generator<ReadonlyArray<T>, void, unknown> {
-	for (let i = 0; i < array.length; i += batchSize) {
-		yield array.slice(i, i + batchSize);
-	}
-}
-
 // MARK: in-source tests
 if (import.meta.vitest) {
 	const { describe, it, expect, vi } = import.meta.vitest;
@@ -164,38 +155,6 @@ if (import.meta.vitest) {
 				expect(result).toBeNull();
 				expect(mockFetcher).toHaveBeenCalledTimes(1);
 			});
-		});
-	});
-
-	describe('batches', () => {
-		it('should yield items in batches of the specified size', () => {
-			// Arrange
-			const items = [1, 2, 3, 4, 5, 6, 7];
-			// Act
-			const gen = batches(3, items);
-			// Assert
-			expect(Array.from(gen)).toEqual([[1, 2, 3], [4, 5, 6], [7]]);
-		});
-
-		it('should yield nothing for an empty array', () => {
-			// Arrange
-			const items: number[] = [];
-			// Act
-			const gen = batches(3, items);
-			// Assert
-			expect(Array.from(gen)).toEqual([]);
-		});
-
-		it('should handle batch size of 1', () => {
-			const items = [1, 2, 3];
-			const gen = batches(1, items);
-			expect(Array.from(gen)).toEqual([[1], [2], [3]]);
-		});
-
-		it('should handle batch size of 2 and array length of 5', () => {
-			const items = [1, 2, 3, 4, 5];
-			const gen = batches(2, items);
-			expect(Array.from(gen)).toEqual([[1, 2], [3, 4], [5]]);
 		});
 	});
 
