@@ -1,5 +1,5 @@
 import { fetchAllRevisions } from '../services/MediaWikiAPIs';
-import { findOneOccurrence } from '../utils/item-finder';
+import { genFindMap } from '../utils/item-finder';
 import { type SearchState } from '../state';
 import { WIKI_SITES } from '../wiki';
 
@@ -80,7 +80,7 @@ export async function searchAction(
 		const revisions = fetchAllRevisions(wikiUrl, pageId, options);
 
 		// Find occurrence of target text
-		const foundRevisionId = await findOneOccurrence(
+		const foundRevisionId = await genFindMap(
 			(item) => (item.text.includes(targetText) ? item.rev : null),
 			revisions
 		);
@@ -196,7 +196,7 @@ if (import.meta.vitest) {
 					{ rev: 3, text: 'More text' },
 				])
 			);
-			vi.mocked(findOneOccurrence).mockResolvedValue({
+			vi.mocked(genFindMap).mockResolvedValue({
 				rev: 2,
 				text: 'Contains Test Text',
 			});
@@ -238,7 +238,7 @@ if (import.meta.vitest) {
 					{ rev: 3, text: 'More text' },
 				])
 			);
-			vi.mocked(findOneOccurrence).mockResolvedValue(null);
+			vi.mocked(genFindMap).mockResolvedValue(null);
 
 			const formData = createFormData({ pageId: '123' });
 
@@ -303,7 +303,7 @@ if (import.meta.vitest) {
 					{ rev: 3, text: 'More text' },
 				])
 			);
-			vi.mocked(findOneOccurrence).mockResolvedValue({
+			vi.mocked(genFindMap).mockResolvedValue({
 				rev: 2,
 				text: 'Contains Test Text',
 			});
@@ -328,7 +328,7 @@ if (import.meta.vitest) {
 					{ rev: 3, text: 'More text' },
 				])
 			);
-			vi.mocked(findOneOccurrence).mockResolvedValue({
+			vi.mocked(genFindMap).mockResolvedValue({
 				rev: 2,
 				text: 'Contains Test Text',
 			});
@@ -353,7 +353,7 @@ if (import.meta.vitest) {
 					{ rev: 3, text: 'More text' },
 				])
 			);
-			vi.mocked(findOneOccurrence).mockResolvedValue({
+			vi.mocked(genFindMap).mockResolvedValue({
 				rev: 2,
 				text: 'Contains Test Text',
 			});
@@ -377,7 +377,7 @@ if (import.meta.vitest) {
 					{ rev: 3, text: 'More text' },
 				])
 			);
-			vi.mocked(findOneOccurrence).mockResolvedValue({
+			vi.mocked(genFindMap).mockResolvedValue({
 				rev: 2,
 				text: 'Contains Test Text',
 			});
