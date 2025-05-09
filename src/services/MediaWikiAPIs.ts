@@ -5,6 +5,7 @@
  * note: `rvcontentformat-main=text/plain` is unavailable for regular pages
  */
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { JSONParser } from '@streamparser/json-whatwg';
 
 export type RevisionResult = {
@@ -71,70 +72,6 @@ export async function fetchPageId(
 	// request
 	const page = await response.json();
 	return page.id;
-}
-
-/**
- * Fetches the text content of multiple revisions using formatversion=2.
- * Uses streaming JSON parsing for potentially large responses.
- *
- * Precondition: The number of revision IDs cannot exceed 50 due to API limitations.
- * Precondition: The revision IDs is assumed of a single page.
- * @returns An async generator yielding RevisionResult objects as they are parsed.
- * @throws {Error} If the fetch request fails or the response body is missing.
- */
-export async function* fetchRevisionTexts(
-	baseUrl: URL,
-	revIds: ReadonlyArray<number>
-): AsyncGenerator<RevisionResult, void, unknown> {
-	if (revIds.length > 50) {
-		throw new Error(
-			'The number of revision IDs cannot exceed 50 due to API limitations.'
-		);
-	}
-
-	const params = new URLSearchParams({
-		action: 'query',
-		prop: 'revisions',
-		revids: revIds.join('|'),
-		rvprop: 'ids|content',
-		rvslots: 'main',
-		formatversion: '2',
-		format: 'json',
-		origin: '*',
-	});
-	const url = new URL('/w/api.php', baseUrl);
-	url.search = params.toString();
-
-	// Create a JSON parser to handle the streaming response
-	const parser = new JSONParser({
-		paths: ['$.query.pages.*.revisions.*'],
-		keepStack: false,
-	});
-
-	try {
-		const response = await fetch(url);
-		if (!response.ok || !response.body) {
-			throw new Error(`Failed to fetch revision texts: ${response.statusText}`);
-		}
-
-		const elemStream = response.body.pipeThrough(parser);
-		for await (const { value, stack } of elemStream) {
-			if (value == null) {
-				continue;
-			}
-			if (stack[4]?.key !== 'revisions') {
-				continue;
-			}
-			if (typeof value === 'object' && 'revid' in value && 'slots' in value) {
-				yield convert(value as Revision<'main'>);
-			}
-		}
-	} catch (error) {
-		console.error('Error fetching revision texts:', error);
-		console.warn('missing revision texts for:', revIds);
-		// Re-throw the error to signal failure
-		throw error;
-	}
 }
 
 /**
@@ -245,65 +182,6 @@ if (import.meta.vitest) {
 
 				await expect(fetchPageId(baseUrl, 'Test Page')).rejects.toThrow(
 					new Error('Failed to fetch page ID', { cause: mockResponse })
-				);
-			});
-		});
-
-		describe('fetchRevisionTexts', async () => {
-			it('fetches revision texts successfully', async () => {
-				const mockApiResponse = {
-					query: {
-						pages: [
-							{
-								pageid: 123,
-								title: 'dummy',
-								revisions: [
-									{ revid: 1, slots: { main: { content: 'Content 1' } } },
-									{ revid: 2, slots: { main: { content: 'Content 2' } } },
-								],
-							},
-						],
-					},
-				} satisfies RevisionsResponse<'main'>;
-				const jsonString = JSON.stringify(mockApiResponse);
-
-				const mockStream = new ReadableStream({
-					start(controller) {
-						controller.enqueue(jsonString);
-						controller.close();
-					},
-				}).pipeThrough(new TextEncoderStream());
-
-				const mockFetchResponse = {
-					ok: true,
-					statusText: 'OK',
-					body: mockStream,
-				};
-				mockFetch.mockResolvedValue(mockFetchResponse);
-
-				const revisions = fetchRevisionTexts(baseUrl, [1, 2]);
-				const revisionsArray = await Array.fromAsync(revisions);
-
-				expect(revisionsArray).toEqual([
-					{ rev: 1, text: 'Content 1' },
-					{ rev: 2, text: 'Content 2' },
-				]);
-			});
-
-			it('returns empty array on network error', async () => {
-				mockFetch.mockRejectedValue(new Error('Network error'));
-
-				const revisions = fetchRevisionTexts(baseUrl, [12345]);
-
-				await expect(Array.fromAsync(revisions)).rejects.toThrow();
-			});
-
-			it('throws error when revision IDs exceed 50', async () => {
-				const largeRevisionList = Array.from({ length: 51 }, (_, i) => i);
-
-				const revisions = fetchRevisionTexts(baseUrl, largeRevisionList);
-				await expect(Array.fromAsync(revisions)).rejects.toThrow(
-					'The number of revision IDs cannot exceed 50'
 				);
 			});
 		});
