@@ -149,7 +149,7 @@ export async function* fetchAllRevisions(
 	baseUrl: URL,
 	pageId: number,
 	options?: { order?: Order; uptoRevId?: number }
-): AsyncGenerator<number, void, unknown> {
+): AsyncGenerator<RevisionResult, void, unknown> {
 	const order = options?.order ?? 'asc';
 	const uptoRevId = options?.uptoRevId;
 	const dir = direction[order];
@@ -160,7 +160,8 @@ export async function* fetchAllRevisions(
 				action: 'query',
 				prop: 'revisions',
 				pageids: pageId.toString(),
-				rvprop: 'ids',
+				rvprop: 'ids|content',
+				rvslots: 'main',
 				rvlimit: 'max',
 				rvdir: dir,
 				formatversion: '2',
@@ -177,11 +178,11 @@ export async function* fetchAllRevisions(
 			url.search = params.toString();
 			// request
 			const response = await fetch(url);
-			const data: RevisionsResponse<never> = await response.json();
+			const data: RevisionsResponse<'main'> = await response.json();
 			// iterate over the revisions
 			const pageRevs = getPageRevisions(data);
 			for (const rev of pageRevs) {
-				yield rev.revid;
+				yield convert(rev);
 			}
 			// update the cursor
 			continueParam = data?.continue?.rvcontinue ?? null;
@@ -314,7 +315,10 @@ if (import.meta.vitest) {
 						query: {
 							pages: [
 								{
-									revisions: [{ revid: 12345 }, { revid: 67890 }],
+									revisions: [
+										{ revid: 12345, slots: { main: { content: 'Content 1' } } },
+										{ revid: 67890, slots: { main: { content: 'Content 2' } } },
+									],
 								},
 							],
 						},
@@ -326,7 +330,9 @@ if (import.meta.vitest) {
 						query: {
 							pages: [
 								{
-									revisions: [{ revid: 54321 }],
+									revisions: [
+										{ revid: 54321, slots: { main: { content: 'Content 3' } } },
+									],
 								},
 							],
 						},
@@ -341,10 +347,11 @@ if (import.meta.vitest) {
 
 				// Check that fetch was called twice and the correct revisions are returned
 				expect(mockFetch).toHaveBeenCalledTimes(2);
-				expect(revisions).toEqual(
-					expect.arrayContaining([12345, 67890, 54321])
-				);
-				expect(revisions.length).toBe(3);
+				expect(revisions).toEqual([
+					{ rev: 12345, text: 'Content 1' },
+					{ rev: 67890, text: 'Content 2' },
+					{ rev: 54321, text: 'Content 3' },
+				]);
 			});
 
 			it('includes rvendid when order is asc and uptoRevId is provided', async () => {
@@ -365,7 +372,8 @@ if (import.meta.vitest) {
 					action: 'query',
 					prop: 'revisions',
 					pageids: '1234',
-					rvprop: 'ids',
+					rvprop: 'ids|content',
+					rvslots: 'main',
 					rvlimit: 'max',
 					rvdir: 'newer',
 					formatversion: '2',
@@ -397,7 +405,8 @@ if (import.meta.vitest) {
 					action: 'query',
 					prop: 'revisions',
 					pageids: '1234',
-					rvprop: 'ids',
+					rvprop: 'ids|content',
+					rvslots: 'main',
 					rvlimit: 'max',
 					rvdir: 'older',
 					formatversion: '2',
