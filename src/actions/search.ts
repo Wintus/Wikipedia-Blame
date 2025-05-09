@@ -1,7 +1,4 @@
-import {
-	fetchAllRevisions,
-	type RevisionResult,
-} from '../services/MediaWikiAPIs';
+import { fetchAllRevisions } from '../services/MediaWikiAPIs';
 import { findOneOccurrence } from '../utils/item-finder';
 import { type SearchState } from '../state';
 import { WIKI_SITES } from '../wiki';
@@ -84,8 +81,7 @@ export async function searchAction(
 
 		// Find occurrence of target text
 		const foundRevisionId = await findOneOccurrence(
-			(item: RevisionResult): number | null =>
-				item.text.includes(targetText) ? item.rev : null,
+			(item) => (item.text.includes(targetText) ? item.rev : null),
 			revisions
 		);
 
