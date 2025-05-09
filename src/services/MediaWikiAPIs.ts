@@ -5,7 +5,6 @@
  * note: `rvcontentformat-main=text/plain` is unavailable for regular pages
  */
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { JSONParser } from '@streamparser/json-whatwg';
 
 export type RevisionResult = {
@@ -13,25 +12,9 @@ export type RevisionResult = {
 	text: string;
 };
 
-type Revision<Slot extends string> = {
+type Revision<Slot extends string = 'main'> = {
 	revid: number;
 	slots: { [key in Slot]: { content: string } };
-};
-
-type Page<Slot extends string = 'main'> = {
-	pageid: number;
-	title: string;
-	revisions?: ReadonlyArray<Revision<Slot>>;
-};
-
-type RevisionsResponse<Slot extends string = 'main'> = {
-	query?: {
-		pages?: ReadonlyArray<Page<Slot>>;
-	};
-	continue?: {
-		continue?: string;
-		rvcontinue?: string;
-	};
 };
 
 type Order = 'asc' | 'desc';
@@ -41,13 +24,9 @@ const direction = {
 	desc: 'older',
 } as const satisfies Record<Order, string>;
 
-const getPageRevisions = <Slot extends string = 'main'>(
-	data: RevisionsResponse<Slot>
-): ReadonlyArray<Revision<Slot>> => data?.query?.pages?.[0]?.revisions ?? [];
-
 const convert = (revision: Revision<'main'>): RevisionResult => ({
 	rev: revision.revid,
-	text: revision?.slots?.main?.content ?? '',
+	text: revision.slots.main.content,
 });
 
 /**
@@ -115,14 +94,30 @@ export async function* fetchAllRevisions(
 			url.search = params.toString();
 			// request
 			const response = await fetch(url);
-			const data: RevisionsResponse<'main'> = await response.json();
-			// iterate over the revisions
-			const pageRevs = getPageRevisions(data);
-			for (const rev of pageRevs) {
-				yield convert(rev);
+			if (!response.ok || !response.body) {
+				throw new Error(
+					`Failed to fetch revision texts: ${response.statusText}`
+				);
 			}
-			// update the cursor
-			continueParam = data?.continue?.rvcontinue ?? null;
+
+			// Create a JSON parser to handle the streaming response
+			const parser = new JSONParser({
+				paths: [
+					'$.query.pages.*.revisions.*.slots.main.content',
+					'$.continue.rvcontinue',
+				],
+			});
+			const elemStream = response.body.pipeThrough(parser);
+			for await (const { key, value, stack } of elemStream) {
+				if (value == null) {
+					continue;
+				} else if (key === 'content') {
+					yield convert(stack[6]?.value as Revision);
+				} else if (key === 'rvcontinue') {
+					// update the cursor
+					continueParam = value as string;
+				}
+			}
 		} while (continueParam);
 	} catch (error) {
 		console.error('Error fetching all revisions:', error);
@@ -188,42 +183,60 @@ if (import.meta.vitest) {
 
 		describe('fetchAllRevisions', () => {
 			it('fetches all revisions successfully', async () => {
-				const mockResponse1 = {
-					json: vi.fn().mockResolvedValue({
-						query: {
-							pages: [
-								{
-									revisions: [
-										{ revid: 12345, slots: { main: { content: 'Content 1' } } },
-										{ revid: 67890, slots: { main: { content: 'Content 2' } } },
-									],
-								},
-							],
-						},
-						continue: { rvcontinue: 'continue-token' },
-					}),
+				const mockJsonPage1 = {
+					query: {
+						pages: [
+							{
+								pageid: 123,
+								title: 'Test Page',
+								revisions: [
+									{ revid: 12345, slots: { main: { content: 'Content 1' } } },
+									{ revid: 67890, slots: { main: { content: 'Content 2' } } },
+								],
+							},
+						],
+					},
+					continue: { rvcontinue: 'continue-token-page1' },
 				};
-				const mockResponse2 = {
-					json: vi.fn().mockResolvedValue({
-						query: {
-							pages: [
-								{
-									revisions: [
-										{ revid: 54321, slots: { main: { content: 'Content 3' } } },
-									],
-								},
-							],
-						},
-					}),
+
+				const mockJsonPage2 = {
+					query: {
+						pages: [
+							{
+								pageid: 123,
+								title: 'Test Page',
+								revisions: [
+									{ revid: 54321, slots: { main: { content: 'Content 3' } } },
+								],
+							},
+						],
+					},
+					// No continue for the last page
 				};
+
+				const createMockStream = (jsonPayload: object) => {
+					const jsonString = JSON.stringify(jsonPayload);
+					return new ReadableStream({
+						start(controller) {
+							controller.enqueue(jsonString);
+							controller.close();
+						},
+					});
+				};
+
 				mockFetch
-					.mockImplementationOnce(() => Promise.resolve(mockResponse1))
-					.mockImplementationOnce(() => Promise.resolve(mockResponse2));
+					.mockImplementationOnce(async () => ({
+						ok: true,
+						body: createMockStream(mockJsonPage1),
+					}))
+					.mockImplementationOnce(async () => ({
+						ok: true,
+						body: createMockStream(mockJsonPage2),
+					}));
 
 				const all = fetchAllRevisions(baseUrl, 1234);
 				const revisions = await Array.fromAsync(all);
 
-				// Check that fetch was called twice and the correct revisions are returned
 				expect(mockFetch).toHaveBeenCalledTimes(2);
 				expect(revisions).toEqual([
 					{ rev: 12345, text: 'Content 1' },
