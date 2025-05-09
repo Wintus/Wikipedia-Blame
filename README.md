@@ -16,7 +16,6 @@ The application utilizes modern React features, specifically the `useActionState
 - Efficient search algorithm:
 	- Fetches revision IDs using an async generator to handle potentially long histories without loading everything at once.
 - Iterative searching: Automatically populates the 'up to revision ID' field after a successful search, making it easy to find subsequent occurrences by searching again.
-	- Uses randomized sampling (`item-finder.ts`) to prioritize checking likely revisions first.
 	- Fetches revision content using streaming JSON parsing (`@streamparser/json-whatwg`) for efficiency.
 - Direct links to the specific revision where the text was found.
 - Clear indication of loading states managed by `useActionState`.
