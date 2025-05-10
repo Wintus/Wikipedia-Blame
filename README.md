@@ -38,8 +38,8 @@ The application employs an action-state driven architecture centered around Reac
 	- The `searchAction` function receives form data and the previous state.
 	- It validates input and fetches the Wikipedia page ID using `fetchPageId` (`MediaWikiAPIs.ts`).
 	- It initiates fetching revision IDs using the `fetchAllRevisions` async generator (`MediaWikiAPIs.ts`), optionally passing an `uptoRevId` to limit the search range based on form input.
-	- It calls `genFindMap` (`item-finder.ts`), passing the revision generator and a predicate to check for the target text.
-3. **Search Algorithm (`item-finder.ts`):**
+	- It calls `genFindMap` (`async-generator.ts`), passing the revision generator and a predicate to check for the target text.
+3. **Search Algorithm (`async-generator.ts`):**
 	- `genFindMap` consumes revisions from the generator.
 	- The predicate checks the fetched text content.
 4. **State Update:** `searchAction` returns the new `SearchState` (including the found `revisionId`) or an error.
@@ -55,7 +55,7 @@ See `architecture-overview.md` for a visual flow diagram.
 	- **`actions/`**: Contains the `useActionState` action logic (`search.ts`).
 	- **`components/`**: React UI components (`SearchForm.tsx`, `ResultView.tsx`, `WikiSelector.tsx`).
 	- **`services/`**: MediaWiki APIs interaction layer (`MediaWikiAPIs.ts`).
-	- **`utils/`**: Core search algorithm logic (`item-finder.ts`).
+	- **`utils/`**: Core search algorithm logic (`async-generator.ts`).
 	- **`wiki.ts`**: Type definitions and constants related to Wikipedia sites.
 	- **`state.ts`**: Type definitions for application state (e.g., `SearchState`).
 	- **`App.tsx`**: Main application component, orchestrates state and components.
