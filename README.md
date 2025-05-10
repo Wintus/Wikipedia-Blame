@@ -13,10 +13,10 @@ The application utilizes modern React features, specifically the `useActionState
 
 - Search for the first occurrence of text across all revisions of a Wikipedia article.
 - Support for both English (en.wikipedia.org) and Japanese (ja.wikipedia.org) Wikipedia.
-- Efficient search algorithm:
-	- Fetches revision IDs using an async generator to handle potentially long histories without loading everything at once.
+- Search algorithm:
+	- Performs a linear search through revisions.
+	- Fetches revision data (ID and content) progressively using an async generator, handling potentially long histories by processing data in streams without loading all data into memory at once.
 - Iterative searching: Automatically populates the 'up to revision ID' field after a successful search, making it easy to find subsequent occurrences by searching again.
-	- Fetches revision content using streaming JSON parsing (`@streamparser/json-whatwg`) for efficiency.
 - Direct links to the specific revision where the text was found.
 - Clear indication of loading states managed by `useActionState`.
 
