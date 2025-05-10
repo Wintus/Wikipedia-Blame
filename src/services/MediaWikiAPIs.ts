@@ -103,19 +103,19 @@ export async function* fetchAllRevisions(
 			// Create a JSON parser to handle the streaming response
 			const parser = new JSONParser({
 				paths: [
-					'$.query.pages.*.revisions.*.slots.main.content',
 					'$.continue.rvcontinue',
+					'$.query.pages.*.revisions.*.slots.main.content',
 				],
 			});
 			const elemStream = response.body.pipeThrough(parser);
 			for await (const { key, value, stack } of elemStream) {
 				if (value == null) {
 					continue;
-				} else if (key === 'content') {
-					yield convert(stack[6]?.value as Revision);
 				} else if (key === 'rvcontinue') {
 					// update the cursor
 					continueParam = value as string;
+				} else if (key === 'content') {
+					yield convert(stack[6]?.value as Revision);
 				}
 			}
 		} while (continueParam);
