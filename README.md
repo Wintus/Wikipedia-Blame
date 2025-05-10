@@ -16,7 +16,7 @@ The application utilizes modern React features, specifically the `useActionState
 - Search algorithm:
 	- Performs a linear search through revisions.
 	- Fetches revision data (ID and content) progressively using an async generator, handling potentially long histories by processing data in streams without loading all data into memory at once.
-- Iterative searching: Automatically populates the 'up to revision ID' field after a successful search, making it easy to find subsequent occurrences by searching again.
+- Iterative searching: Users can specify an "up to revision ID" to search within a specific range of revisions.
 - Direct links to the specific revision where the text was found.
 - Clear indication of loading states managed by `useActionState`.
 
