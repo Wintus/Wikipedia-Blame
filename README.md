@@ -15,7 +15,8 @@ The application utilizes modern React features, specifically the `useActionState
 - Support for both English (en.wikipedia.org) and Japanese (ja.wikipedia.org) Wikipedia.
 - Search algorithm:
 	- Performs a linear search through revisions.
-	- Fetches revision data (ID and content) progressively using an async generator, handling potentially long histories by processing data in streams without loading all data into memory at once.
+	- Fetches revision data (ID and content) progressively using an async generator,
+	handling potentially long histories by processing data in streams without loading all data into memory at once.
 - Iterative searching: Users can specify an "up to revision ID" to search within a specific range of revisions.
 - Direct links to the specific revision where the text was found.
 - Clear indication of loading states managed by `useActionState`.
@@ -37,7 +38,9 @@ The application employs an action-state driven architecture centered around Reac
 2. **Action Execution (`search.ts`):**
 	- The `searchAction` function receives form data and the previous state.
 	- It validates input and fetches the Wikipedia page ID using `fetchPageId` (`MediaWikiAPIs.ts`).
-	- It initiates fetching revision IDs using the `fetchAllRevisions` async generator (`MediaWikiAPIs.ts`), optionally passing an `uptoRevId` to limit the search range based on form input.
+	- It initiates fetching revision IDs using the `fetchAllRevisions` async generator (`MediaWikiAPIs.ts`),
+	optionally passing an `uptoRevId` to limit the search range based on form input.
+	- `fetchAllRevisions` implements basic caching using the `maxage` parameter in the API request.
 	- It calls `genFindMap` (`async-generator.ts`), passing the revision generator and a predicate to check for the target text.
 3. **Search Algorithm (`async-generator.ts`):**
 	- `genFindMap` consumes revisions from the generator.
@@ -77,4 +80,3 @@ See `architecture-overview.md` for a visual flow diagram.
 - Implement visual highlighting of the found text within the revision content.
 - Support for additional Wikipedia languages.
 - More robust error handling and user feedback.
-- Advanced caching strategies.
