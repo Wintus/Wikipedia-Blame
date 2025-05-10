@@ -103,14 +103,20 @@ export async function* fetchAllRevisions(
 			// Create a JSON parser to handle the streaming response
 			const parser = new JSONParser({
 				paths: [
+					'$.batchcomplete',
 					'$.continue.rvcontinue',
 					'$.query.pages.*.revisions.*.slots.main.content',
 				],
 			});
 			const elemStream = response.body.pipeThrough(parser);
+			// unset the cursor
+			continueParam = null;
 			for await (const { key, value, stack } of elemStream) {
 				if (value == null) {
 					continue;
+				} else if (key === 'batchcomplete') {
+					// unset the cursor
+					continueParam = null;
 				} else if (key === 'rvcontinue') {
 					// update the cursor
 					continueParam = value as string;
