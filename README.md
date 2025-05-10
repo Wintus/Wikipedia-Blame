@@ -34,7 +34,7 @@ The application utilizes modern React features, specifically the `useActionState
 The application employs an action-state driven architecture centered around React's `useActionState` hook:
 
 1. **Form Submission:** The `SearchForm` component uses a form action (`searchAction`) provided by `useActionState`.
-2. **Action Execution (`searchActions.ts`):**
+2. **Action Execution (`search.ts`):**
 	- The `searchAction` function receives form data and the previous state.
 	- It validates input and fetches the Wikipedia page ID using `fetchPageId` (`MediaWikiAPIs.ts`).
 	- It initiates fetching revision IDs using the `fetchAllRevisions` async generator (`MediaWikiAPIs.ts`), optionally passing an `uptoRevId` to limit the search range based on form input.
