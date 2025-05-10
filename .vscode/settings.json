@@ -1,5 +1,6 @@
 {
 	"cSpell.words": [
+		"batchcomplete",
 		"enwp",
 		"formatversion",
 		"jawp",
@@ -16,9 +17,11 @@
 		"rvprop",
 		"rvslots",
 		"rvstartid",
+		"streamparser",
 		"unstub",
 		"upto",
 		"vite",
 		"vitest",
+		"whatwg"
 	]
 }

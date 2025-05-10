@@ -13,11 +13,10 @@ The application utilizes modern React features, specifically the `useActionState
 
 - Search for the first occurrence of text across all revisions of a Wikipedia article.
 - Support for both English (en.wikipedia.org) and Japanese (ja.wikipedia.org) Wikipedia.
-- Efficient search algorithm:
-	- Fetches revision IDs using an async generator to handle potentially long histories without loading everything at once.
-- Iterative searching: Automatically populates the 'up to revision ID' field after a successful search, making it easy to find subsequent occurrences by searching again.
-	- Uses randomized sampling (`item-finder.ts`) to prioritize checking likely revisions first.
-	- Fetches revision content using streaming JSON parsing (`@streamparser/json-whatwg`) for efficiency.
+- Search algorithm:
+	- Performs a linear search through revisions.
+	- Fetches revision data (ID and content) progressively using an async generator, handling potentially long histories by processing data in streams without loading all data into memory at once.
+- Iterative searching: Users can specify an "up to revision ID" to search within a specific range of revisions.
 - Direct links to the specific revision where the text was found.
 - Clear indication of loading states managed by `useActionState`.
 
@@ -39,11 +38,9 @@ The application employs an action-state driven architecture centered around Reac
 	- The `searchAction` function receives form data and the previous state.
 	- It validates input and fetches the Wikipedia page ID using `fetchPageId` (`MediaWikiAPIs.ts`).
 	- It initiates fetching revision IDs using the `fetchAllRevisions` async generator (`MediaWikiAPIs.ts`), optionally passing an `uptoRevId` to limit the search range based on form input.
-	- It calls `findOneOccurrence` (`item-finder.ts`), passing the revision ID generator, the `fetchRevisionTexts` async generator function, and a predicate to check for the target text.
+	- It calls `genFindMap` (`item-finder.ts`), passing the revision generator and a predicate to check for the target text.
 3. **Search Algorithm (`item-finder.ts`):**
-	- `findOneOccurrence` consumes revision IDs from the generator.
-	- `itemGenerator` implements a sampling strategy, buffering IDs and yielding batches for checking based on frequency (sampling vs. fallback).
-	- `batchFetchGen` calls `fetchRevisionTexts` for required batches.
+	- `genFindMap` consumes revisions from the generator.
 	- The predicate checks the fetched text content.
 4. **State Update:** `searchAction` returns the new `SearchState` (including the found `revisionId`) or an error.
 `useActionState` updates the application state.

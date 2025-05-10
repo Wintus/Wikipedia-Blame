@@ -81,7 +81,6 @@ export function SearchForm({
 					pattern="\d*"
 					id="upto-rev-id"
 					name="uptoRevId"
-					defaultValue={searchState.revisionId?.toString() ?? ''}
 					placeholder="Enter a revision ID to search up to"
 				/>
 			</div>
@@ -215,7 +214,7 @@ if (import.meta.vitest) {
 			).toBeInTheDocument();
 		});
 
-		it('populates the uptoRevId input with the revisionId from searchState', async () => {
+		it('does not populate the uptoRevId input with the revisionId from searchState', async () => {
 			await act(async () => {
 				render(
 					<SearchForm
@@ -231,7 +230,8 @@ if (import.meta.vitest) {
 			const uptoRevIdInput = screen.getByLabelText(
 				/Search up to Rev ID \(optional\):/i
 			) as HTMLInputElement;
-			expect(uptoRevIdInput.value).toBe('12345');
+			expect(uptoRevIdInput.value).not.toBe('12345');
+			expect(uptoRevIdInput.value).toBe('');
 		});
 
 		it('submits form with correct FormData including uptoRevId', async () => {
