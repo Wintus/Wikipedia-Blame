@@ -1,5 +1,5 @@
 import { fetchAllRevisions } from '../services/MediaWikiAPIs';
-import { genFindMap } from '../utils/item-finder';
+import { genFindMap } from '../utils/async-generator';
 import { type SearchState } from '../state';
 import { WIKI_SITES } from '../wiki';
 
@@ -127,7 +127,7 @@ if (import.meta.vitest) {
 	const { describe, it, expect, vi, beforeEach } = import.meta.vitest;
 
 	vi.mock(import('../services/MediaWikiAPIs'), { spy: true });
-	vi.mock(import('../utils/item-finder'), { spy: true });
+	vi.mock(import('../utils/async-generator'), { spy: true });
 
 	async function* createAsyncGenerator<T>(
 		items: ReadonlyArray<T>
