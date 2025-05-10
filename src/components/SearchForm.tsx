@@ -16,8 +16,8 @@ export function SearchForm({
 	isPending,
 	searchState,
 }: SearchFormProps) {
-	const [pageTitle, setPageTitle] = useState(searchState.pageTitle);
 	const [wikiUrl, setWikiUrl] = useState(searchState.wikiUrl);
+	const [pageTitle, setPageTitle] = useState(searchState.pageTitle);
 	const debouncedPageTitle = useDebounce(pageTitle.trim(), 300);
 
 	const pageIdPromise = useMemo(async () => {
