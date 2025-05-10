@@ -90,6 +90,8 @@ export async function* fetchAllRevisions(
 			if (continueParam) {
 				params.set('rvcontinue', continueParam);
 			}
+			// cache longer for continuations or earliest
+			params.set('maxage', continueParam || order === 'asc' ? '600' : '60'); // in seconds
 			const url = new URL('/w/api.php', baseUrl);
 			url.search = params.toString();
 			// request
@@ -276,8 +278,9 @@ if (import.meta.vitest) {
 					formatversion: '2',
 					format: 'json',
 					origin: '*',
+					rvendid: '9999', // Check this param
+					maxage: '600',
 				});
-				params.set('rvendid', '9999'); // Check this param
 				const expectedUrl = new URL('/w/api.php', baseUrl);
 				expectedUrl.search = params.toString();
 
@@ -309,8 +312,9 @@ if (import.meta.vitest) {
 					formatversion: '2',
 					format: 'json',
 					origin: '*',
+					rvendid: '8888', // Check this param
+					maxage: '60',
 				});
-				params.set('rvendid', '8888'); // Check this param
 				const expectedUrl = new URL('/w/api.php', baseUrl);
 				expectedUrl.search = params.toString();
 
