@@ -13,7 +13,7 @@ export async function searchAction(
 	const pageTitle = formData.get('pageTitle')?.toString().trim();
 	const targetText = formData.get('targetText')?.toString();
 	const order = formData.get('order')?.toString();
-	const uptoRevIdStr = formData.get('uptoRevId')?.toString();
+	const endRevIdStr = formData.get('endRevId')?.toString();
 
 	// Validate inputs
 	if (!wikiUrlStr || !URL.canParse(wikiUrlStr)) {
@@ -66,13 +66,13 @@ export async function searchAction(
 	}
 
 	// build options for fetching revisions
-	const options: { order?: 'asc' | 'desc'; uptoRevId?: number } = {};
+	const options: { order?: 'asc' | 'desc'; endRevId?: number } = {};
 	if (order === 'asc' || order === 'desc') {
 		options.order = order;
 	}
-	const uptoRevId = uptoRevIdStr ? Number.parseInt(uptoRevIdStr, 10) : NaN;
-	if (Number.isSafeInteger(uptoRevId)) {
-		options.uptoRevId = uptoRevId;
+	const endRevId = endRevIdStr ? Number.parseInt(endRevIdStr, 10) : NaN;
+	if (Number.isSafeInteger(endRevId)) {
+		options.endRevId = endRevId;
 	}
 
 	try {
@@ -294,7 +294,7 @@ if (import.meta.vitest) {
 			});
 		});
 
-		it('calls fetchAllRevisions with uptoRevId when provided in form data', async () => {
+		it('calls fetchAllRevisions with endRevId when provided in form data', async () => {
 			const mockedFetchAllRevisions = vi.mocked(fetchAllRevisions);
 			mockedFetchAllRevisions.mockResolvedValue(
 				createAsyncGenerator([
@@ -308,18 +308,18 @@ if (import.meta.vitest) {
 				text: 'Contains Test Text',
 			});
 
-			const formData = createFormData({ uptoRevId: '456', pageId: '123' });
+			const formData = createFormData({ endRevId: '456', pageId: '123' });
 
 			await searchAction(defaultPrevState, formData);
 
 			expect(mockedFetchAllRevisions).toHaveBeenCalledWith(
 				expect.anything(), // baseUrl
 				expect.anything(), // pageId
-				{ uptoRevId: 456 }
+				{ endRevId: 456 }
 			);
 		});
 
-		it('calls fetchAllRevisions without uptoRevId when provided in form data', async () => {
+		it('calls fetchAllRevisions without endRevId when not provided in form data', async () => {
 			const mockedFetchAllRevisions = vi.mocked(fetchAllRevisions);
 			mockedFetchAllRevisions.mockResolvedValue(
 				createAsyncGenerator([
@@ -333,7 +333,7 @@ if (import.meta.vitest) {
 				text: 'Contains Test Text',
 			});
 
-			const formData = createFormData({ pageId: '123' }); // No uptoRevId
+			const formData = createFormData({ pageId: '123' }); // No endRevId
 
 			await searchAction(defaultPrevState, formData);
 

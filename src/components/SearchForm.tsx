@@ -73,12 +73,12 @@ export function SearchForm({
 			</div>
 
 			<div className="form-group">
-				<label htmlFor="upto-rev-id">Search up to Rev ID (optional):</label>
+				<label htmlFor="end-rev-id">End Rev ID (optional):</label>
 				<input
 					type="text"
 					pattern="\d*"
-					id="upto-rev-id"
-					name="uptoRevId"
+					id="end-rev-id"
+					name="endRevId"
 					placeholder="Enter a revision ID to search up to"
 				/>
 			</div>
@@ -203,16 +203,16 @@ if (import.meta.vitest) {
 			expect(wikiUrl).toEqual('https://en.wikipedia.org/');
 		});
 
-		it('renders the uptoRevId input field', async () => {
+		it('renders the endRevId input field', async () => {
 			await act(async () => {
 				render(<SearchForm {...defaultProps} />);
 			});
 			expect(
-				screen.getByLabelText(/Search up to Rev ID \(optional\):/i)
+				screen.getByLabelText(/End Rev ID \(optional\):/i)
 			).toBeInTheDocument();
 		});
 
-		it('does not populate the uptoRevId input with the revisionId from searchState', async () => {
+		it('does not populate the endRevId input with the revisionId from searchState', async () => {
 			await act(async () => {
 				render(
 					<SearchForm
@@ -225,22 +225,20 @@ if (import.meta.vitest) {
 					/>
 				);
 			});
-			const uptoRevIdInput = screen.getByLabelText(
-				/Search up to Rev ID \(optional\):/i
+			const endRevIdInput = screen.getByLabelText(
+				/End Rev ID \(optional\):/i
 			) as HTMLInputElement;
-			expect(uptoRevIdInput.value).not.toBe('12345');
-			expect(uptoRevIdInput.value).toBe('');
+			expect(endRevIdInput.value).not.toBe('12345');
+			expect(endRevIdInput.value).toBe('');
 		});
 
-		it('submits form with correct FormData including uptoRevId', async () => {
+		it('submits form with correct FormData including endRevId', async () => {
 			await act(async () => {
 				render(<SearchForm {...defaultProps} />);
 			});
 			const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
 			const textArea = screen.getByLabelText(/Text to Find:/i);
-			const uptoRevIdInput = screen.getByLabelText(
-				/Search up to Rev ID \(optional\):/i
-			);
+			const endRevIdInput = screen.getByLabelText(/End Rev ID \(optional\):/i);
 			const button = screen.getByRole('button', {
 				name: /Find An Occurrence/i,
 			});
@@ -249,7 +247,7 @@ if (import.meta.vitest) {
 				fireEvent.change(titleInput, { target: { value: 'Albert Einstein' } });
 			});
 			fireEvent.change(textArea, { target: { value: 'relativity' } });
-			fireEvent.change(uptoRevIdInput, { target: { value: '67890' } });
+			fireEvent.change(endRevIdInput, { target: { value: '67890' } });
 			fireEvent.click(button);
 
 			expect(mockFormAction).toHaveBeenCalledTimes(1);
@@ -258,7 +256,7 @@ if (import.meta.vitest) {
 			const formDataArg = mockFormAction.mock.calls[0]?.[0];
 			expect(formDataArg.get('pageTitle')).toBe('Albert Einstein');
 			expect(formDataArg.get('targetText')).toBe('relativity');
-			expect(formDataArg.get('uptoRevId')).toBe('67890');
+			expect(formDataArg.get('endRevId')).toBe('67890');
 
 			// Verify wiki is correctly selected
 			const wikiUrl = formDataArg.get('wikiUrl') as string;
