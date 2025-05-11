@@ -101,7 +101,7 @@ export async function searchAction(
 			pageTitle,
 			targetText,
 			revisionId: foundRevisionId,
-			order: options?.order ?? 'asc',
+			order: options?.order ?? prevState.order,
 			error: foundRevisionId ? null : 'Text not found in any revision',
 			searchCount: prevState.searchCount + 1,
 		};
