@@ -57,17 +57,18 @@ export async function fetchPageId(
  * Fetches all revisions of a page as an async generator.
  *
  * The default order is ascending (= newer last = older first), but can be changed to descending.
- * If `uptoRevId` is provided, fetching stops at the timestamp of that revision ID.
+ * If `endRevId` is provided, fetching stops at the timestamp of that revision ID.
  *
  * see https://www.mediawiki.org/wiki/API:Revisions
  */
 export async function* fetchAllRevisions(
 	baseUrl: URL,
 	pageId: number,
-	options?: { order?: Order; uptoRevId?: number }
+	options?: { order?: Order; startRevId?: number; endRevId?: number }
 ): AsyncGenerator<RevisionResult, void, unknown> {
 	const order = options?.order ?? 'asc';
-	const uptoRevId = options?.uptoRevId;
+	const startRevId = options?.startRevId;
+	const endRevId = options?.endRevId;
 	const dir = direction[order];
 	try {
 		let continueParam: string | null = null;
@@ -84,8 +85,11 @@ export async function* fetchAllRevisions(
 				format: 'json',
 				origin: '*',
 			});
-			if (uptoRevId != null) {
-				params.set('rvendid', uptoRevId.toString());
+			if (startRevId != null) {
+				params.set('rvstartid', startRevId.toString());
+			}
+			if (endRevId != null) {
+				params.set('rvendid', endRevId.toString());
 			}
 			if (continueParam) {
 				params.set('rvcontinue', continueParam);
@@ -253,7 +257,7 @@ if (import.meta.vitest) {
 				]);
 			});
 
-			it('includes rvendid when order is asc and uptoRevId is provided', async () => {
+			it('includes rvendid when order is asc and endRevId is provided', async () => {
 				const mockResponse = {
 					json: vi
 						.fn()
@@ -263,7 +267,7 @@ if (import.meta.vitest) {
 
 				const all = fetchAllRevisions(baseUrl, 1234, {
 					order: 'asc',
-					uptoRevId: 9999,
+					endRevId: 9999,
 				});
 				await Array.fromAsync(all); // Consume the generator to trigger fetch
 
@@ -287,7 +291,7 @@ if (import.meta.vitest) {
 				expect(mockFetch).toHaveBeenCalledWith(expectedUrl);
 			});
 
-			it('includes rvendid when order is desc and uptoRevId is provided', async () => {
+			it('includes rvendid when order is desc and endRevId is provided', async () => {
 				const mockResponse = {
 					json: vi
 						.fn()
@@ -297,7 +301,7 @@ if (import.meta.vitest) {
 
 				const all = fetchAllRevisions(baseUrl, 1234, {
 					order: 'desc',
-					uptoRevId: 8888,
+					endRevId: 8888,
 				});
 				await Array.fromAsync(all); // Consume the generator
 
@@ -321,7 +325,7 @@ if (import.meta.vitest) {
 				expect(mockFetch).toHaveBeenCalledWith(expectedUrl);
 			});
 
-			it('does not include boundary params when uptoRevId is not provided', async () => {
+			it('does not include boundary params when endRevId is not provided', async () => {
 				const mockResponse = {
 					json: vi
 						.fn()
@@ -329,7 +333,7 @@ if (import.meta.vitest) {
 				};
 				mockFetch.mockResolvedValue(mockResponse);
 
-				const all = fetchAllRevisions(baseUrl, 1234, { order: 'desc' }); // No uptoRevId
+				const all = fetchAllRevisions(baseUrl, 1234, { order: 'desc' }); // No endRevId
 				await Array.fromAsync(all); // Consume the generator
 
 				expect(mockFetch).toHaveBeenCalled();
@@ -348,6 +352,76 @@ if (import.meta.vitest) {
 					'Error fetching all revisions:',
 					expect.any(Error)
 				);
+			});
+
+			it('includes rvstartid when order is asc and startRevId is provided', async () => {
+				const mockResponse = {
+					json: vi
+						.fn()
+						.mockResolvedValue({ query: { pages: [{ revisions: [] }] } }),
+				};
+				mockFetch.mockResolvedValue(mockResponse);
+
+				const all = fetchAllRevisions(baseUrl, 1234, {
+					order: 'asc',
+					startRevId: 7777,
+				});
+				await Array.fromAsync(all); // Consume the generator to trigger fetch
+
+				const params = new URLSearchParams({
+					action: 'query',
+					prop: 'revisions',
+					pageids: '1234',
+					rvprop: 'ids|content',
+					rvslots: 'main',
+					rvlimit: 'max',
+					rvdir: 'newer',
+					formatversion: '2',
+					format: 'json',
+					origin: '*',
+					rvstartid: '7777', // Check this param
+					maxage: '600',
+				});
+				const expectedUrl = new URL('/w/api.php', baseUrl);
+				expectedUrl.search = params.toString();
+
+				expect(mockFetch).toHaveBeenCalledWith(expectedUrl);
+			});
+
+			it('includes rvstartid and rvendid when order is asc, startRevId and endRevId are provided', async () => {
+				const mockResponse = {
+					json: vi
+						.fn()
+						.mockResolvedValue({ query: { pages: [{ revisions: [] }] } }),
+				};
+				mockFetch.mockResolvedValue(mockResponse);
+
+				const all = fetchAllRevisions(baseUrl, 1234, {
+					order: 'asc',
+					startRevId: 7777,
+					endRevId: 9999,
+				});
+				await Array.fromAsync(all); // Consume the generator to trigger fetch
+
+				const params = new URLSearchParams({
+					action: 'query',
+					prop: 'revisions',
+					pageids: '1234',
+					rvprop: 'ids|content',
+					rvslots: 'main',
+					rvlimit: 'max',
+					rvdir: 'newer',
+					formatversion: '2',
+					format: 'json',
+					origin: '*',
+					rvstartid: '7777', // Check this param
+					rvendid: '9999', // Check this param
+					maxage: '600',
+				});
+				const expectedUrl = new URL('/w/api.php', baseUrl);
+				expectedUrl.search = params.toString();
+
+				expect(mockFetch).toHaveBeenCalledWith(expectedUrl);
 			});
 		});
 	});

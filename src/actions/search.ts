@@ -13,7 +13,8 @@ export async function searchAction(
 	const pageTitle = formData.get('pageTitle')?.toString().trim();
 	const targetText = formData.get('targetText')?.toString();
 	const order = formData.get('order')?.toString();
-	const uptoRevIdStr = formData.get('uptoRevId')?.toString();
+	const startRevIdStr = formData.get('startRevId')?.toString();
+	const endRevIdStr = formData.get('endRevId')?.toString();
 
 	// Validate inputs
 	if (!wikiUrlStr || !URL.canParse(wikiUrlStr)) {
@@ -66,13 +67,21 @@ export async function searchAction(
 	}
 
 	// build options for fetching revisions
-	const options: { uptoRevId?: number; order?: 'asc' | 'desc' } = {};
+	const options: {
+		order?: 'asc' | 'desc';
+		startRevId?: number;
+		endRevId?: number;
+	} = {};
 	if (order === 'asc' || order === 'desc') {
 		options.order = order;
 	}
-	const uptoRevId = uptoRevIdStr ? Number.parseInt(uptoRevIdStr, 10) : NaN;
-	if (Number.isSafeInteger(uptoRevId)) {
-		options.uptoRevId = uptoRevId;
+	const startRevId = startRevIdStr ? Number.parseInt(startRevIdStr, 10) : NaN;
+	if (Number.isSafeInteger(startRevId)) {
+		options.startRevId = startRevId;
+	}
+	const endRevId = endRevIdStr ? Number.parseInt(endRevIdStr, 10) : NaN;
+	if (Number.isSafeInteger(endRevId)) {
+		options.endRevId = endRevId;
 	}
 
 	try {
@@ -92,7 +101,7 @@ export async function searchAction(
 			pageTitle,
 			targetText,
 			revisionId: foundRevisionId,
-			order: options?.order ?? 'asc',
+			order: options?.order ?? prevState.order,
 			error: foundRevisionId ? null : 'Text not found in any revision',
 			searchCount: prevState.searchCount + 1,
 		};
@@ -294,7 +303,7 @@ if (import.meta.vitest) {
 			});
 		});
 
-		it('calls fetchAllRevisions with uptoRevId when provided in form data', async () => {
+		it('calls fetchAllRevisions with endRevId when provided in form data', async () => {
 			const mockedFetchAllRevisions = vi.mocked(fetchAllRevisions);
 			mockedFetchAllRevisions.mockResolvedValue(
 				createAsyncGenerator([
@@ -308,18 +317,18 @@ if (import.meta.vitest) {
 				text: 'Contains Test Text',
 			});
 
-			const formData = createFormData({ uptoRevId: '456', pageId: '123' });
+			const formData = createFormData({ endRevId: '456', pageId: '123' });
 
 			await searchAction(defaultPrevState, formData);
 
 			expect(mockedFetchAllRevisions).toHaveBeenCalledWith(
 				expect.anything(), // baseUrl
 				expect.anything(), // pageId
-				{ uptoRevId: 456 }
+				{ endRevId: 456 }
 			);
 		});
 
-		it('calls fetchAllRevisions without uptoRevId when provided in form data', async () => {
+		it('calls fetchAllRevisions without endRevId when not provided in form data', async () => {
 			const mockedFetchAllRevisions = vi.mocked(fetchAllRevisions);
 			mockedFetchAllRevisions.mockResolvedValue(
 				createAsyncGenerator([
@@ -333,7 +342,7 @@ if (import.meta.vitest) {
 				text: 'Contains Test Text',
 			});
 
-			const formData = createFormData({ pageId: '123' }); // No uptoRevId
+			const formData = createFormData({ pageId: '123' }); // No endRevId
 
 			await searchAction(defaultPrevState, formData);
 
@@ -395,6 +404,60 @@ if (import.meta.vitest) {
 				formDataDesc
 			);
 			expect(resultDesc.order).toBe('desc');
+		});
+
+		it('calls fetchAllRevisions with startRevId when provided in form data', async () => {
+			const mockedFetchAllRevisions = vi.mocked(fetchAllRevisions);
+			mockedFetchAllRevisions.mockResolvedValue(
+				createAsyncGenerator([
+					{ rev: 1, text: 'Some text' },
+					{ rev: 2, text: 'Contains Test Text' },
+					{ rev: 3, text: 'More text' },
+				])
+			);
+			vi.mocked(genFindMap).mockResolvedValue({
+				rev: 2,
+				text: 'Contains Test Text',
+			});
+
+			const formData = createFormData({ startRevId: '123', pageId: '456' });
+
+			await searchAction(defaultPrevState, formData);
+
+			expect(mockedFetchAllRevisions).toHaveBeenCalledWith(
+				expect.anything(), // baseUrl
+				expect.anything(), // pageId
+				{ startRevId: 123 }
+			);
+		});
+
+		it('calls fetchAllRevisions with startRevId and endRevId when provided', async () => {
+			const mockedFetchAllRevisions = vi.mocked(fetchAllRevisions);
+			mockedFetchAllRevisions.mockResolvedValue(
+				createAsyncGenerator([
+					{ rev: 1, text: 'Some text' },
+					{ rev: 2, text: 'Contains Test Text' },
+					{ rev: 3, text: 'More text' },
+				])
+			);
+			vi.mocked(genFindMap).mockResolvedValue({
+				rev: 2,
+				text: 'Contains Test Text',
+			});
+
+			const formData = createFormData({
+				startRevId: '123',
+				endRevId: '789',
+				pageId: '456',
+			});
+
+			await searchAction(defaultPrevState, formData);
+
+			expect(mockedFetchAllRevisions).toHaveBeenCalledWith(
+				expect.anything(), // baseUrl
+				expect.anything(), // pageId
+				{ startRevId: 123, endRevId: 789 }
+			);
 		});
 	});
 }
