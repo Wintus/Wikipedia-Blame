@@ -4,6 +4,7 @@
 	--background-color: #f4f4f4;
 	--text-color: #333;
 	--error-color: #e74c3c;
+	--form-margin-block-end: 1.25rem;
 }
 
 body {
@@ -60,7 +61,7 @@ main {
 	padding-inline: 1.875rem;
 	border-radius: 0.5rem;
 	box-shadow: 0 0.25rem 0.375rem rgba(0, 0, 0, 0.1);
-	margin-block-end: 1.25rem;
+	margin-block-end: var(--form-margin-block-end);
 }
 
 .form-group {
@@ -176,6 +177,8 @@ button:disabled {
 	font-size: 0.875em;
 	margin-block-start: 0.3125em;
 	color: #666;
+	/* Use negative margin to cancel spacing below form */
+	margin-block-end: calc(var(--form-margin-block-end) * -1);
 }
 
 .status-message-container .error-message {
