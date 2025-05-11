@@ -64,9 +64,10 @@ export async function fetchPageId(
 export async function* fetchAllRevisions(
 	baseUrl: URL,
 	pageId: number,
-	options?: { order?: Order; endRevId?: number }
+	options?: { order?: Order; startRevId?: number; endRevId?: number }
 ): AsyncGenerator<RevisionResult, void, unknown> {
 	const order = options?.order ?? 'asc';
+	const startRevId = options?.startRevId;
 	const endRevId = options?.endRevId;
 	const dir = direction[order];
 	try {
@@ -84,6 +85,9 @@ export async function* fetchAllRevisions(
 				format: 'json',
 				origin: '*',
 			});
+			if (startRevId != null) {
+				params.set('rvstartid', startRevId.toString());
+			}
 			if (endRevId != null) {
 				params.set('rvendid', endRevId.toString());
 			}
@@ -348,6 +352,76 @@ if (import.meta.vitest) {
 					'Error fetching all revisions:',
 					expect.any(Error)
 				);
+			});
+
+			it('includes rvstartid when order is asc and startRevId is provided', async () => {
+				const mockResponse = {
+					json: vi
+						.fn()
+						.mockResolvedValue({ query: { pages: [{ revisions: [] }] } }),
+				};
+				mockFetch.mockResolvedValue(mockResponse);
+
+				const all = fetchAllRevisions(baseUrl, 1234, {
+					order: 'asc',
+					startRevId: 7777,
+				});
+				await Array.fromAsync(all); // Consume the generator to trigger fetch
+
+				const params = new URLSearchParams({
+					action: 'query',
+					prop: 'revisions',
+					pageids: '1234',
+					rvprop: 'ids|content',
+					rvslots: 'main',
+					rvlimit: 'max',
+					rvdir: 'newer',
+					formatversion: '2',
+					format: 'json',
+					origin: '*',
+					rvstartid: '7777', // Check this param
+					maxage: '600',
+				});
+				const expectedUrl = new URL('/w/api.php', baseUrl);
+				expectedUrl.search = params.toString();
+
+				expect(mockFetch).toHaveBeenCalledWith(expectedUrl);
+			});
+
+			it('includes rvstartid and rvendid when order is asc, startRevId and endRevId are provided', async () => {
+				const mockResponse = {
+					json: vi
+						.fn()
+						.mockResolvedValue({ query: { pages: [{ revisions: [] }] } }),
+				};
+				mockFetch.mockResolvedValue(mockResponse);
+
+				const all = fetchAllRevisions(baseUrl, 1234, {
+					order: 'asc',
+					startRevId: 7777,
+					endRevId: 9999,
+				});
+				await Array.fromAsync(all); // Consume the generator to trigger fetch
+
+				const params = new URLSearchParams({
+					action: 'query',
+					prop: 'revisions',
+					pageids: '1234',
+					rvprop: 'ids|content',
+					rvslots: 'main',
+					rvlimit: 'max',
+					rvdir: 'newer',
+					formatversion: '2',
+					format: 'json',
+					origin: '*',
+					rvstartid: '7777', // Check this param
+					rvendid: '9999', // Check this param
+					maxage: '600',
+				});
+				const expectedUrl = new URL('/w/api.php', baseUrl);
+				expectedUrl.search = params.toString();
+
+				expect(mockFetch).toHaveBeenCalledWith(expectedUrl);
 			});
 		});
 	});

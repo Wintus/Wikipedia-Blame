@@ -17,7 +17,8 @@ The application utilizes modern React features, specifically the `useActionState
 	- Performs a linear search through revisions.
 	- Fetches revision data (ID and content) progressively using an async generator,
 	handling potentially long histories by processing data in streams without loading all data into memory at once.
-- Iterative searching: Users can specify an "end revision ID" to search within a specific range of revisions.
+- Iterative searching: Users can specify a "start revision ID" and/or
+an "end revision ID" to search within a specific range of revisions.
 - Direct links to the specific revision where the text was found.
 - Clear indication of loading states managed by `useActionState`.
 

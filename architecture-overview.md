@@ -56,7 +56,7 @@ graph TD
 	3. Passes the revision stream (which now includes content) to `genFindMap`.
 	4. `genFindMap` consumes this generator, applying the search predicate to find the target text efficiently.
 	5. Awaits the final result (found revision ID or null) from `genFindMap`.
-- Handles optional `uptoRevId` form input to limit the revision range.
+- Handles optional `startRevId` and `endRevId` form inputs to limit the revision range.
 - Returns a single, comprehensive final `SearchState` object compatible with `useActionState`.
 
 ### Internal Generators (`fetchAllRevisions`, `genFindMap` helpers)
@@ -67,7 +67,7 @@ graph TD
 ### Component Responsibilities
 
 - **App:** Manages state via `useActionState` hook, consuming the final state from `searchAction`.
-- **SearchForm:** Collects user input (wiki, title, text, order, optional 'up to revision ID'), triggers the action.
+- **SearchForm:** Collects user input (wiki, title, text, order, optional 'start revision ID', optional 'end revision ID'), triggers the action.
 - **ResultView:** Renders the final search result or error state.
 
 ## Technical Stack

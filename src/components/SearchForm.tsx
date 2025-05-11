@@ -73,6 +73,17 @@ export function SearchForm({
 			</div>
 
 			<div className="form-group">
+				<label htmlFor="start-rev-id">Search from Rev ID (optional):</label>
+				<input
+					type="text"
+					pattern="\d*"
+					id="start-rev-id"
+					name="startRevId"
+					placeholder="Enter a revision ID to start searching from"
+				/>
+			</div>
+
+			<div className="form-group">
 				<label htmlFor="end-rev-id">End Rev ID (optional):</label>
 				<input
 					type="text"
@@ -201,6 +212,15 @@ if (import.meta.vitest) {
 			// Verify wiki is correctly selected
 			const wikiUrl = formDataArg.get('wikiUrl') as string;
 			expect(wikiUrl).toEqual('https://en.wikipedia.org/');
+		});
+
+		it('renders the startRevId input field', async () => {
+			await act(async () => {
+				render(<SearchForm {...defaultProps} />);
+			});
+			expect(
+				screen.getByLabelText(/Search from Rev ID \(optional\):/i)
+			).toBeInTheDocument();
 		});
 
 		it('renders the endRevId input field', async () => {
