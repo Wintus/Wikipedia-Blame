@@ -66,7 +66,7 @@ export async function searchAction(
 	}
 
 	// build options for fetching revisions
-	const options: { uptoRevId?: number; order?: 'asc' | 'desc' } = {};
+	const options: { order?: 'asc' | 'desc'; uptoRevId?: number } = {};
 	if (order === 'asc' || order === 'desc') {
 		options.order = order;
 	}
