@@ -1,10 +1,14 @@
 import './App.css';
+import { useActionState } from 'react';
 import { SearchForm } from './components/SearchForm';
 import { ResultView } from './components/ResultView';
-import { useSearchActionState } from './hooks/useSearchActionState';
+import { searchAction, initSearchState } from './actions/search';
 
 function App() {
-	const [searchState, formAction, isPending] = useSearchActionState();
+	const [searchState, formAction, isPending] = useActionState(
+		searchAction,
+		initSearchState
+	);
 	const hasSearched = searchState.searchCount > 0;
 
 	return (
