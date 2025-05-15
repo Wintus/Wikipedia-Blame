@@ -20,7 +20,6 @@ export function WikiSelector({ selectedWiki, onChange }: WikiSelectorProps) {
 			<select
 				id="wiki-url"
 				name="wikiUrl"
-				key={selectedWiki.href}
 				defaultValue={selectedWiki.href}
 				onChange={(e) => handleChange(e.target.value)}
 			>
