@@ -59,7 +59,7 @@ See `architecture-overview.md` for a visual flow diagram.
 	- **`actions/`**: Contains the `useActionState` action logic (`search.ts`).
 	- **`components/`**: React UI components (`SearchForm.tsx`, `ResultView.tsx`, `WikiSelector.tsx`).
 	- **`services/`**: MediaWiki APIs interaction layer (`MediaWikiAPIs.ts`).
-	- **`utils/`**: Core search algorithm logic (`async-generator.ts`).
+	- **`lib/`**: general libraries (`async-generator.ts`).
 	- **`wiki.ts`**: Type definitions and constants related to Wikipedia sites.
 	- **`state.ts`**: Type definitions for application state (e.g., `SearchState`).
 	- **`App.tsx`**: Main application component, orchestrates state and components.
