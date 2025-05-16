@@ -24,5 +24,8 @@
 		"vite",
 		"vitest",
 		"whatwg"
-	]
+	],
+	"terminal.integrated.confirmOnExit": "hasChildProcesses",
+	"terminal.integrated.cursorStyle": "line",
+	"terminal.integrated.defaultLocation": "editor",
 }
