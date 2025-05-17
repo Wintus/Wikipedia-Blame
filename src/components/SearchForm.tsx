@@ -1,9 +1,7 @@
-import { Suspense, useMemo, useState } from 'react';
+import { useState } from 'react';
 import { type SearchState } from '../state';
 import { WikiSelector } from './WikiSelector';
-import useDebounce from '../hooks/useDebounce';
-import { fetchPageId } from '../services/MediaWikiAPIs';
-import { PageIdFetcher } from './PageIdFetcher';
+import { PageTitleInput } from './PageTitleInput';
 
 interface SearchFormProps {
 	formAction: (formData: FormData) => void;
@@ -17,49 +15,15 @@ export function SearchForm({
 	searchState,
 }: SearchFormProps) {
 	const [wikiUrl, setWikiUrl] = useState(searchState.wikiUrl);
-	const [pageTitle, setPageTitle] = useState(searchState.pageTitle);
-	const debouncedPageTitle = useDebounce(pageTitle.trim(), 300);
-
-	const pageIdPromise = useMemo(async () => {
-		// guard
-		if (!debouncedPageTitle) {
-			return {};
-		}
-		// fetch page ID
-		try {
-			const id = await fetchPageId(wikiUrl, debouncedPageTitle);
-			return { id: id.toString() };
-		} catch (error) {
-			console.error('Error fetching page ID:', error);
-			return { error: 'Error fetching page ID. Please try again.' };
-		}
-	}, [wikiUrl, debouncedPageTitle]);
 
 	return (
 		<form action={formAction} className="search-form" name="searchForm">
 			<WikiSelector selectedWiki={wikiUrl} onChange={setWikiUrl} />
 
-			<div className="form-group">
-				<label htmlFor="page-title">Wiki Article Title:</label>
-				<input
-					type="text"
-					id="page-title"
-					name="pageTitle"
-					value={pageTitle}
-					onChange={(e) => setPageTitle(e.target.value)}
-					placeholder="e.g. Albert Einstein"
-					required
-				/>
-				<Suspense
-					fallback={
-						<div className="status-message-container">
-							<span className="loading-indicator">Checking title...</span>
-						</div>
-					}
-				>
-					<PageIdFetcher promise={pageIdPromise} />
-				</Suspense>
-			</div>
+			<PageTitleInput
+				initialPageTitle={searchState.pageTitle}
+				wikiUrl={wikiUrl}
+			/>
 
 			<div className="form-group">
 				<label htmlFor="target-text">Text to Find:</label>
@@ -126,8 +90,9 @@ export function SearchForm({
 // MARK: in-source tests
 if (import.meta.vitest) {
 	const { describe, it, expect, vi, beforeEach } = import.meta.vitest;
-	const { render, screen, act, fireEvent, waitFor, waitForElementToBeRemoved } =
-		await import('@testing-library/react');
+	const { render, screen, act, fireEvent } = await import(
+		'@testing-library/react'
+	);
 	const { userEvent } = await import('@testing-library/user-event');
 	const MediaWikiAPIs = await import('../services/MediaWikiAPIs');
 
@@ -472,128 +437,6 @@ if (import.meta.vitest) {
 			// Verify wiki is correctly selected
 			const wikiUrl = formDataArg.get('wikiUrl') as string;
 			expect(wikiUrl).toEqual('https://en.wikipedia.org/');
-		});
-
-		it('renders a hidden input field for pageId', async () => {
-			await act(async () => {
-				render(<SearchForm {...defaultProps} />);
-			});
-			await waitFor(() => {
-				expect(screen.getByTestId('pageId-input')).toBeInTheDocument();
-			});
-		});
-
-		it('debounces the API call and updates pageId on success', async () => {
-			const mockFetchPageId = vi.fn().mockResolvedValue(123);
-			vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockImplementation(
-				mockFetchPageId
-			);
-
-			await act(async () => {
-				render(<SearchForm {...emptySearchProps} />);
-			});
-
-			const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
-
-			await act(async () => {
-				fireEvent.change(titleInput, { target: { value: 'New Title' } });
-			});
-			expect(mockFetchPageId).not.toHaveBeenCalled();
-			const loadingIndicator = await screen.findByText('Checking title...');
-			expect(loadingIndicator).toBeInTheDocument();
-
-			await waitForElementToBeRemoved(() =>
-				screen.getByText('Checking title...')
-			);
-
-			await waitFor(() => expect(mockFetchPageId).toHaveBeenCalledTimes(1), {
-				timeout: 500,
-			});
-			expect(mockFetchPageId).toHaveBeenCalledWith(
-				emptySearchProps.searchState.wikiUrl,
-				'New Title'
-			);
-
-			const pageIdInput =
-				await screen.findByTestId<HTMLInputElement>('pageId-input');
-			expect(pageIdInput).toBeInTheDocument();
-			expect(pageIdInput.value).toBe('123');
-		});
-
-		it('displays an error message when the API call fails', async () => {
-			const mockFetchPageId = vi.fn().mockRejectedValue(new Error('API Error'));
-			vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockImplementation(
-				mockFetchPageId
-			);
-			const consoleErrorSpy = vi
-				.spyOn(console, 'error')
-				.mockImplementation(() => {});
-
-			render(<SearchForm {...emptySearchProps} />);
-
-			const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
-
-			await act(async () => {
-				fireEvent.change(titleInput, { target: { value: 'Invalid Title' } });
-			});
-
-			await waitFor(() => expect(mockFetchPageId).toHaveBeenCalled(), {
-				timeout: 500,
-			});
-
-			const errorMessage = await screen.findByText(/Error fetching page ID/i);
-			expect(errorMessage).toBeInTheDocument();
-
-			const pageIdInput = screen.getByTestId(
-				'pageId-input'
-			) as HTMLInputElement;
-			expect(pageIdInput.value).toBe('');
-
-			expect(consoleErrorSpy).toHaveBeenCalledWith(
-				'Error fetching page ID:',
-				new Error('API Error')
-			);
-		});
-
-		it('renders PageIdFetcher within Suspense when debouncedPageTitle is present', async () => {
-			const mockPageTitle = 'Test Page';
-			const mockPageId = 123;
-
-			// Mock the fetchPageId to resolve
-			const mockFetchPageId = vi.spyOn(MediaWikiAPIs, 'fetchPageId');
-			mockFetchPageId.mockResolvedValue(mockPageId);
-
-			render(<SearchForm {...emptySearchProps} />);
-			await act(async () => {
-				userEvent.type(
-					screen.getByLabelText(/Wiki Article Title:/i),
-					mockPageTitle
-				);
-			});
-
-			// wait loading indicator appears and disappears
-			await waitFor(() =>
-				expect(screen.getByText('Checking title...')).toBeInTheDocument()
-			);
-			await waitForElementToBeRemoved(() =>
-				screen.getByText('Checking title...')
-			);
-
-			// Check if the PageIdFetcher is present
-			const pageIdInput =
-				await screen.findByTestId<HTMLInputElement>('pageId-input');
-			expect(pageIdInput).toBeInTheDocument();
-			// Check if the pageId is updated
-			await waitFor(() =>
-				expect(screen.getByTestId('pageId-input')).toHaveValue(
-					mockPageId.toString()
-				)
-			);
-
-			expect(mockFetchPageId).toHaveBeenCalledWith(
-				defaultProps.searchState.wikiUrl,
-				mockPageTitle
-			);
 		});
 	});
 }
