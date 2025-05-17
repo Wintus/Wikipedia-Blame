@@ -36,7 +36,7 @@ export function WikiSelector({ selectedWiki, onChange }: WikiSelectorProps) {
 
 // MARK: in-source tests
 if (import.meta.vitest) {
-	const { describe, it, expect, vi } = await import('vitest');
+	const { describe, it, expect, vi } = import.meta.vitest;
 	const { render, screen, fireEvent } = await import('@testing-library/react');
 
 	const ENWP_URL = new URL('https://en.wikipedia.org');
