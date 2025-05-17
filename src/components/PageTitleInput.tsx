@@ -59,7 +59,7 @@ export function PageTitleInput({
 if (import.meta.vitest) {
 	const { describe, it, expect, vi, beforeEach, beforeAll, afterAll } =
 		import.meta.vitest;
-	const { render, screen, act, fireEvent, waitFor, waitForElementToBeRemoved } =
+	const { render, screen, act, fireEvent, waitForElementToBeRemoved } =
 		await import('@testing-library/react');
 	const MediaWikiAPIs = await import('../services/MediaWikiAPIs');
 
@@ -99,9 +99,7 @@ if (import.meta.vitest) {
 			await act(async () =>
 				render(<PageTitleInput initialPageTitle="" wikiUrl={stubWikiUrl} />)
 			);
-			await waitFor(() => {
-				expect(screen.getByTestId('pageId-input')).toBeInTheDocument();
-			});
+			expect(screen.getByTestId('pageId-input')).toBeInTheDocument();
 		});
 
 		it('updates the input value on change', async () => {
@@ -116,9 +114,7 @@ if (import.meta.vitest) {
 			) as HTMLInputElement;
 
 			// Wait for the debounce and API call
-			await waitFor(() => expect(mockFetchPageId).toHaveBeenCalledTimes(1), {
-				timeout: 300,
-			});
+			expect(mockFetchPageId).toHaveBeenCalledTimes(1);
 
 			await act(async () =>
 				fireEvent.change(inputElement, { target: { value: 'New Title' } })
@@ -134,9 +130,7 @@ if (import.meta.vitest) {
 			expect(loadingIndicator).toBeInTheDocument();
 
 			// Wait for the debounce and API call
-			await waitFor(() => expect(mockFetchPageId).toHaveBeenCalledTimes(2), {
-				timeout: 300,
-			});
+			expect(mockFetchPageId).toHaveBeenCalledTimes(2);
 			await waitForElementToBeRemoved(() =>
 				screen.getByText('Checking title...')
 			);
@@ -167,9 +161,7 @@ if (import.meta.vitest) {
 			expect(loadingIndicator).toBeInTheDocument();
 
 			// Wait for the debounce and API call
-			await waitFor(() => expect(mockFetchPageId).toHaveBeenCalledTimes(1), {
-				timeout: 300,
-			});
+			expect(mockFetchPageId).toHaveBeenCalledTimes(1);
 			await waitForElementToBeRemoved(() =>
 				screen.getByText('Checking title...')
 			);
@@ -185,12 +177,8 @@ if (import.meta.vitest) {
 				)
 			);
 			// Wait for the API call
-			await waitFor(() => expect(mockFetchPageId).toHaveBeenCalledTimes(1), {
-				timeout: 300,
-			});
-			await waitFor(() =>
-				expect(screen.getByTestId('pageId-input')).toBeInTheDocument()
-			);
+			expect(mockFetchPageId).toHaveBeenCalledTimes(1);
+			expect(screen.getByTestId('pageId-input')).toBeInTheDocument();
 			const hiddenInput = screen.getByTestId(
 				'pageId-input'
 			) as HTMLInputElement;
@@ -209,12 +197,8 @@ if (import.meta.vitest) {
 				)
 			);
 			// Wait for the API call
-			await waitFor(() => expect(mockFetchPageId).toHaveBeenCalledTimes(1), {
-				timeout: 300,
-			});
-			await waitFor(() =>
-				expect(screen.getByTestId('pageId-input')).toBeInTheDocument()
-			);
+			expect(mockFetchPageId).toHaveBeenCalledTimes(1);
+			expect(screen.getByTestId('pageId-input')).toBeInTheDocument();
 
 			const hiddenInput = screen.getByTestId(
 				'pageId-input'
