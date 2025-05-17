@@ -18,9 +18,9 @@ function App() {
 			</header>
 			<main>
 				<SearchForm
+					searchState={searchState}
 					formAction={formAction}
 					isPending={isPending}
-					searchState={searchState}
 				/>
 				<ResultView result={searchState} isPending={isPending} />
 			</main>

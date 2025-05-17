@@ -4,9 +4,9 @@ import { WikiSelector } from './WikiSelector';
 import { PageTitleInput } from './PageTitleInput';
 
 interface SearchFormProps {
+	searchState: SearchState;
 	formAction: (formData: FormData) => void;
 	isPending: boolean;
-	searchState: SearchState;
 }
 
 export function SearchForm({
