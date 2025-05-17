@@ -1,17 +1,18 @@
-import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react-swc';
+import { defineConfig, mergeConfig } from 'vitest/config';
+import viteConfig from './vite.config';
 
-// https://vite.dev/config/
-export default defineConfig({
-	base: '/Wikipedia-Blame/',
-	plugins: [react()],
-	test: {
-		globals: true,
-		environment: 'happy-dom',
-		includeSource: ['src/**/*.{js,ts,jsx,tsx}'],
-		setupFiles: './src/setupTests.ts',
-	},
-  define: {
-    'import.meta.vitest': 'undefined',
-  },
-});
+// https://vitest.dev/guide/#configuring-vitest
+export default mergeConfig(
+	viteConfig,
+	defineConfig({
+		test: {
+			globals: true,
+			environment: 'happy-dom',
+			includeSource: ['src/**/*.{js,ts,jsx,tsx}'],
+			setupFiles: './src/setupTests.ts',
+		},
+		define: {
+			'import.meta.vitest': 'undefined',
+		},
+	})
+);
