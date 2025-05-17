@@ -281,13 +281,17 @@ if (import.meta.vitest) {
 		});
 
 		it('the selected option remains selected after form submission', async () => {
+			const { fireEvent } = await import('@testing-library/react');
 			const user = userEvent.setup();
 			await act(async () => render(<SearchForm {...defaultProps} />));
 			const wikiSelector =
 				await screen.findByLabelText<HTMLSelectElement>(/Wiki Site:/i);
 
 			await act(async () => {
-				await user.selectOptions(wikiSelector, 'https://ja.wikipedia.org/');
+				// use fireEvent due to waring of act unsupported
+				fireEvent.change(wikiSelector, {
+					target: { value: 'https://ja.wikipedia.org/' },
+				});
 			});
 
 			expect(wikiSelector.value).toBe('https://ja.wikipedia.org/');
