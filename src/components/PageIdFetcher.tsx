@@ -25,7 +25,7 @@ export function PageIdFetcher({ promise }: Props) {
 
 // MARK: in-source tests
 if (import.meta.vitest) {
-	const { describe, it, expect } = await import('vitest');
+	const { describe, it, expect } = import.meta.vitest;
 	const { render, act, screen, waitFor } = await import(
 		'@testing-library/react'
 	);
