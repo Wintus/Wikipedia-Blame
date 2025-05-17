@@ -37,7 +37,8 @@ export function WikiSelector({ selectedWiki, onChange }: WikiSelectorProps) {
 // MARK: in-source tests
 if (import.meta.vitest) {
 	const { describe, it, expect, vi } = import.meta.vitest;
-	const { render, screen, fireEvent } = await import('@testing-library/react');
+	const { render, screen } = await import('@testing-library/react');
+	const { userEvent } = await import('@testing-library/user-event');
 
 	const ENWP_URL = new URL('https://en.wikipedia.org');
 	const JAWP_URL = new URL('https://ja.wikipedia.org');
@@ -72,14 +73,13 @@ if (import.meta.vitest) {
 			expect(selectElement.value).toBe(JAWP_URL.href);
 		});
 
-		it('calls onChange with correct wiki when changed', () => {
+		it('calls onChange with correct wiki when changed', async () => {
+			const user = userEvent.setup();
 			const mockOnChange = vi.fn();
 			renderComponent(ENWP_URL, mockOnChange);
 			const selectElement =
 				screen.getByLabelText<HTMLSelectElement>('Wiki Site:');
-			fireEvent.change(selectElement, {
-				target: { value: JAWP_URL.href },
-			});
+			await user.selectOptions(selectElement, JAWP_URL.href);
 			expect(mockOnChange).toHaveBeenCalledWith(JAWP_URL);
 		});
 
