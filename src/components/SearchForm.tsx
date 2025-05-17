@@ -163,9 +163,9 @@ if (import.meta.vitest) {
 
 			await act(async () => {
 				fireEvent.change(titleInput, { target: { value: 'Albert Einstein' } });
+				fireEvent.change(textArea, { target: { value: 'relativity' } });
+				fireEvent.click(button);
 			});
-			fireEvent.change(textArea, { target: { value: 'relativity' } });
-			fireEvent.click(button);
 
 			expect(mockFormAction).toHaveBeenCalledTimes(1);
 
@@ -230,10 +230,10 @@ if (import.meta.vitest) {
 
 			await act(async () => {
 				fireEvent.change(titleInput, { target: { value: 'Albert Einstein' } });
+				fireEvent.change(textArea, { target: { value: 'relativity' } });
+				fireEvent.change(endRevIdInput, { target: { value: '67890' } });
+				fireEvent.click(button);
 			});
-			fireEvent.change(textArea, { target: { value: 'relativity' } });
-			fireEvent.change(endRevIdInput, { target: { value: '67890' } });
-			fireEvent.click(button);
 
 			expect(mockFormAction).toHaveBeenCalledTimes(1);
 

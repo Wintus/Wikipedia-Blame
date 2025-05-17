@@ -44,9 +44,7 @@ if (import.meta.vitest) {
 
 			expect(result.current).toBe('initial');
 
-			act(() => {
-				rerender({ value: 'updated', delay: 100 });
-			});
+			rerender({ value: 'updated', delay: 100 });
 
 			expect(result.current).toBe('initial'); // Still initial value
 
@@ -67,9 +65,7 @@ if (import.meta.vitest) {
 
 			expect(result.current).toBe('initial');
 
-			act(() => {
-				rerender({ value: 'updated' });
-			});
+			rerender({ value: 'updated' });
 
 			expect(result.current).toBe('initial'); // Still initial value
 
@@ -91,17 +87,13 @@ if (import.meta.vitest) {
 
 			expect(result.current).toBe('initial');
 
-			act(() => {
-				rerender({ value: 'updated', delay: 0 });
-			});
+			rerender({ value: 'updated', delay: 0 });
 
 			expect(result.current).toBe('initial');
 
-			act(() => {
-				rerender({ value: 'updated', delay: 0 });
-			});
+			rerender({ value: 'updated', delay: 0 });
 
-			await waitFor(() => expect(result.current).toBe('updated')); // Updated immediately
+			waitFor(() => expect(result.current).toBe('updated')); // Updated immediately
 		});
 	});
 }
