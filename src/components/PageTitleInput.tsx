@@ -59,8 +59,10 @@ export function PageTitleInput({
 if (import.meta.vitest) {
 	const { describe, it, expect, vi, beforeEach, beforeAll, afterAll } =
 		import.meta.vitest;
-	const { render, screen, act, fireEvent, waitForElementToBeRemoved } =
-		await import('@testing-library/react');
+	const { render, screen, act, waitForElementToBeRemoved } = await import(
+		'@testing-library/react'
+	);
+	const { userEvent } = await import('@testing-library/user-event');
 	const MediaWikiAPIs = await import('../services/MediaWikiAPIs');
 
 	describe('PageTitleInput', () => {
@@ -103,6 +105,7 @@ if (import.meta.vitest) {
 		});
 
 		it('updates the input value on change', async () => {
+			const user = userEvent.setup();
 			mockFetchPageId.mockResolvedValue(123);
 			await act(async () =>
 				render(
@@ -116,9 +119,8 @@ if (import.meta.vitest) {
 			// Wait for the debounce and API call
 			expect(mockFetchPageId).toHaveBeenCalledTimes(1);
 
-			await act(async () =>
-				fireEvent.change(inputElement, { target: { value: 'New Title' } })
-			);
+			await user.clear(inputElement);
+			await user.type(inputElement, 'New Title');
 
 			const loadingIndicator = await screen.findByText(
 				'Checking title...',
@@ -139,6 +141,7 @@ if (import.meta.vitest) {
 		});
 
 		it('calls fetchPageId with the correct arguments after debouncing', async () => {
+			const user = userEvent.setup();
 			mockFetchPageId.mockResolvedValue(123);
 			await act(async () =>
 				render(<PageTitleInput initialPageTitle="" wikiUrl={stubWikiUrl} />)
@@ -147,9 +150,8 @@ if (import.meta.vitest) {
 				/Wiki Article Title:/i
 			) as HTMLInputElement;
 
-			await act(async () =>
-				fireEvent.change(inputElement, { target: { value: 'Test' } })
-			);
+			await user.clear(inputElement);
+			await user.type(inputElement, 'Test');
 
 			const loadingIndicator = await screen.findByText(
 				'Checking title...',

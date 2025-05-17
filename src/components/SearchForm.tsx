@@ -90,9 +90,7 @@ export function SearchForm({
 // MARK: in-source tests
 if (import.meta.vitest) {
 	const { describe, it, expect, vi, beforeEach } = import.meta.vitest;
-	const { render, screen, act, fireEvent } = await import(
-		'@testing-library/react'
-	);
+	const { render, screen, act } = await import('@testing-library/react');
 	const { userEvent } = await import('@testing-library/user-event');
 	const MediaWikiAPIs = await import('../services/MediaWikiAPIs');
 
@@ -132,18 +130,17 @@ if (import.meta.vitest) {
 			searchState: defaultSearchState,
 		};
 
+		const mockFetchPageId = vi.fn().mockResolvedValue(123);
+
 		beforeEach(() => {
 			mockFormAction.mockClear();
-			const mockFetchPageId = vi.fn().mockResolvedValue(123);
 			vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockImplementation(
 				mockFetchPageId
 			);
 		});
 
 		it('renders form inputs and button', async () => {
-			await act(async () => {
-				render(<SearchForm {...defaultProps} />);
-			});
+			await act(async () => render(<SearchForm {...defaultProps} />));
 			expect(screen.getByLabelText(/Wiki Article Title:/i)).toBeInTheDocument();
 			expect(screen.getByLabelText(/Text to Find:/i)).toBeInTheDocument();
 			expect(
@@ -152,20 +149,19 @@ if (import.meta.vitest) {
 		});
 
 		it('submits form with correct FormData', async () => {
-			await act(async () => {
-				render(<SearchForm {...defaultProps} />);
-			});
+			const user = userEvent.setup();
+			await act(async () => render(<SearchForm {...defaultProps} />));
 			const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
 			const textArea = screen.getByLabelText(/Text to Find:/i);
 			const button = screen.getByRole('button', {
 				name: /Find An Occurrence/i,
 			});
 
-			await act(async () => {
-				fireEvent.change(titleInput, { target: { value: 'Albert Einstein' } });
-				fireEvent.change(textArea, { target: { value: 'relativity' } });
-				fireEvent.click(button);
-			});
+			await user.clear(titleInput);
+			await user.type(titleInput, 'Albert Einstein');
+			await user.clear(textArea);
+			await user.type(textArea, 'relativity');
+			await user.click(button);
 
 			expect(mockFormAction).toHaveBeenCalledTimes(1);
 
@@ -180,25 +176,21 @@ if (import.meta.vitest) {
 		});
 
 		it('renders the startRevId input field', async () => {
-			await act(async () => {
-				render(<SearchForm {...defaultProps} />);
-			});
+			await act(async () => render(<SearchForm {...defaultProps} />));
 			expect(
 				screen.getByLabelText(/Search from Rev ID \(optional\):/i)
 			).toBeInTheDocument();
 		});
 
 		it('renders the endRevId input field', async () => {
-			await act(async () => {
-				render(<SearchForm {...defaultProps} />);
-			});
+			await act(async () => render(<SearchForm {...defaultProps} />));
 			expect(
 				screen.getByLabelText(/End Rev ID \(optional\):/i)
 			).toBeInTheDocument();
 		});
 
 		it('does not populate the endRevId input with the revisionId from searchState', async () => {
-			await act(async () => {
+			await act(async () =>
 				render(
 					<SearchForm
 						formAction={mockFormAction}
@@ -208,8 +200,8 @@ if (import.meta.vitest) {
 							revisionId: 12345,
 						}}
 					/>
-				);
-			});
+				)
+			);
 			const endRevIdInput = screen.getByLabelText(
 				/End Rev ID \(optional\):/i
 			) as HTMLInputElement;
@@ -218,9 +210,8 @@ if (import.meta.vitest) {
 		});
 
 		it('submits form with correct FormData including endRevId', async () => {
-			await act(async () => {
-				render(<SearchForm {...defaultProps} />);
-			});
+			const user = userEvent.setup();
+			await act(async () => render(<SearchForm {...defaultProps} />));
 			const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
 			const textArea = screen.getByLabelText(/Text to Find:/i);
 			const endRevIdInput = screen.getByLabelText(/End Rev ID \(optional\):/i);
@@ -228,12 +219,13 @@ if (import.meta.vitest) {
 				name: /Find An Occurrence/i,
 			});
 
-			await act(async () => {
-				fireEvent.change(titleInput, { target: { value: 'Albert Einstein' } });
-				fireEvent.change(textArea, { target: { value: 'relativity' } });
-				fireEvent.change(endRevIdInput, { target: { value: '67890' } });
-				fireEvent.click(button);
-			});
+			await user.clear(titleInput);
+			await user.type(titleInput, 'Albert Einstein');
+			await user.clear(textArea);
+			await user.type(textArea, 'relativity');
+			await user.clear(endRevIdInput);
+			await user.type(endRevIdInput, '67890');
+			await user.click(button);
 
 			expect(mockFormAction).toHaveBeenCalledTimes(1);
 
@@ -249,7 +241,8 @@ if (import.meta.vitest) {
 		});
 
 		it('does not submit when inputs are empty', async () => {
-			await act(async () => {
+			const user = userEvent.setup();
+			await act(async () =>
 				render(
 					<SearchForm
 						{...defaultProps}
@@ -259,58 +252,60 @@ if (import.meta.vitest) {
 							targetText: '',
 						}}
 					/>
-				);
-			});
+				)
+			);
 			const button = screen.getByRole('button', {
 				name: /Find An Occurrence/i,
 			});
-			await userEvent.click(button);
+			await user.click(button);
 			expect(mockFormAction).not.toHaveBeenCalled();
 		});
 
 		it('disables the button when isPending is true', async () => {
-			await act(async () => {
+			await act(async () =>
 				render(
 					<SearchForm
 						formAction={mockFormAction}
 						isPending={true}
 						searchState={defaultSearchState}
 					/>
-				);
-			});
+				)
+			);
 			const button = screen.getByRole('button');
 			expect(button).toBeDisabled();
 		});
 
 		it('renders the WikiSelector component', async () => {
-			await act(async () => {
-				render(<SearchForm {...defaultProps} />);
-			});
+			await act(async () => render(<SearchForm {...defaultProps} />));
 			expect(screen.getByLabelText(/Wiki Site:/i)).toBeInTheDocument();
 		});
 
 		it('the selected option remains selected after form submission', async () => {
-			await act(async () => {
-				render(<SearchForm {...defaultProps} />);
-			});
+			const { fireEvent } = await import('@testing-library/react');
+			const user = userEvent.setup();
+			await act(async () => render(<SearchForm {...defaultProps} />));
 			const wikiSelector =
-				screen.getByLabelText<HTMLSelectElement>(/Wiki Site:/i);
+				await screen.findByLabelText<HTMLSelectElement>(/Wiki Site:/i);
 
 			await act(async () => {
+				// use fireEvent due to waring of act unsupported
 				fireEvent.change(wikiSelector, {
 					target: { value: 'https://ja.wikipedia.org/' },
 				});
 			});
+
 			expect(wikiSelector.value).toBe('https://ja.wikipedia.org/');
 
-			await act(async () => {
-				fireEvent.submit(screen.getByRole('form'));
+			const button = screen.getByRole('button', {
+				name: /Find An Occurrence/i,
 			});
+			user.click(button);
+
 			expect(wikiSelector.value).toBe('https://ja.wikipedia.org/');
 		});
 
 		it('renders initial values from searchState', async () => {
-			await act(async () => {
+			await act(async () =>
 				render(
 					<SearchForm
 						formAction={mockFormAction}
@@ -326,8 +321,8 @@ if (import.meta.vitest) {
 							searchCount: 0,
 						}}
 					/>
-				);
-			});
+				)
+			);
 
 			const titleInput = screen.getByLabelText(
 				/Wiki Article Title:/i
@@ -345,9 +340,7 @@ if (import.meta.vitest) {
 		});
 
 		it('renders the order radio buttons', async () => {
-			await act(async () => {
-				render(<SearchForm {...defaultProps} />);
-			});
+			await act(async () => render(<SearchForm {...defaultProps} />));
 			expect(
 				screen.getByLabelText(/Ascending \(Older First\)/i)
 			).toBeInTheDocument();
@@ -361,9 +354,9 @@ if (import.meta.vitest) {
 				...defaultProps.searchState,
 				order: 'asc' as const,
 			};
-			await act(async () => {
-				render(<SearchForm {...defaultProps} searchState={searchStateAsc} />);
-			});
+			await act(async () =>
+				render(<SearchForm {...defaultProps} searchState={searchStateAsc} />)
+			);
 			expect(
 				screen.getByLabelText(/Descending \(Newer First\)/i)
 			).toBeInTheDocument();
@@ -407,9 +400,8 @@ if (import.meta.vitest) {
 		});
 
 		it('submits form with correct FormData including order', async () => {
-			await act(async () => {
-				render(<SearchForm {...defaultProps} />);
-			});
+			const user = userEvent.setup();
+			await act(async () => render(<SearchForm {...defaultProps} />));
 			const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
 			const textArea = screen.getByLabelText(/Text to Find:/i);
 			const descendingRadio = screen.getByLabelText(
@@ -419,12 +411,12 @@ if (import.meta.vitest) {
 				name: /Find An Occurrence/i,
 			});
 
-			await act(async () => {
-				fireEvent.change(titleInput, { target: { value: 'Albert Einstein' } });
-				fireEvent.change(textArea, { target: { value: 'relativity' } });
-				fireEvent.click(descendingRadio); // Select descending order
-				fireEvent.click(button);
-			});
+			await user.clear(titleInput);
+			await user.type(titleInput, 'Albert Einstein');
+			await user.clear(textArea);
+			await user.type(textArea, 'relativity');
+			await user.click(descendingRadio);
+			await user.click(button);
 
 			expect(mockFormAction).toHaveBeenCalledTimes(1);
 
