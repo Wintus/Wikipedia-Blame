@@ -6,10 +6,20 @@ type ResultViewProps = {
 };
 
 /**
- * Gets the URL for a specific revision
+ * Gets the URL for a specific revision.
+ * Links to the previous or next revision based on the order.
  */
-const getRevisionUrl = (wikiUrl: URL | string, revId: number): URL =>
-	new URL(`/w/index.php?oldid=${revId}`, wikiUrl);
+const getRevisionUrl = (
+	wikiUrl: URL | string,
+	revId: number,
+	order?: 'asc' | 'desc'
+): URL => {
+	const url = new URL(`/w/index.php?oldid=${revId}`, wikiUrl);
+	if (order) {
+		url.searchParams.set('diff', order === 'asc' ? 'prev' : 'next');
+	}
+	return url;
+};
 
 export function ResultView({ result, isPending }: ResultViewProps) {
 	// guard
@@ -25,7 +35,11 @@ export function ResultView({ result, isPending }: ResultViewProps) {
 		);
 	}
 
-	const revisionUrl = getRevisionUrl(result.wikiUrl, result.revisionId);
+	const revisionUrl = getRevisionUrl(
+		result.wikiUrl,
+		result.revisionId,
+		result.order
+	);
 
 	return (
 		<div className="result-view success">
@@ -129,7 +143,7 @@ if (import.meta.vitest) {
 			const revisionLink = screen.getByText(/view revision/i);
 			expect(revisionLink).toBeTruthy();
 			expect(revisionLink.getAttribute('href')).toBe(
-				'https://en.wikipedia.org/w/index.php?oldid=12345'
+				'https://en.wikipedia.org/w/index.php?oldid=12345&diff=prev'
 			);
 		});
 
