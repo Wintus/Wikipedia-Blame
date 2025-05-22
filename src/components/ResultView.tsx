@@ -14,7 +14,8 @@ const getRevisionUrl = (
 	revId: number,
 	order?: 'asc' | 'desc'
 ): URL => {
-	const url = new URL(`/w/index.php?oldid=${revId}`, wikiUrl);
+	const url = new URL('/w/index.php', wikiUrl);
+	url.searchParams.set('oldid', revId.toString());
 	if (order) {
 		url.searchParams.set('diff', order === 'asc' ? 'prev' : 'next');
 	}
