@@ -25,10 +25,7 @@ export function ResultView({ result, isPending }: ResultViewProps) {
 		);
 	}
 
-	const revisionUrl = getRevisionUrl(
-		result.wikiUrl,
-		result.revisionId
-	).toString();
+	const revisionUrl = getRevisionUrl(result.wikiUrl, result.revisionId);
 
 	return (
 		<div className="result-view success">
@@ -44,7 +41,7 @@ export function ResultView({ result, isPending }: ResultViewProps) {
 					<strong>Revision ID:</strong> {result.revisionId}
 				</p>
 				<a
-					href={revisionUrl}
+					href={revisionUrl.toString()}
 					target="_blank"
 					rel="noopener noreferrer"
 					className="revision-link"
