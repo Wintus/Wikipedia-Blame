@@ -89,7 +89,7 @@ export function SearchForm({
 
 // MARK: in-source tests
 if (import.meta.vitest) {
-	const { describe, it, expect, vi, beforeEach } = import.meta.vitest;
+	const { describe, it, expect, vi, beforeEach, afterAll } = import.meta.vitest;
 	const { render, screen, act } = await import('@testing-library/react');
 	const { userEvent } = await import('@testing-library/user-event');
 	const MediaWikiAPIs = await import('../services/MediaWikiAPIs');
@@ -137,6 +137,10 @@ if (import.meta.vitest) {
 			vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockImplementation(
 				mockFetchPageId
 			);
+		});
+
+		afterAll(() => {
+			vi.restoreAllMocks();
 		});
 
 		it('renders form inputs and button', async () => {
