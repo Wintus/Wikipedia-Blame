@@ -138,9 +138,8 @@ export async function* fetchAllRevisions(
 
 // MARK: in-source tests
 if (import.meta.vitest) {
-	const { describe, it, expect, vi, beforeEach, afterEach } = await import(
-		'vitest'
-	);
+	const { describe, it, expect, vi, beforeEach, afterEach } = import.meta
+		.vitest;
 
 	describe('WikipediaAPI', () => {
 		const baseUrl = new URL('https://en.wikipedia.org');
