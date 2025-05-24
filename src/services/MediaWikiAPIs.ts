@@ -1,8 +1,6 @@
 /**
  * Service for interacting with the MediaWiki APIs
  * using both the Action API and the REST API
- *
- * note: `rvcontentformat-main=text/plain` is unavailable for regular pages
  */
 
 import { JSONParser } from '@streamparser/json-whatwg';
@@ -60,6 +58,8 @@ export async function fetchPageId(
  * If `endRevId` is provided, fetching stops at the timestamp of that revision ID.
  *
  * see https://www.mediawiki.org/wiki/API:Revisions
+ *
+ * note: `rvcontentformat-main=text/plain` is unavailable for regular pages
  */
 export async function* fetchAllRevisions(
 	baseUrl: URL,
