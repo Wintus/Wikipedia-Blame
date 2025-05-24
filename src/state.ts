@@ -1,3 +1,7 @@
+/**
+ * Type for application state
+ */
+
 export type SearchState = {
 	wikiUrl: URL;
 	pageId: number | null;
