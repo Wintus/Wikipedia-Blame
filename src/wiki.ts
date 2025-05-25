@@ -1,5 +1,5 @@
 /**
- * Types for MediaWiki wikis and application state
+ * Type and data for MediaWiki wikis
  */
 
 type WikiSite = {
