@@ -39,7 +39,7 @@ export function SearchForm({
 			<div className="form-group">
 				<label htmlFor="start-rev-id">Search from Rev ID (optional):</label>
 				<input
-					type="text"
+					type="search"
 					pattern="\d*"
 					id="start-rev-id"
 					name="startRevId"
@@ -50,7 +50,7 @@ export function SearchForm({
 			<div className="form-group">
 				<label htmlFor="end-rev-id">End Rev ID (optional):</label>
 				<input
-					type="text"
+					type="search"
 					pattern="\d*"
 					id="end-rev-id"
 					name="endRevId"
