@@ -34,7 +34,7 @@ export function PageTitleInput({
 		<div className="form-group">
 			<label htmlFor="page-title">Wiki Article Title:</label>
 			<input
-				type="text"
+				type="search"
 				id="page-title"
 				name="pageTitle"
 				value={pageTitle}
