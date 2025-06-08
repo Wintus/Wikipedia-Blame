@@ -36,49 +36,54 @@ export function SearchForm({
 				/>
 			</div>
 
-			<div className="form-group">
-				<label htmlFor="start-rev-id">Search from Rev ID (optional):</label>
-				<input
-					type="search"
-					pattern="\d*"
-					id="start-rev-id"
-					name="startRevId"
-					placeholder="Enter a revision ID to start searching from"
-				/>
-			</div>
+			<details>
+				<summary>Options:</summary>
 
-			<div className="form-group">
-				<label htmlFor="end-rev-id">End Rev ID (optional):</label>
-				<input
-					type="search"
-					pattern="\d*"
-					id="end-rev-id"
-					name="endRevId"
-					placeholder="Enter a revision ID to search up to"
-				/>
-			</div>
+				<div className="form-group">
+					<label htmlFor="start-rev-id">Search from Rev ID (optional):</label>
+					<input
+						type="search"
+						pattern="\d*"
+						id="start-rev-id"
+						name="startRevId"
+						placeholder="Enter a revision ID to start searching from"
+					/>
+				</div>
 
-			<fieldset className="form-group" key={searchState.order}>
-				<legend>Search Order:</legend>
-				<label>
+				<div className="form-group">
+					<label htmlFor="end-rev-id">End Rev ID (optional):</label>
 					<input
-						type="radio"
-						name="order"
-						value="asc"
-						defaultChecked={searchState.order === 'asc'}
+						type="search"
+						pattern="\d*"
+						id="end-rev-id"
+						name="endRevId"
+						placeholder="Enter a revision ID to search up to"
 					/>
-					Ascending (Older First)
-				</label>
-				<label>
-					<input
-						type="radio"
-						name="order"
-						value="desc"
-						defaultChecked={searchState.order === 'desc'}
-					/>
-					Descending (Newer First)
-				</label>
-			</fieldset>
+				</div>
+
+				<fieldset className="form-group" key={searchState.order}>
+					<legend>Search Order:</legend>
+					<label>
+						<input
+							type="radio"
+							name="order"
+							value="asc"
+							defaultChecked={searchState.order === 'asc'}
+						/>
+						Ascending (Older First)
+					</label>
+
+					<label>
+						<input
+							type="radio"
+							name="order"
+							value="desc"
+							defaultChecked={searchState.order === 'desc'}
+						/>
+						Descending (Newer First)
+					</label>
+				</fieldset>
+			</details>
 
 			<button type="submit" disabled={isPending}>
 				{isPending ? 'Searching...' : 'Find An Occurrence'}
