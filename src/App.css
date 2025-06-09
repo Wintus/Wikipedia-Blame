@@ -185,3 +185,55 @@ button:disabled {
 	color: var(--error-color);
 	font-weight: bold;
 }
+
+details {
+	border: 1px solid #ddd;
+	border-radius: 0.25em;
+	margin-block-end: 1.25rem; /* Same as .form-group */
+	background-color: #f9f9f9; /* Slightly different background for the accordion */
+}
+
+/* Style for the summary (the clickable part) */
+details summary {
+	display: block; /* Ensure it takes full width */
+	padding-block: 0.625em;
+	padding-inline: 0.9375em; /* More padding than input fields for better click-ability */
+	font-weight: bold;
+	cursor: pointer;
+	list-style: none; /* Remove default marker in some browsers */
+}
+
+/* Add a custom marker (e.g., arrow) for the summary */
+details summary::before {
+	content: '▶ '; /* Default closed state marker */
+	margin-inline-end: 0.5em;
+	font-size: 0.8em;
+	display: inline-block;
+	transition: transform 0.2s ease-in-out;
+}
+
+/* Rotate the marker when the details element is open */
+details[open] summary::before {
+	transform: rotate(90deg);
+}
+
+/* Style for the content within the details element when open */
+details > div {
+	padding-block-start: 0.625rem;
+	padding-inline: 0.9375em; /* Align content with summary padding */
+	padding-block-end: 0.9375em;
+}
+
+/* Ensure form groups within the details section don't have extra top margin if they are the first child */
+details > .form-group:first-child {
+	margin-block-start: 0;
+}
+
+/* Adjust margin for form groups inside details to be consistent */
+details .form-group {
+	margin-block-end: 1rem;
+}
+
+details .form-group:last-child {
+	margin-block-end: 0; /* Remove bottom margin from the last form group inside details */
+}
