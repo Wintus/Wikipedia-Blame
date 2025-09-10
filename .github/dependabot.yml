@@ -18,3 +18,8 @@ updates:
         update-types:
           - minor
           - patch
+    cooldown:
+      default-days: 4
+      semver-major-days: 3
+      semver-minor-days: 2
+      semver-patch-days: 1
