@@ -15,19 +15,20 @@ export function PageTitleInput({
 	const [pageTitle, setPageTitle] = useState(initialPageTitle);
 	const debouncedPageTitle = useDebounce(pageTitle.trim(), 300);
 
-	const pageIdPromise = useMemo(async () => {
+	// Note: useMemo callback cannot be async (linter rule), but returning a Promise is fine.
+	// Semantically equivalent to async/await, but React wants explicit Promise return.
+	const pageIdPromise = useMemo(() => {
 		// guard
 		if (!debouncedPageTitle) {
-			return {};
+			return Promise.resolve({});
 		}
 		// fetch page ID
-		try {
-			const id = await fetchPageId(wikiUrl, debouncedPageTitle);
-			return { id: id.toString() };
-		} catch (error) {
-			console.error('Error fetching page ID:', error);
-			return { error: 'Error fetching page ID. Please try again.' };
-		}
+		return fetchPageId(wikiUrl, debouncedPageTitle)
+			.then((id) => ({ id: id.toString() }))
+			.catch((error) => {
+				console.error('Error fetching page ID:', error);
+				return { error: 'Error fetching page ID. Please try again.' };
+			});
 	}, [wikiUrl, debouncedPageTitle]);
 
 	return (
