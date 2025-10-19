@@ -15,6 +15,8 @@ export function PageTitleInput({
 	const [pageTitle, setPageTitle] = useState(initialPageTitle);
 	const debouncedPageTitle = useDebounce(pageTitle.trim(), 300);
 
+	// Note: useMemo callback cannot be async (linter rule), but returning a Promise is fine.
+	// Semantically equivalent to async/await, but React wants explicit Promise return.
 	const pageIdPromise = useMemo(() => {
 		// guard
 		if (!debouncedPageTitle) {
