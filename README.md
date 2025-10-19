@@ -51,7 +51,7 @@ The application employs an action-state driven architecture centered around Reac
 5. **UI Rendering:** `App.tsx` passes the `searchState` (containing the found `revisionId`) and `isPending` status down to `SearchForm.tsx` (for default value population) and `ResultView.tsx` (for display).
 
 This approach collocates data fetching and state logic within the action, simplifying component responsibilities and leveraging React's built-in pending state management.
-See `architecture-overview.md` for a visual flow diagram.
+See [architecture-overview.md](docs/architecture-overview.md) for a visual flow diagram.
 
 ## Project Structure
 
