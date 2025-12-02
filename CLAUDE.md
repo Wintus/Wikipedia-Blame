@@ -4,7 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Wikipedia-Blame is a React single-page application that finds when specific text first appeared in a Wikipedia article's history (similar to git blame). It uses React 19's `useActionState` hook and AsyncGenerator patterns for efficient streaming of potentially large revision histories.
+Wikipedia-Blame is a React single-page application that finds when specific text first appeared in a Wikipedia article's history (similar to git blame).
+It uses React 19's `useActionState` hook and AsyncGenerator patterns for efficient streaming of potentially large revision histories.
 
 ## Development Commands
 
@@ -34,7 +35,8 @@ The application uses React 19's `useActionState` for unified form submission and
 
 ### AsyncGenerator Streaming Pattern (ADR-001)
 
-To handle potentially thousands of revisions without loading everything into memory, the app uses a linear streaming search (sampling was removed in favor of simplicity):
+To handle potentially thousands of revisions without loading everything into memory,
+the app uses a linear streaming search (sampling was removed in favor of simplicity):
 
 - @src/services/MediaWikiAPIs.ts - `fetchAllRevisions` is an AsyncGenerator that:
   - Fetches revision IDs and content simultaneously in a single API call (`rvprop: 'ids|content'`)
@@ -82,7 +84,7 @@ Uses **Vitest** with **in-source testing** pattern. All source files MUST includ
 - Tests are written at the bottom of source files using `if (import.meta.vitest) { ... }`
 - Use `// MARK: in-source tests` comment before the test block
 - Environment: `happy-dom`
-- Setup file: @src/setupTests.ts (imports `@testing-library/jest-dom`)
+- Setup file: src/setupTests.ts (imports `@testing-library/jest-dom`)
 
 ### TDD Workflow:
 
@@ -121,12 +123,6 @@ The project follows functional programming principles (see @.clinerules/function
 6. **Generator functions** - Use for lazy evaluation of sequences
 7. **Single responsibility** - Each function does one thing well
 
-### ESLint Rules
-
-- **`curly: ['error', 'all']`** - Always use curly braces for all control structures (if, for, while, etc.), even single-line statements
-- React Hooks rules enforced via `eslint-plugin-react-hooks`
-- TypeScript strict mode enabled
-
 ## Key Architecture Decisions (ADRs)
 
 Located in @docs/adr/:
@@ -138,6 +134,6 @@ Located in @docs/adr/:
 ## Deployment
 
 - **Platform:** GitHub Pages
-- **Base path:** `/Wikipedia-Blame/` (configured in @vite.config.ts)
+- **Base path:** `/Wikipedia-Blame/` (configured in vite.config.ts)
 - **Workflow:** `.github/workflows/deploy.yml` auto-deploys on pushes to main branch
 - Manual deployment available via GitHub Actions workflow dispatch
