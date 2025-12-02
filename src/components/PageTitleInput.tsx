@@ -60,9 +60,8 @@ export function PageTitleInput({
 if (import.meta.vitest) {
 	const { describe, it, expect, vi, beforeEach, beforeAll, afterAll } =
 		import.meta.vitest;
-	const { render, screen, act, waitForElementToBeRemoved } = await import(
-		'@testing-library/react'
-	);
+	const { render, screen, act, waitForElementToBeRemoved } =
+		await import('@testing-library/react');
 	const { userEvent } = await import('@testing-library/user-event');
 	const MediaWikiAPIs = await import('../services/MediaWikiAPIs');
 
