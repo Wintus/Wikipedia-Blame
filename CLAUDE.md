@@ -121,12 +121,6 @@ The project follows functional programming principles (see @.clinerules/function
 6. **Generator functions** - Use for lazy evaluation of sequences
 7. **Single responsibility** - Each function does one thing well
 
-### ESLint Rules
-
-- **`curly: ['error', 'all']`** - Always use curly braces for all control structures (if, for, while, etc.), even single-line statements
-- React Hooks rules enforced via `eslint-plugin-react-hooks`
-- TypeScript strict mode enabled
-
 ## Key Architecture Decisions (ADRs)
 
 Located in @docs/adr/:
