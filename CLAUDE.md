@@ -4,7 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Wikipedia-Blame is a React single-page application that finds when specific text first appeared in a Wikipedia article's history (similar to git blame). It uses React 19's `useActionState` hook and AsyncGenerator patterns for efficient streaming of potentially large revision histories.
+Wikipedia-Blame is a React single-page application that finds when specific text first appeared in a Wikipedia article's history (similar to git blame).
+It uses React 19's `useActionState` hook and AsyncGenerator patterns for efficient streaming of potentially large revision histories.
 
 ## Development Commands
 
@@ -34,7 +35,8 @@ The application uses React 19's `useActionState` for unified form submission and
 
 ### AsyncGenerator Streaming Pattern (ADR-001)
 
-To handle potentially thousands of revisions without loading everything into memory, the app uses a linear streaming search (sampling was removed in favor of simplicity):
+To handle potentially thousands of revisions without loading everything into memory,
+the app uses a linear streaming search (sampling was removed in favor of simplicity):
 
 - @src/services/MediaWikiAPIs.ts - `fetchAllRevisions` is an AsyncGenerator that:
   - Fetches revision IDs and content simultaneously in a single API call (`rvprop: 'ids|content'`)
