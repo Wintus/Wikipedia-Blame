@@ -82,7 +82,7 @@ Uses **Vitest** with **in-source testing** pattern. All source files MUST includ
 - Tests are written at the bottom of source files using `if (import.meta.vitest) { ... }`
 - Use `// MARK: in-source tests` comment before the test block
 - Environment: `happy-dom`
-- Setup file: @src/setupTests.ts (imports `@testing-library/jest-dom`)
+- Setup file: src/setupTests.ts (imports `@testing-library/jest-dom`)
 
 ### TDD Workflow:
 
@@ -138,6 +138,6 @@ Located in @docs/adr/:
 ## Deployment
 
 - **Platform:** GitHub Pages
-- **Base path:** `/Wikipedia-Blame/` (configured in @vite.config.ts)
+- **Base path:** `/Wikipedia-Blame/` (configured in vite.config.ts)
 - **Workflow:** `.github/workflows/deploy.yml` auto-deploys on pushes to main branch
 - Manual deployment available via GitHub Actions workflow dispatch
