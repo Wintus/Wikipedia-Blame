@@ -17,16 +17,16 @@
       "Bash(git branch:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git checkout:*)",
       "Bash(git switch:*)",
       "Bash(git merge:*)",
       "Bash(git pull:*)",
       "Bash(git push)",
-      "Bash(git push --set-upstream:*)",
       "Bash(git push -u:*)",
       "Bash(gh pr:*)",
       "Bash(gh issue:*)",
-      "Bash(gh repo view)"
+      "Bash(gh repo view)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)"
     ],
     "deny": [
       "Bash(git push --force:*)",
