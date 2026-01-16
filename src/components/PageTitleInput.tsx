@@ -1,4 +1,4 @@
-import { Suspense, useMemo, useState } from 'react';
+import { Suspense, useState } from 'react';
 import useDebounce from '../hooks/useDebounce';
 import { fetchPageId } from '../services/MediaWikiAPIs';
 import { PageIdFetcher } from './PageIdFetcher';
@@ -15,9 +15,8 @@ export function PageTitleInput({
 	const [pageTitle, setPageTitle] = useState(initialPageTitle);
 	const debouncedPageTitle = useDebounce(pageTitle.trim(), 300);
 
-	// Note: useMemo callback cannot be async (linter rule), but returning a Promise is fine.
-	// Semantically equivalent to async/await, but React wants explicit Promise return.
-	const pageIdPromise = useMemo(() => {
+	// React Compiler auto-memoizes based on reactive dependencies (wikiUrl, debouncedPageTitle)
+	const pageIdPromise = (() => {
 		// guard
 		if (!debouncedPageTitle) {
 			return Promise.resolve({});
@@ -29,7 +28,7 @@ export function PageTitleInput({
 				console.error('Error fetching page ID:', error);
 				return { error: 'Error fetching page ID. Please try again.' };
 			});
-	}, [wikiUrl, debouncedPageTitle]);
+	})();
 
 	return (
 		<div className="form-group">
