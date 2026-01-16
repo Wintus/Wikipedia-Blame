@@ -16,18 +16,19 @@ export function PageTitleInput({
 	const debouncedPageTitle = useDebounce(pageTitle.trim(), 300);
 
 	// React Compiler auto-memoizes based on reactive dependencies (wikiUrl, debouncedPageTitle)
-	const pageIdPromise = (() => {
+	const pageIdPromise = (async () => {
 		// guard
 		if (!debouncedPageTitle) {
-			return Promise.resolve({});
+			return {};
 		}
 		// fetch page ID
-		return fetchPageId(wikiUrl, debouncedPageTitle)
-			.then((id) => ({ id: id.toString() }))
-			.catch((error) => {
-				console.error('Error fetching page ID:', error);
-				return { error: 'Error fetching page ID. Please try again.' };
-			});
+		try {
+			const id = await fetchPageId(wikiUrl, debouncedPageTitle);
+			return { id: id.toString() };
+		} catch (error) {
+			console.error('Error fetching page ID:', error);
+			return { error: 'Error fetching page ID. Please try again.' };
+		}
 	})();
 
 	return (
