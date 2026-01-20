@@ -219,5 +219,27 @@ if (import.meta.vitest) {
 			);
 			expect(errorMessage).toBeInTheDocument();
 		});
+
+		it('does not recreate pageIdPromise when dependencies are unchanged', async () => {
+			const user = userEvent.setup();
+			mockFetchPageId.mockResolvedValue(123);
+
+			await act(async () =>
+				render(<PageTitleInput initialPageTitle="Test" wikiUrl={stubWikiUrl} />)
+			);
+
+			// Initial render should trigger one call for "Test"
+			expect(mockFetchPageId).toHaveBeenCalledTimes(1);
+
+			const inputElement = screen.getByLabelText(/Wiki Article Title:/i);
+
+			// Type a character - this triggers setPageTitle and a re-render,
+			// but debouncedPageTitle hasn't changed yet (debounce delay is 300ms)
+			await user.type(inputElement, 's');
+
+			// Immediately after typing (before debounce completes), fetchPageId
+			// should NOT be called again because debouncedPageTitle is still "Test"
+			expect(mockFetchPageId).toHaveBeenCalledTimes(1);
+		});
 	});
 }
