@@ -83,141 +83,185 @@ if (import.meta.vitest) {
 			vi.restoreAllMocks();
 		});
 
-		it('renders the label and input with initial value', async () => {
-			mockFetchPageId.mockResolvedValue(123);
-			await act(async () =>
-				render(
-					<PageTitleInput initialPageTitle="Test Title" wikiUrl={stubWikiUrl} />
-				)
-			);
-			const inputElement = screen.getByLabelText(
-				/Wiki Article Title:/i
-			) as HTMLInputElement;
-			expect(inputElement).toBeInTheDocument();
-			expect(inputElement.value).toBe('Test Title');
+		describe('Rendering', () => {
+			it('renders the label and input with initial value', async () => {
+				mockFetchPageId.mockResolvedValue(123);
+				await act(async () =>
+					render(
+						<PageTitleInput
+							initialPageTitle="Test Title"
+							wikiUrl={stubWikiUrl}
+						/>
+					)
+				);
+				const inputElement = screen.getByLabelText(
+					/Wiki Article Title:/i
+				) as HTMLInputElement;
+				expect(inputElement).toBeInTheDocument();
+				expect(inputElement.value).toBe('Test Title');
+			});
+
+			it('renders a hidden input field for pageId', async () => {
+				await act(async () =>
+					render(<PageTitleInput initialPageTitle="" wikiUrl={stubWikiUrl} />)
+				);
+				expect(screen.getByTestId('pageId-input')).toBeInTheDocument();
+			});
 		});
 
-		it('renders a hidden input field for pageId', async () => {
-			await act(async () =>
-				render(<PageTitleInput initialPageTitle="" wikiUrl={stubWikiUrl} />)
-			);
-			expect(screen.getByTestId('pageId-input')).toBeInTheDocument();
+		describe('User Interaction', () => {
+			it('updates the input value on change', async () => {
+				const user = userEvent.setup();
+				mockFetchPageId.mockResolvedValue(123);
+				await act(async () =>
+					render(
+						<PageTitleInput
+							initialPageTitle="Test Title"
+							wikiUrl={stubWikiUrl}
+						/>
+					)
+				);
+				const inputElement = screen.getByLabelText(
+					/Wiki Article Title:/i
+				) as HTMLInputElement;
+
+				// Wait for the debounce and API call
+				expect(mockFetchPageId).toHaveBeenCalledTimes(1);
+
+				await user.clear(inputElement);
+				await user.type(inputElement, 'New Title');
+
+				const loadingIndicator = await screen.findByText(
+					'Checking title...',
+					{},
+					{
+						timeout: 350,
+					}
+				);
+				expect(loadingIndicator).toBeInTheDocument();
+
+				// Wait for the debounce and API call
+				expect(mockFetchPageId).toHaveBeenCalledTimes(2);
+				await waitForElementToBeRemoved(() =>
+					screen.getByText('Checking title...')
+				);
+
+				expect(inputElement.value).toBe('New Title');
+			});
+
+			it('calls fetchPageId with the correct arguments after debouncing', async () => {
+				const user = userEvent.setup();
+				mockFetchPageId.mockResolvedValue(123);
+				await act(async () =>
+					render(<PageTitleInput initialPageTitle="" wikiUrl={stubWikiUrl} />)
+				);
+				const inputElement = screen.getByLabelText(
+					/Wiki Article Title:/i
+				) as HTMLInputElement;
+
+				await user.clear(inputElement);
+				await user.type(inputElement, 'Test');
+
+				const loadingIndicator = await screen.findByText(
+					'Checking title...',
+					{},
+					{
+						timeout: 350,
+					}
+				);
+				expect(loadingIndicator).toBeInTheDocument();
+
+				// Wait for the debounce and API call
+				expect(mockFetchPageId).toHaveBeenCalledTimes(1);
+				await waitForElementToBeRemoved(() =>
+					screen.getByText('Checking title...')
+				);
+
+				expect(mockFetchPageId).toHaveBeenCalledWith(stubWikiUrl, 'Test');
+			});
 		});
 
-		it('updates the input value on change', async () => {
-			const user = userEvent.setup();
-			mockFetchPageId.mockResolvedValue(123);
-			await act(async () =>
-				render(
-					<PageTitleInput initialPageTitle="Test Title" wikiUrl={stubWikiUrl} />
-				)
-			);
-			const inputElement = screen.getByLabelText(
-				/Wiki Article Title:/i
-			) as HTMLInputElement;
+		describe('API Response Handling', () => {
+			it('renders the hidden input with the correct pageId when fetch is successful', async () => {
+				mockFetchPageId.mockResolvedValue(123);
+				await act(async () =>
+					render(
+						<PageTitleInput
+							initialPageTitle="Test Title"
+							wikiUrl={stubWikiUrl}
+						/>
+					)
+				);
+				// Wait for the API call
+				expect(mockFetchPageId).toHaveBeenCalledTimes(1);
+				expect(screen.getByTestId('pageId-input')).toBeInTheDocument();
+				const hiddenInput = screen.getByTestId(
+					'pageId-input'
+				) as HTMLInputElement;
+				expect(hiddenInput.value).toBe('123');
+			});
 
-			// Wait for the debounce and API call
-			expect(mockFetchPageId).toHaveBeenCalledTimes(1);
+			it('displays error message and sets empty hidden input when fetch fails', async () => {
+				mockFetchPageId.mockRejectedValue(new Error('API Error'));
+				const consoleErrorSpy = vi
+					.spyOn(console, 'error')
+					.mockImplementation(() => {});
 
-			await user.clear(inputElement);
-			await user.type(inputElement, 'New Title');
+				await act(async () =>
+					render(
+						<PageTitleInput
+							initialPageTitle="Test Title"
+							wikiUrl={stubWikiUrl}
+						/>
+					)
+				);
+				// Wait for the API call
+				expect(mockFetchPageId).toHaveBeenCalledTimes(1);
+				expect(screen.getByTestId('pageId-input')).toBeInTheDocument();
 
-			const loadingIndicator = await screen.findByText(
-				'Checking title...',
-				{},
-				{
-					timeout: 350,
-				}
-			);
-			expect(loadingIndicator).toBeInTheDocument();
-
-			// Wait for the debounce and API call
-			expect(mockFetchPageId).toHaveBeenCalledTimes(2);
-			await waitForElementToBeRemoved(() =>
-				screen.getByText('Checking title...')
-			);
-
-			expect(inputElement.value).toBe('New Title');
+				const hiddenInput = screen.getByTestId(
+					'pageId-input'
+				) as HTMLInputElement;
+				expect(hiddenInput.value).toBe('');
+				expect(consoleErrorSpy).toHaveBeenCalledWith(
+					'Error fetching page ID:',
+					new Error('API Error')
+				);
+				const errorMessage = await screen.findByText(
+					'Error fetching page ID. Please try again.',
+					{},
+					{
+						timeout: 300,
+					}
+				);
+				expect(errorMessage).toBeInTheDocument();
+			});
 		});
 
-		it('calls fetchPageId with the correct arguments after debouncing', async () => {
-			const user = userEvent.setup();
-			mockFetchPageId.mockResolvedValue(123);
-			await act(async () =>
-				render(<PageTitleInput initialPageTitle="" wikiUrl={stubWikiUrl} />)
-			);
-			const inputElement = screen.getByLabelText(
-				/Wiki Article Title:/i
-			) as HTMLInputElement;
+		describe('useMemo Behavior', () => {
+			it('does not recreate pageIdPromise when dependencies are unchanged', async () => {
+				const user = userEvent.setup();
+				mockFetchPageId.mockResolvedValue(123);
 
-			await user.clear(inputElement);
-			await user.type(inputElement, 'Test');
+				await act(async () =>
+					render(
+						<PageTitleInput initialPageTitle="Test" wikiUrl={stubWikiUrl} />
+					)
+				);
 
-			const loadingIndicator = await screen.findByText(
-				'Checking title...',
-				{},
-				{
-					timeout: 350,
-				}
-			);
-			expect(loadingIndicator).toBeInTheDocument();
+				// Initial render should trigger one call for "Test"
+				expect(mockFetchPageId).toHaveBeenCalledTimes(1);
 
-			// Wait for the debounce and API call
-			expect(mockFetchPageId).toHaveBeenCalledTimes(1);
-			await waitForElementToBeRemoved(() =>
-				screen.getByText('Checking title...')
-			);
+				const inputElement = screen.getByLabelText(/Wiki Article Title:/i);
 
-			expect(mockFetchPageId).toHaveBeenCalledWith(stubWikiUrl, 'Test');
-		});
+				// Type a character - this triggers setPageTitle and a re-render,
+				// but debouncedPageTitle hasn't changed yet (debounce delay is 300ms)
+				await user.type(inputElement, 's');
 
-		it('renders the hidden input with the correct pageId when fetch is successful', async () => {
-			mockFetchPageId.mockResolvedValue(123);
-			await act(async () =>
-				render(
-					<PageTitleInput initialPageTitle="Test Title" wikiUrl={stubWikiUrl} />
-				)
-			);
-			// Wait for the API call
-			expect(mockFetchPageId).toHaveBeenCalledTimes(1);
-			expect(screen.getByTestId('pageId-input')).toBeInTheDocument();
-			const hiddenInput = screen.getByTestId(
-				'pageId-input'
-			) as HTMLInputElement;
-			expect(hiddenInput.value).toBe('123');
-		});
-
-		it('displays error message and sets empty hidden input when fetch fails', async () => {
-			mockFetchPageId.mockRejectedValue(new Error('API Error'));
-			const consoleErrorSpy = vi
-				.spyOn(console, 'error')
-				.mockImplementation(() => {});
-
-			await act(async () =>
-				render(
-					<PageTitleInput initialPageTitle="Test Title" wikiUrl={stubWikiUrl} />
-				)
-			);
-			// Wait for the API call
-			expect(mockFetchPageId).toHaveBeenCalledTimes(1);
-			expect(screen.getByTestId('pageId-input')).toBeInTheDocument();
-
-			const hiddenInput = screen.getByTestId(
-				'pageId-input'
-			) as HTMLInputElement;
-			expect(hiddenInput.value).toBe('');
-			expect(consoleErrorSpy).toHaveBeenCalledWith(
-				'Error fetching page ID:',
-				new Error('API Error')
-			);
-			const errorMessage = await screen.findByText(
-				'Error fetching page ID. Please try again.',
-				{},
-				{
-					timeout: 300,
-				}
-			);
-			expect(errorMessage).toBeInTheDocument();
+				// Immediately after typing (before debounce completes), fetchPageId
+				// should NOT be called again because debouncedPageTitle is still "Test"
+				expect(mockFetchPageId).toHaveBeenCalledTimes(1);
+			});
 		});
 	});
 }
