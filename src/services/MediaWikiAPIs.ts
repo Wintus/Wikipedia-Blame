@@ -36,11 +36,12 @@ const convert = (revision: Revision<'main'>): RevisionResult => ({
  */
 export async function fetchPageId(
 	baseUrl: URL,
-	pageTitle: string
+	pageTitle: string,
+	signal: AbortSignal | null = null
 ): Promise<number> {
 	const url = new URL(`/w/rest.php/v1/page/${pageTitle}/bare`, baseUrl);
 	// guard
-	const response = await fetch(url);
+	const response = await fetch(url, { signal });
 	if (!response.ok) {
 		throw new Error('Failed to fetch page ID', {
 			cause: response,
@@ -173,7 +174,7 @@ if (import.meta.vitest) {
 					'/w/rest.php/v1/page/Test Page/bare',
 					baseUrl
 				);
-				expect(mockFetch).toHaveBeenCalledWith(expectedUrl);
+				expect(mockFetch).toHaveBeenCalledWith(expectedUrl, { signal: null });
 				expect(pageId).toBe(12345);
 			});
 
@@ -425,6 +426,37 @@ if (import.meta.vitest) {
 
 				expect(mockFetch).toHaveBeenCalledWith(expectedUrl);
 			});
+		});
+
+		it('passes AbortSignal to fetch when provided', async () => {
+			const mockResponse = {
+				ok: true,
+				json: vi.fn().mockResolvedValue({ id: 12345 }),
+			};
+			mockFetch.mockResolvedValue(mockResponse);
+			const abortController = new AbortController();
+
+			await fetchPageId(baseUrl, 'Test Page', abortController.signal);
+
+			const expectedUrl = new URL(
+				'/w/rest.php/v1/page/Test Page/bare',
+				baseUrl
+			);
+			expect(mockFetch).toHaveBeenCalledWith(expectedUrl, {
+				signal: abortController.signal,
+			});
+		});
+
+		it('throws AbortError when request is aborted', async () => {
+			const abortController = new AbortController();
+			mockFetch.mockImplementation(() => {
+				abortController.abort();
+				return Promise.reject(new DOMException('Aborted', 'AbortError'));
+			});
+
+			await expect(
+				fetchPageId(baseUrl, 'Test Page', abortController.signal)
+			).rejects.toThrow('Aborted');
 		});
 	});
 }
