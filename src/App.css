@@ -186,6 +186,31 @@ button:disabled {
 	font-weight: bold;
 }
 
+.status-message-container button {
+	display: inline;
+	inline-size: auto;
+	padding: 0;
+	background: none;
+	color: var(--primary-color);
+	border: none;
+	font-size: inherit;
+	font-weight: inherit;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.status-message-container button:hover {
+	background: none;
+	color: #2980b9;
+	text-decoration: underline;
+}
+
+.status-message-container button:disabled {
+	background: none;
+	color: #bdc3c7;
+	cursor: not-allowed;
+}
+
 details {
 	border: 1px solid #ddd;
 	border-radius: 0.25em;
