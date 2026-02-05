@@ -77,6 +77,54 @@ Key implementation details:
 - Fetches in batches via `rvlimit=max` with continuation tokens (`rvcontinue`)
 - Client-side dump processing was considered and rejected due to prohibitive download times (ADR-003)
 
+## TanStack Query Integration (ADR-004)
+
+The application uses TanStack Query for page ID fetching with the following patterns:
+
+### Query Configuration
+
+- **QueryClientProvider** in @src/App.tsx with:
+  - 1-hour `staleTime` for automatic caching (page IDs are immutable)
+  - Single retry on failure
+  - ReactQueryDevtools in development mode
+
+### Page ID Fetching Pattern
+
+@src/components/PageTitleInput.tsx:
+- Uses TanStack Pacer's `useDebouncedValue` (300ms) for input debouncing
+- Always renders QueryErrorResetBoundary > ErrorBoundary > Suspense > PageIdFetcher (no conditional branching)
+- Uses `react-error-boundary` package with `resetKeys={[debouncedTitle]}` for automatic error recovery on title change
+- Discriminates 404 errors (page not found) from other errors using `isNotFoundError()` helper
+- Shows retry button with inline link styling for non-404 errors
+- Renders hidden `<input name="pageId">` in error fallback to prevent form submission
+
+@src/components/PageIdFetcher.tsx:
+- Uses `useSuspenseQuery` with query key `['pageId', wikiUrl.href, pageTitle]`
+- Handles empty title inside `queryFn`: returns `null` for empty title (quick-resolving, no Suspense flash)
+- Passes `AbortSignal` from query to `fetchPageId` for request cancellation
+- Throws errors for ErrorBoundary to catch (no inline error handling)
+
+### Key Benefits
+
+- **Request cancellation**: In-flight requests automatically aborted on input change
+- **Automatic caching**: Same page title returns cached result (1h staleTime, page IDs are immutable)
+- **Deduplication**: Multiple components requesting same data share one request
+- **Promise stability**: Query cache handles promise reference stability
+
+### Testing Pattern
+
+All components using queries must be wrapped in `QueryClientProvider`:
+
+```tsx
+const renderWithQuery = (component: React.ReactElement) => {
+  return render(
+    <QueryClientProvider client={queryClient}>
+      {component}
+    </QueryClientProvider>
+  );
+};
+```
+
 ## Testing Requirements (TDD Workflow)
 
 Uses **Vitest** with **in-source testing** pattern. All source files MUST include tests:
@@ -130,6 +178,7 @@ Located in @docs/adr/:
 - **ADR-001**: Removed revision sampling in favor of linear streaming search for code simplicity
 - **ADR-002**: Enabled client-side caching with `maxage` parameter (60s for recent, 600s for historical)
 - **ADR-003**: Rejected client-side dump processing due to prohibitive download speeds
+- **ADR-004**: Migrated to TanStack Query for page ID fetching (replaced useMemo + use() pattern)
 
 ## Deployment
 
