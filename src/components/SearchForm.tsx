@@ -21,6 +21,7 @@ export function SearchForm({
 			<WikiSelector selectedWiki={wikiUrl} onChange={setWikiUrl} />
 
 			<PageTitleInput
+				key={wikiUrl.href}
 				initialPageTitle={searchState.pageTitle}
 				wikiUrl={wikiUrl}
 			/>
@@ -326,6 +327,36 @@ if (import.meta.vitest) {
 			user.click(button);
 
 			expect(wikiSelector.value).toBe('https://ja.wikipedia.org/');
+		});
+
+		it('resets page title input when wiki site changes', async () => {
+			const { fireEvent } = await import('@testing-library/react');
+			const user = userEvent.setup();
+			await act(async () => renderWithQuery(<SearchForm {...defaultProps} />));
+			const titleInput = screen.getByLabelText(
+				/Wiki Article Title:/i
+			) as HTMLInputElement;
+
+			// User types a different title
+			await user.clear(titleInput);
+			await user.type(titleInput, 'Albert Einstein');
+			expect(titleInput.value).toBe('Albert Einstein');
+
+			// Switch wiki site
+			const wikiSelector =
+				screen.getByLabelText<HTMLSelectElement>(/Wiki Site:/i);
+			await act(async () => {
+				// use fireEvent due to warning of act unsupported
+				fireEvent.change(wikiSelector, {
+					target: { value: 'https://ja.wikipedia.org/' },
+				});
+			});
+
+			// PageTitleInput remounts → title resets to initialPageTitle
+			const resetTitleInput = screen.getByLabelText(
+				/Wiki Article Title:/i
+			) as HTMLInputElement;
+			expect(resetTitleInput.value).toBe('Initial Title');
 		});
 
 		it('renders initial values from searchState', async () => {
