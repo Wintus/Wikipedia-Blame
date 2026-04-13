@@ -16,11 +16,11 @@
 	},
 	"dependencies": {
 		"@streamparser/json-whatwg": "^0.0.22",
-		"@tanstack/react-pacer": "^0.21.0",
-		"@tanstack/react-query": "^5.95.2",
-		"@tanstack/react-query-devtools": "^5.95.2",
-		"react": "^19.2.4",
-		"react-dom": "^19.2.4",
+		"@tanstack/react-pacer": "^0.21.1",
+		"@tanstack/react-query": "^5.97.0",
+		"@tanstack/react-query-devtools": "^5.97.0",
+		"react": "^19.2.5",
+		"react-dom": "^19.2.5",
 		"react-error-boundary": "^6.1.1"
 	},
 	"devDependencies": {
@@ -32,16 +32,16 @@
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^5.1.4",
 		"babel-plugin-react-compiler": "^1.0.0",
-		"eslint": "^10.1.0",
+		"eslint": "^10.2.0",
 		"eslint-plugin-react-hooks": "^7.0.1",
 		"eslint-plugin-react-refresh": "^0.5.2",
 		"globals": "^17.4.0",
 		"happy-dom": "^20.8.9",
-		"prettier": "^3.8.1",
+		"prettier": "^3.8.2",
 		"typescript": "~5.9.3",
-		"typescript-eslint": "^8.57.2",
+		"typescript-eslint": "^8.58.1",
 		"vite": "^7.3.1",
-		"vitest": "^4.1.2"
+		"vitest": "^4.1.4"
 	},
 	"overrides": {
 		"eslint-plugin-react-hooks": {
