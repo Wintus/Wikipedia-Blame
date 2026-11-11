@@ -37,7 +37,7 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Type check
-        run: tsc -b
+        run: npx tsc -b
 
   test:
     name: Test
