@@ -1,22 +1,30 @@
 name: Claude Code
 
+# SUSPENDED: the Claude Code subscription is no longer active.
+# The `@claude` mention bot is disabled. Restore the event triggers and the
+# job `if:` condition below to re-enable it.
+
 on:
-  issue_comment:
-    types: [created]
-  pull_request_review_comment:
-    types: [created]
-  issues:
-    types: [opened, assigned]
-  pull_request_review:
-    types: [submitted]
+  # issue_comment:
+  #   types: [created]
+  # pull_request_review_comment:
+  #   types: [created]
+  # issues:
+  #   types: [opened, assigned]
+  # pull_request_review:
+  #   types: [submitted]
+  workflow_dispatch:
 
 jobs:
   claude:
-    if: |
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
-      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+    # Suspended - do not run automatically.
+    if: false
+    # Original condition:
+    # if: |
+    #   (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+    #   (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+    #   (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
+    #   (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
     runs-on: ubuntu-latest
     permissions:
       contents: read
