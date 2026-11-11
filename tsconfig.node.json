@@ -24,6 +24,7 @@
 		"exactOptionalPropertyTypes": true,
 		"noImplicitReturns": true,
 		"noUncheckedIndexedAccess": true,
+		"types": ["node"]
 	},
 	"include": ["vite.config.ts"]
 }
