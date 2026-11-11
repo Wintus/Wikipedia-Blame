@@ -1,19 +1,19 @@
 name: Claude Code Review
 
+# SUSPENDED: the Claude Code subscription is no longer active.
+# Automated PR review is disabled. Restore the `pull_request` trigger and the
+# job `if:` condition below to re-enable it.
+
 on:
-  pull_request:
-    types: [opened, synchronize]
-    # Optional: Only run on specific file changes
-    # paths:
-    #   - "src/**/*.ts"
-    #   - "src/**/*.tsx"
-    #   - "src/**/*.js"
-    #   - "src/**/*.jsx"
+  # pull_request:
+  #   types: [opened, synchronize]
+  workflow_dispatch:
 
 jobs:
   claude-review:
-    # Skip Dependabot PRs (cannot access repository secrets)
-    if: github.actor != 'dependabot[bot]'
+    # Suspended - do not run automatically.
+    # Original condition: github.actor != 'dependabot[bot]'
+    if: false
 
     runs-on: ubuntu-latest
     permissions:
