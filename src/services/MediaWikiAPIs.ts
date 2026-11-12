@@ -53,6 +53,16 @@ export async function fetchPageId(
 }
 
 /**
+ * Returns true when the error was caused by a 404 response.
+ *
+ * fetchPageId attaches the offending response as the error cause.
+ */
+export const isNotFoundError = (error: unknown): boolean =>
+	error instanceof Error &&
+	error.cause instanceof Response &&
+	error.cause.status === 404;
+
+/**
  * Fetches all revisions of a page as an async generator.
  *
  * The default order is ascending (= newer last = older first), but can be changed to descending.
@@ -193,6 +203,31 @@ if (import.meta.vitest) {
 				await expect(fetchPageId(baseUrl, 'Test Page')).rejects.toThrow(
 					new Error('Failed to fetch page ID', { cause: mockResponse })
 				);
+			});
+		});
+
+		describe('isNotFoundError', () => {
+			it('returns true for a 404 response cause', () => {
+				const error = new Error('Failed to fetch page ID', {
+					cause: new Response('Not Found', { status: 404 }),
+				});
+				expect(isNotFoundError(error)).toBe(true);
+			});
+
+			it('returns false for non-404 response causes', () => {
+				const error = new Error('Failed to fetch page ID', {
+					cause: new Response('Server Error', { status: 500 }),
+				});
+				expect(isNotFoundError(error)).toBe(false);
+			});
+
+			it('returns false when the error has no response cause', () => {
+				expect(isNotFoundError(new Error('Network error'))).toBe(false);
+			});
+
+			it('returns false for non-Error values', () => {
+				expect(isNotFoundError('Not Found')).toBe(false);
+				expect(isNotFoundError(undefined)).toBe(false);
 			});
 		});
 

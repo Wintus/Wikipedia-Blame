@@ -1,17 +1,12 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useDebouncedValue } from '@tanstack/react-pacer';
-import { fetchPageId } from '../services/MediaWikiAPIs';
+import { fetchPageId, isNotFoundError } from '../services/MediaWikiAPIs';
 
 interface PageTitleInputProps {
 	initialPageTitle: string;
 	wikiUrl: URL;
 }
-
-const isNotFoundError = (error: unknown): boolean =>
-	error instanceof Error &&
-	error.cause instanceof Response &&
-	error.cause.status === 404;
 
 export function PageTitleInput({
 	initialPageTitle,
