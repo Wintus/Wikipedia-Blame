@@ -149,6 +149,7 @@ if (import.meta.vitest) {
 					'pageId-input'
 				) as HTMLInputElement;
 				expect(hiddenInput.value).toBe('');
+				expect(mockFetchPageId).not.toHaveBeenCalled();
 			});
 		});
 
@@ -280,6 +281,34 @@ if (import.meta.vitest) {
 					'pageId-input'
 				) as HTMLInputElement;
 				expect(hiddenInput.value).toBe('');
+				consoleErrorSpy.mockRestore();
+			});
+
+			it('does not retry 404 responses even when the client retries by default', async () => {
+				const retryClient = new QueryClient({
+					defaultOptions: { queries: { retry: 1, retryDelay: 0 } },
+				});
+				const mockResponse = new Response('Not Found', { status: 404 });
+				mockFetchPageId.mockRejectedValue(
+					new Error('Failed to fetch page ID', { cause: mockResponse })
+				);
+				const consoleErrorSpy = vi
+					.spyOn(console, 'error')
+					.mockImplementation(() => {});
+
+				await act(async () =>
+					render(
+						<QueryClientProvider client={retryClient}>
+							<PageTitleInput
+								initialPageTitle="Missing Page"
+								wikiUrl={stubWikiUrl}
+							/>
+						</QueryClientProvider>
+					)
+				);
+
+				expect(await screen.findByText('Page not found.')).toBeInTheDocument();
+				expect(mockFetchPageId).toHaveBeenCalledTimes(1);
 				consoleErrorSpy.mockRestore();
 			});
 
