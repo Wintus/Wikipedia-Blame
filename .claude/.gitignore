@@ -1,0 +1,5 @@
+# Machine-specific Claude Code settings
+settings.local.json
+
+# Local planning scratch space
+plans/
