@@ -404,22 +404,7 @@ if (import.meta.vitest) {
 			).toBeInTheDocument();
 		});
 
-		it('renders with correct defaultChecked based on searchState', async () => {
-			const searchStateAsc = {
-				...defaultProps.searchState,
-				order: 'asc' as const,
-			};
-			await act(async () =>
-				renderWithQuery(
-					<SearchForm {...defaultProps} searchState={searchStateAsc} />
-				)
-			);
-			expect(
-				screen.getByLabelText(/Descending \(Newer First\)/i)
-			).toBeInTheDocument();
-		});
-
-		it('renders with correct defaultChecked based on searchState', async () => {
+		it('sets radio defaultChecked from searchState and updates on rerender', async () => {
 			const searchStateAsc = {
 				...defaultProps.searchState,
 				order: 'asc' as const,
