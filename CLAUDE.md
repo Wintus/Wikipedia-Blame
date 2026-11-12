@@ -77,7 +77,7 @@ Key implementation details:
 - Fetches in batches via `rvlimit=max` with continuation tokens (`rvcontinue`)
 - Client-side dump processing was considered and rejected due to prohibitive download times (ADR-003)
 
-## TanStack Query Integration (ADR-004)
+## TanStack Query Integration (ADR-004, ADR-005)
 
 The application uses TanStack Query for page ID fetching with the following patterns:
 
@@ -92,17 +92,12 @@ The application uses TanStack Query for page ID fetching with the following patt
 
 @src/components/PageTitleInput.tsx:
 - Uses TanStack Pacer's `useDebouncedValue` (300ms) for input debouncing
-- Always renders QueryErrorResetBoundary > ErrorBoundary > Suspense > PageIdFetcher (no conditional branching)
-- Uses `react-error-boundary` package with `resetKeys={[debouncedTitle]}` for automatic error recovery on title change
-- Discriminates 404 errors (page not found) from other errors using `isNotFoundError()` helper
-- Shows retry button with inline link styling for non-404 errors
-- Renders hidden `<input name="pageId">` in error fallback to prevent form submission
-
-@src/components/PageIdFetcher.tsx:
-- Uses `useSuspenseQuery` with query key `['pageId', wikiUrl.href, pageTitle]`
-- Handles empty title inside `queryFn`: returns `null` for empty title (quick-resolving, no Suspense flash)
-- Passes `AbortSignal` from query to `fetchPageId` for request cancellation
-- Throws errors for ErrorBoundary to catch (no inline error handling)
+- Uses `useQuery` with query key `['pageId', wikiUrl.href, debouncedTitle]` and handles loading and error states inline (ADR-005); no Suspense or error boundary
+- Handles an empty title inside `queryFn`: returns `null`, so no request is made
+- Passes the `AbortSignal` from the query to `fetchPageId` for request cancellation
+- Skips the automatic retry for 404s using `isNotFoundError()` from @src/services/MediaWikiAPIs.ts
+- Shows a "Try again" button (calling `refetch()`) for non-404 errors
+- Always renders the hidden `<input name="pageId">`, empty while loading or on error, so the form cannot submit a stale ID
 
 ### Key Benefits
 

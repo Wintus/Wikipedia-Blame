@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Superseded in part by [ADR-005](005-use-query-in-page-title-input.md)
 
 ## Context
 

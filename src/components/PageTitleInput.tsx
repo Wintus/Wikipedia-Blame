@@ -1,18 +1,12 @@
-import { Suspense, useState } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useDebouncedValue } from '@tanstack/react-pacer';
-import { ErrorBoundary } from 'react-error-boundary';
-import { QueryErrorResetBoundary } from '@tanstack/react-query';
-import { PageIdFetcher } from './PageIdFetcher';
+import { fetchPageId, isNotFoundError } from '../services/MediaWikiAPIs';
 
 interface PageTitleInputProps {
 	initialPageTitle: string;
 	wikiUrl: URL;
 }
-
-const isNotFoundError = (error: unknown): boolean =>
-	error instanceof Error &&
-	error.cause instanceof Response &&
-	error.cause.status === 404;
 
 export function PageTitleInput({
 	initialPageTitle,
@@ -20,6 +14,20 @@ export function PageTitleInput({
 }: PageTitleInputProps) {
 	const [pageTitle, setPageTitle] = useState(initialPageTitle);
 	const [debouncedTitle] = useDebouncedValue(pageTitle.trim(), { wait: 300 });
+
+	const {
+		data: pageId,
+		isLoading,
+		isError,
+		error,
+		refetch,
+	} = useQuery({
+		queryKey: ['pageId', wikiUrl.href, debouncedTitle],
+		queryFn: ({ signal }) =>
+			debouncedTitle ? fetchPageId(wikiUrl, debouncedTitle, signal) : null,
+		// Don't retry 404s
+		retry: (failureCount, err) => !isNotFoundError(err) && failureCount < 1,
+	});
 
 	return (
 		<div className="form-group">
@@ -34,48 +42,35 @@ export function PageTitleInput({
 				required
 			/>
 
-			<QueryErrorResetBoundary>
-				{({ reset }) => (
-					<ErrorBoundary
-						resetKeys={[debouncedTitle]}
-						onReset={reset}
-						fallbackRender={({ error, resetErrorBoundary }) => (
+			{isLoading && (
+				<div className="status-message-container">
+					<span className="loading-indicator">Checking title...</span>
+				</div>
+			)}
+
+			{isError && (
+				<div className="status-message-container">
+					<span className="error-message">
+						{isNotFoundError(error) ? (
+							'Page not found.'
+						) : (
 							<>
-								<div className="status-message-container">
-									<span className="error-message">
-										{isNotFoundError(error) ? (
-											'Page not found.'
-										) : (
-											<>
-												Error fetching page ID.{' '}
-												<button type="button" onClick={resetErrorBoundary}>
-													Try again
-												</button>
-											</>
-										)}
-									</span>
-								</div>
-								<input
-									type="hidden"
-									name="pageId"
-									value=""
-									data-testid="pageId-input"
-								/>
+								Error fetching page ID.{' '}
+								<button type="button" onClick={() => refetch()}>
+									Try again
+								</button>
 							</>
 						)}
-					>
-						<Suspense
-							fallback={
-								<div className="status-message-container">
-									<span className="loading-indicator">Checking title...</span>
-								</div>
-							}
-						>
-							<PageIdFetcher wikiUrl={wikiUrl} pageTitle={debouncedTitle} />
-						</Suspense>
-					</ErrorBoundary>
-				)}
-			</QueryErrorResetBoundary>
+					</span>
+				</div>
+			)}
+
+			<input
+				type="hidden"
+				name="pageId"
+				value={pageId ?? ''}
+				data-testid="pageId-input"
+			/>
 		</div>
 	);
 }
@@ -83,13 +78,21 @@ export function PageTitleInput({
 // MARK: in-source tests
 if (import.meta.vitest) {
 	const { describe, it, expect, vi, beforeEach, afterAll } = import.meta.vitest;
-	const { render, screen, act, waitForElementToBeRemoved } =
+	const { render, screen, act, waitFor, waitForElementToBeRemoved } =
 		await import('@testing-library/react');
 	const { userEvent } = await import('@testing-library/user-event');
 	const { QueryClient, QueryClientProvider } =
 		await import('@tanstack/react-query');
 	const MediaWikiAPIs = await import('../services/MediaWikiAPIs');
 	type QueryClientType = InstanceType<typeof QueryClient>;
+
+	const deferred = <T,>() => {
+		let resolve!: (value: T) => void;
+		const promise = new Promise<T>((res) => {
+			resolve = res;
+		});
+		return { promise, resolve };
+	};
 
 	describe('PageTitleInput', () => {
 		const stubWikiUrl = new URL('https://en.wikipedia.org');
@@ -149,13 +152,17 @@ if (import.meta.vitest) {
 					'pageId-input'
 				) as HTMLInputElement;
 				expect(hiddenInput.value).toBe('');
+				expect(mockFetchPageId).not.toHaveBeenCalled();
 			});
 		});
 
 		describe('User Interaction', () => {
 			it('updates the input value on change', async () => {
 				const user = userEvent.setup();
-				mockFetchPageId.mockResolvedValue(123);
+				const secondFetch = deferred<number>();
+				mockFetchPageId
+					.mockResolvedValueOnce(123)
+					.mockReturnValueOnce(secondFetch.promise);
 				await act(async () =>
 					renderWithQuery(
 						<PageTitleInput
@@ -168,8 +175,8 @@ if (import.meta.vitest) {
 					/Wiki Article Title:/i
 				) as HTMLInputElement;
 
-				// Wait for the debounce and API call
-				expect(mockFetchPageId).toHaveBeenCalledTimes(1);
+				// Wait for the initial API call
+				await waitFor(() => expect(mockFetchPageId).toHaveBeenCalledTimes(1));
 
 				await user.clear(inputElement);
 				await user.type(inputElement, 'New Title');
@@ -184,7 +191,9 @@ if (import.meta.vitest) {
 				expect(loadingIndicator).toBeInTheDocument();
 
 				// Wait for the debounce and API call
-				expect(mockFetchPageId).toHaveBeenCalledTimes(2);
+				await waitFor(() => expect(mockFetchPageId).toHaveBeenCalledTimes(2));
+				await act(async () => secondFetch.resolve(456));
+
 				await waitForElementToBeRemoved(() =>
 					screen.getByText('Checking title...')
 				);
@@ -194,7 +203,8 @@ if (import.meta.vitest) {
 
 			it('calls fetchPageId with the correct arguments after debouncing', async () => {
 				const user = userEvent.setup();
-				mockFetchPageId.mockResolvedValue(123);
+				const fetchDeferred = deferred<number>();
+				mockFetchPageId.mockReturnValue(fetchDeferred.promise);
 				await act(async () =>
 					renderWithQuery(
 						<PageTitleInput initialPageTitle="" wikiUrl={stubWikiUrl} />
@@ -217,15 +227,16 @@ if (import.meta.vitest) {
 				expect(loadingIndicator).toBeInTheDocument();
 
 				// Wait for the debounce and API call
-				expect(mockFetchPageId).toHaveBeenCalledTimes(1);
-				await waitForElementToBeRemoved(() =>
-					screen.getByText('Checking title...')
-				);
-
+				await waitFor(() => expect(mockFetchPageId).toHaveBeenCalledTimes(1));
 				expect(mockFetchPageId).toHaveBeenCalledWith(
 					stubWikiUrl,
 					'Test',
 					expect.any(Object)
+				);
+
+				await act(async () => fetchDeferred.resolve(123));
+				await waitForElementToBeRemoved(() =>
+					screen.getByText('Checking title...')
 				);
 			});
 		});
@@ -242,12 +253,10 @@ if (import.meta.vitest) {
 					)
 				);
 				// Wait for the API call
-				expect(mockFetchPageId).toHaveBeenCalledTimes(1);
-				expect(screen.getByTestId('pageId-input')).toBeInTheDocument();
-				const hiddenInput = screen.getByTestId(
-					'pageId-input'
-				) as HTMLInputElement;
-				expect(hiddenInput.value).toBe('123');
+				await waitFor(() => expect(mockFetchPageId).toHaveBeenCalledTimes(1));
+				await waitFor(() =>
+					expect(screen.getByTestId('pageId-input')).toHaveValue('123')
+				);
 			});
 
 			it('displays 404 error message without retry button', async () => {
@@ -280,6 +289,34 @@ if (import.meta.vitest) {
 					'pageId-input'
 				) as HTMLInputElement;
 				expect(hiddenInput.value).toBe('');
+				consoleErrorSpy.mockRestore();
+			});
+
+			it('does not retry 404 responses even when the client retries by default', async () => {
+				const retryClient = new QueryClient({
+					defaultOptions: { queries: { retry: 1, retryDelay: 0 } },
+				});
+				const mockResponse = new Response('Not Found', { status: 404 });
+				mockFetchPageId.mockRejectedValue(
+					new Error('Failed to fetch page ID', { cause: mockResponse })
+				);
+				const consoleErrorSpy = vi
+					.spyOn(console, 'error')
+					.mockImplementation(() => {});
+
+				await act(async () =>
+					render(
+						<QueryClientProvider client={retryClient}>
+							<PageTitleInput
+								initialPageTitle="Missing Page"
+								wikiUrl={stubWikiUrl}
+							/>
+						</QueryClientProvider>
+					)
+				);
+
+				expect(await screen.findByText('Page not found.')).toBeInTheDocument();
+				expect(mockFetchPageId).toHaveBeenCalledTimes(1);
 				consoleErrorSpy.mockRestore();
 			});
 
@@ -351,11 +388,12 @@ if (import.meta.vitest) {
 
 			it('clicking retry button re-fetches page ID successfully', async () => {
 				const user = userEvent.setup();
+				const retryFetch = deferred<number>();
 				// First call fails, query-level retry fails again, then manual retry succeeds
 				mockFetchPageId
 					.mockRejectedValueOnce(new Error('Network error'))
 					.mockRejectedValueOnce(new Error('Network error'))
-					.mockResolvedValueOnce(456);
+					.mockReturnValueOnce(retryFetch.promise);
 
 				const consoleErrorSpy = vi
 					.spyOn(console, 'error')
@@ -384,26 +422,28 @@ if (import.meta.vitest) {
 				const loadingIndicator = await screen.findByText('Checking title...');
 				expect(loadingIndicator).toBeInTheDocument();
 
+				await act(async () => retryFetch.resolve(456));
+
 				// Wait for success state
 				await waitForElementToBeRemoved(() =>
 					screen.getByText('Checking title...')
 				);
 
 				expect(mockFetchPageId).toHaveBeenCalledTimes(3);
-				const hiddenInput = screen.getByTestId(
-					'pageId-input'
-				) as HTMLInputElement;
-				expect(hiddenInput.value).toBe('456');
+				await waitFor(() =>
+					expect(screen.getByTestId('pageId-input')).toHaveValue('456')
+				);
 				consoleErrorSpy.mockRestore();
 			});
 
 			it('recovers from error when typing a different title', async () => {
 				const user = userEvent.setup();
+				const recoverFetch = deferred<number>();
 				// First call fails for "Test Title", query-level retry fails again, then typing new title succeeds
 				mockFetchPageId
 					.mockRejectedValueOnce(new Error('Network error'))
 					.mockRejectedValueOnce(new Error('Network error'))
-					.mockResolvedValueOnce(789);
+					.mockReturnValueOnce(recoverFetch.promise);
 
 				const consoleErrorSpy = vi
 					.spyOn(console, 'error')
@@ -437,6 +477,9 @@ if (import.meta.vitest) {
 					{ timeout: 350 }
 				);
 				expect(loadingIndicator).toBeInTheDocument();
+				await waitFor(() => expect(mockFetchPageId).toHaveBeenCalledTimes(3));
+
+				await act(async () => recoverFetch.resolve(789));
 
 				// Wait for success state
 				await waitForElementToBeRemoved(
@@ -444,11 +487,9 @@ if (import.meta.vitest) {
 					{ timeout: 1000 }
 				);
 
-				expect(mockFetchPageId).toHaveBeenCalledTimes(3);
-				const hiddenInput = screen.getByTestId(
-					'pageId-input'
-				) as HTMLInputElement;
-				expect(hiddenInput.value).toBe('789');
+				await waitFor(() =>
+					expect(screen.getByTestId('pageId-input')).toHaveValue('789')
+				);
 				consoleErrorSpy.mockRestore();
 			});
 		});
@@ -465,7 +506,7 @@ if (import.meta.vitest) {
 				);
 
 				// Initial render should trigger one call for "Test"
-				expect(mockFetchPageId).toHaveBeenCalledTimes(1);
+				await waitFor(() => expect(mockFetchPageId).toHaveBeenCalledTimes(1));
 
 				const inputElement = screen.getByLabelText(/Wiki Article Title:/i);
 
