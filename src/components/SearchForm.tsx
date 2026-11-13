@@ -324,8 +324,9 @@ if (import.meta.vitest) {
 			const button = screen.getByRole('button', {
 				name: /Find An Occurrence/i,
 			});
-			user.click(button);
+			await user.click(button);
 
+			expect(mockFormAction).toHaveBeenCalledTimes(1);
 			expect(wikiSelector.value).toBe('https://ja.wikipedia.org/');
 		});
 
