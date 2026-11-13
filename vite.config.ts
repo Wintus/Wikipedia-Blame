@@ -17,6 +17,10 @@ export default defineConfig({
 		environment: 'happy-dom',
 		includeSource: ['src/**/*.{js,ts,jsx,tsx}'],
 		setupFiles: './src/setupTests.ts',
+		coverage: {
+			provider: 'v8',
+			include: ['src/**/*.{ts,tsx}'],
+		},
 	},
 	define: {
 		'import.meta.vitest': 'undefined',
