@@ -37,7 +37,7 @@ const convert = (revision: Revision<'main'>): RevisionResult => ({
 export async function fetchPageId(
 	baseUrl: URL,
 	pageTitle: string,
-	signal: AbortSignal | null = null
+	signal: AbortSignal | null = null,
 ): Promise<number> {
 	const url = new URL(`/w/rest.php/v1/page/${pageTitle}/bare`, baseUrl);
 	// guard
@@ -75,7 +75,7 @@ export const isNotFoundError = (error: unknown): boolean =>
 export async function* fetchAllRevisions(
 	baseUrl: URL,
 	pageId: number,
-	options?: { order?: Order; startRevId?: number; endRevId?: number }
+	options?: { order?: Order; startRevId?: number; endRevId?: number },
 ): AsyncGenerator<RevisionResult, void, unknown> {
 	const order = options?.order ?? 'asc';
 	const startRevId = options?.startRevId;
@@ -113,7 +113,7 @@ export async function* fetchAllRevisions(
 			const response = await fetch(url);
 			if (!response.ok || !response.body) {
 				throw new Error(
-					`Failed to fetch revision texts: ${response.statusText}`
+					`Failed to fetch revision texts: ${response.statusText}`,
 				);
 			}
 
@@ -182,7 +182,7 @@ if (import.meta.vitest) {
 
 				const expectedUrl = new URL(
 					'/w/rest.php/v1/page/Test Page/bare',
-					baseUrl
+					baseUrl,
 				);
 				expect(mockFetch).toHaveBeenCalledWith(expectedUrl, { signal: null });
 				expect(pageId).toBe(12345);
@@ -192,7 +192,7 @@ if (import.meta.vitest) {
 				mockFetch.mockRejectedValue(new Error('Network error'));
 
 				await expect(fetchPageId(baseUrl, 'Test Page')).rejects.toThrow(
-					new Error('Network error')
+					new Error('Network error'),
 				);
 			});
 
@@ -201,7 +201,7 @@ if (import.meta.vitest) {
 				mockFetch.mockResolvedValue(mockResponse);
 
 				await expect(fetchPageId(baseUrl, 'Test Page')).rejects.toThrow(
-					new Error('Failed to fetch page ID', { cause: mockResponse })
+					new Error('Failed to fetch page ID', { cause: mockResponse }),
 				);
 			});
 		});
@@ -388,7 +388,7 @@ if (import.meta.vitest) {
 				expect(revisions).toEqual([]);
 				expect(console.error).toHaveBeenCalledWith(
 					'Error fetching all revisions:',
-					expect.any(Error)
+					expect.any(Error),
 				);
 			});
 
@@ -475,7 +475,7 @@ if (import.meta.vitest) {
 
 			const expectedUrl = new URL(
 				'/w/rest.php/v1/page/Test Page/bare',
-				baseUrl
+				baseUrl,
 			);
 			expect(mockFetch).toHaveBeenCalledWith(expectedUrl, {
 				signal: abortController.signal,
@@ -490,7 +490,7 @@ if (import.meta.vitest) {
 			});
 
 			await expect(
-				fetchPageId(baseUrl, 'Test Page', abortController.signal)
+				fetchPageId(baseUrl, 'Test Page', abortController.signal),
 			).rejects.toThrow('Aborted');
 		});
 	});

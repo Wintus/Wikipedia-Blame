@@ -2,8 +2,8 @@ name: Deploy to GitHub Pages
 
 on:
   workflow_run:
-    workflows: ["CI"]
-    branches: ["trunk"]
+    workflows: ['CI']
+    branches: ['trunk']
     types:
       - completed
 
@@ -15,7 +15,7 @@ permissions:
 
 # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
 concurrency:
-  group: "pages"
+  group: 'pages'
   cancel-in-progress: false
 
 jobs:
@@ -30,7 +30,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "26"
+          node-version: '26'
           cache: 'npm'
       - name: Install dependencies
         run: npm ci
@@ -44,7 +44,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: "./dist"
+          path: './dist'
 
   # Deployment job
   deploy:

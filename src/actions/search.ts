@@ -5,7 +5,7 @@ import { WIKI_SITES } from '../wiki';
 
 export async function searchAction(
 	prevState: SearchState,
-	formData: FormData
+	formData: FormData,
 ): Promise<SearchState> {
 	// Parse form data
 	const wikiUrlStr = formData.get('wikiUrl')?.toString();
@@ -91,7 +91,7 @@ export async function searchAction(
 		// Find occurrence of target text
 		const foundRevisionId = await genFindMap(
 			(item) => (item.text.includes(targetText) ? item.rev : null),
-			revisions
+			revisions,
 		);
 
 		// Return updated search result
@@ -139,13 +139,13 @@ if (import.meta.vitest) {
 	vi.mock(import('../lib/async-generator'), { spy: true });
 
 	async function* createAsyncGenerator<T>(
-		items: ReadonlyArray<T>
+		items: ReadonlyArray<T>,
 	): AsyncGenerator<T> {
 		yield* items;
 	}
 
 	async function* createFailingAsyncGenerator(
-		errorToThrow: unknown
+		errorToThrow: unknown,
 	): AsyncGenerator<never> {
 		// Yield nothing, just throw immediately
 		yield* []; // Ensures it's a valid generator
@@ -203,7 +203,7 @@ if (import.meta.vitest) {
 					{ rev: 1, text: 'Some text' },
 					{ rev: 2, text: 'Contains Test Text' },
 					{ rev: 3, text: 'More text' },
-				])
+				]),
 			);
 			vi.mocked(genFindMap).mockResolvedValue({
 				rev: 2,
@@ -245,7 +245,7 @@ if (import.meta.vitest) {
 					{ rev: 1, text: 'Some text' },
 					{ rev: 2, text: 'Another text' },
 					{ rev: 3, text: 'More text' },
-				])
+				]),
 			);
 			vi.mocked(genFindMap).mockResolvedValue(null);
 
@@ -266,7 +266,7 @@ if (import.meta.vitest) {
 		it('handles API exceptions gracefully', async () => {
 			// Mock API throwing an exception
 			vi.mocked(fetchAllRevisions).mockImplementation(() =>
-				createFailingAsyncGenerator(new Error('Network error'))
+				createFailingAsyncGenerator(new Error('Network error')),
 			);
 
 			const formData = createFormData({ pageId: '123' });
@@ -286,7 +286,7 @@ if (import.meta.vitest) {
 		it('handles non-Error exceptions', async () => {
 			// Mock API throwing a non-Error object
 			vi.mocked(fetchAllRevisions).mockImplementation(() =>
-				createFailingAsyncGenerator('Unknown error')
+				createFailingAsyncGenerator('Unknown error'),
 			);
 
 			const formData = createFormData({ pageId: '123' });
@@ -310,7 +310,7 @@ if (import.meta.vitest) {
 					{ rev: 1, text: 'Some text' },
 					{ rev: 2, text: 'Contains Test Text' },
 					{ rev: 3, text: 'More text' },
-				])
+				]),
 			);
 			vi.mocked(genFindMap).mockResolvedValue({
 				rev: 2,
@@ -324,7 +324,7 @@ if (import.meta.vitest) {
 			expect(mockedFetchAllRevisions).toHaveBeenCalledWith(
 				expect.anything(), // baseUrl
 				expect.anything(), // pageId
-				{ endRevId: 456 }
+				{ endRevId: 456 },
 			);
 		});
 
@@ -335,7 +335,7 @@ if (import.meta.vitest) {
 					{ rev: 1, text: 'Some text' },
 					{ rev: 2, text: 'Contains Test Text' },
 					{ rev: 3, text: 'More text' },
-				])
+				]),
 			);
 			vi.mocked(genFindMap).mockResolvedValue({
 				rev: 2,
@@ -349,7 +349,7 @@ if (import.meta.vitest) {
 			expect(mockedFetchAllRevisions).toHaveBeenCalledWith(
 				expect.anything(), // baseUrl
 				expect.anything(), // pageId
-				{} // Should be empty object
+				{}, // Should be empty object
 			);
 		});
 
@@ -360,7 +360,7 @@ if (import.meta.vitest) {
 					{ rev: 1, text: 'Some text' },
 					{ rev: 2, text: 'Contains Test Text' },
 					{ rev: 3, text: 'More text' },
-				])
+				]),
 			);
 			vi.mocked(genFindMap).mockResolvedValue({
 				rev: 2,
@@ -374,7 +374,7 @@ if (import.meta.vitest) {
 			expect(mockedFetchAllRevisions).toHaveBeenCalledWith(
 				expect.anything(), // baseUrl
 				expect.anything(), // pageId
-				{ order: 'desc' }
+				{ order: 'desc' },
 			);
 		});
 
@@ -384,7 +384,7 @@ if (import.meta.vitest) {
 					{ rev: 1, text: 'Some text' },
 					{ rev: 2, text: 'Contains Test Text' },
 					{ rev: 3, text: 'More text' },
-				])
+				]),
 			);
 			vi.mocked(genFindMap).mockResolvedValue({
 				rev: 2,
@@ -394,14 +394,14 @@ if (import.meta.vitest) {
 			const formDataAsc = createFormData({ order: 'asc', pageId: '123' });
 			const resultAsc = await searchAction(
 				{ ...defaultPrevState, order: 'asc' },
-				formDataAsc
+				formDataAsc,
 			);
 			expect(resultAsc.order).toBe('asc');
 
 			const formDataDesc = createFormData({ order: 'desc', pageId: '123' });
 			const resultDesc = await searchAction(
 				{ ...defaultPrevState, order: 'desc' },
-				formDataDesc
+				formDataDesc,
 			);
 			expect(resultDesc.order).toBe('desc');
 		});
@@ -413,7 +413,7 @@ if (import.meta.vitest) {
 					{ rev: 1, text: 'Some text' },
 					{ rev: 2, text: 'Contains Test Text' },
 					{ rev: 3, text: 'More text' },
-				])
+				]),
 			);
 			vi.mocked(genFindMap).mockResolvedValue({
 				rev: 2,
@@ -427,7 +427,7 @@ if (import.meta.vitest) {
 			expect(mockedFetchAllRevisions).toHaveBeenCalledWith(
 				expect.anything(), // baseUrl
 				expect.anything(), // pageId
-				{ startRevId: 123 }
+				{ startRevId: 123 },
 			);
 		});
 
@@ -438,7 +438,7 @@ if (import.meta.vitest) {
 					{ rev: 1, text: 'Some text' },
 					{ rev: 2, text: 'Contains Test Text' },
 					{ rev: 3, text: 'More text' },
-				])
+				]),
 			);
 			vi.mocked(genFindMap).mockResolvedValue({
 				rev: 2,
@@ -456,7 +456,7 @@ if (import.meta.vitest) {
 			expect(mockedFetchAllRevisions).toHaveBeenCalledWith(
 				expect.anything(), // baseUrl
 				expect.anything(), // pageId
-				{ startRevId: 123, endRevId: 789 }
+				{ startRevId: 123, endRevId: 789 },
 			);
 		});
 	});

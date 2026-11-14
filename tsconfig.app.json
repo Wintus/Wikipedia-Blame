@@ -8,7 +8,7 @@
 			"DOM",
 			"DOM.Iterable",
 			"ESNext.Array",
-			"DOM.AsyncIterable"
+			"DOM.AsyncIterable",
 		],
 		"module": "ESNext",
 		"skipLibCheck": true,
@@ -30,11 +30,7 @@
 		"exactOptionalPropertyTypes": true,
 		"noImplicitReturns": true,
 		"noUncheckedIndexedAccess": true,
-		"types": [
-			"vitest/importMeta"
-		]
+		"types": ["vitest/importMeta"],
 	},
-	"include": [
-		"src"
-	]
+	"include": ["src"],
 }

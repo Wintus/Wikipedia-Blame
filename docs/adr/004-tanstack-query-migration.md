@@ -69,6 +69,7 @@ Migrate from the `useMemo` + `use()` pattern to TanStack Query with the followin
 ```
 
 The component uses `react-error-boundary` package for enhanced error handling:
+
 - **`QueryErrorResetBoundary`**: Coordinates error boundary resets with TanStack Query cache
 - **`resetKeys={[debouncedTitle]}`**: Automatically resets error boundary when title changes
 - **`onReset={reset}`**: Synchronizes with TanStack Query's error state
@@ -80,8 +81,9 @@ The component uses `react-error-boundary` package for enhanced error handling:
 
 ```tsx
 const { data: pageId } = useSuspenseQuery({
-  queryKey: ['pageId', wikiUrl.href, pageTitle],
-  queryFn: ({ signal }) => pageTitle ? fetchPageId(wikiUrl, pageTitle, signal) : null,
+	queryKey: ['pageId', wikiUrl.href, pageTitle],
+	queryFn: ({ signal }) =>
+		pageTitle ? fetchPageId(wikiUrl, pageTitle, signal) : null,
 });
 ```
 
@@ -91,12 +93,12 @@ When `pageTitle` is empty, the `queryFn` returns `null` immediately (no network 
 
 ```tsx
 export async function fetchPageId(
-  baseUrl: URL,
-  pageTitle: string,
-  signal: AbortSignal | null = null,
+	baseUrl: URL,
+	pageTitle: string,
+	signal: AbortSignal | null = null,
 ): Promise<number> {
-  const response = await fetch(url, { signal });
-  // ...
+	const response = await fetch(url, { signal });
+	// ...
 }
 ```
 
@@ -104,12 +106,12 @@ export async function fetchPageId(
 
 ```tsx
 const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1 * 60 * 60 * 1000, // 1 hour (page IDs are immutable)
-      retry: 1,
-    },
-  },
+	defaultOptions: {
+		queries: {
+			staleTime: 1 * 60 * 60 * 1000, // 1 hour (page IDs are immutable)
+			retry: 1,
+		},
+	},
 });
 ```
 

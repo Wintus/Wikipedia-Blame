@@ -12,7 +12,7 @@ type Props = {
 const getRevisionUrl = (
 	wikiUrl: URL | string,
 	revId: number,
-	order?: 'asc' | 'desc'
+	order?: 'asc' | 'desc',
 ): URL => {
 	const url = new URL('/w/index.php', wikiUrl);
 	url.searchParams.set('oldid', revId.toString());
@@ -39,7 +39,7 @@ export function ResultView({ result, isPending }: Props) {
 	const revisionUrl = getRevisionUrl(
 		result.wikiUrl,
 		result.revisionId,
-		result.order
+		result.order,
 	);
 
 	return (
@@ -75,7 +75,7 @@ if (import.meta.vitest) {
 
 	describe('ResultView', () => {
 		const createResult = (
-			overrides: Partial<SearchState> = {}
+			overrides: Partial<SearchState> = {},
 		): SearchState => ({
 			wikiUrl: new URL('https://en.wikipedia.org'),
 			pageId: null,
@@ -144,7 +144,7 @@ if (import.meta.vitest) {
 			const revisionLink = screen.getByText(/view revision/i);
 			expect(revisionLink).toBeTruthy();
 			expect(revisionLink.getAttribute('href')).toBe(
-				'https://en.wikipedia.org/w/index.php?oldid=12345&diff=prev'
+				'https://en.wikipedia.org/w/index.php?oldid=12345&diff=prev',
 			);
 		});
 
