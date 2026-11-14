@@ -1,6 +1,6 @@
 import { type SearchState } from '../state';
 
-type ResultViewProps = {
+type Props = {
 	result: SearchState;
 	isPending?: boolean;
 };
@@ -22,7 +22,7 @@ const getRevisionUrl = (
 	return url;
 };
 
-export function ResultView({ result, isPending }: ResultViewProps) {
+export function ResultView({ result, isPending }: Props) {
 	// guard
 	if (isPending) {
 		return <div className="result-view loading">Searching...</div>;

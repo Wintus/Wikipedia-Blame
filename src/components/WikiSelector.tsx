@@ -1,11 +1,11 @@
 import { WIKI_SITES } from '../wiki';
 
-type WikiSelectorProps = {
+type Props = {
 	selectedWiki: URL;
 	onChange: (wiki: URL) => void;
 };
 
-export function WikiSelector({ selectedWiki, onChange }: WikiSelectorProps) {
+export function WikiSelector({ selectedWiki, onChange }: Props) {
 	const handleChange = (wikiUrl: string) => {
 		const wiki = WIKI_SITES.find((w) => w.url.href === wikiUrl);
 		if (wiki == null) {

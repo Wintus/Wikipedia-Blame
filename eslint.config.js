@@ -25,6 +25,7 @@ export default defineConfig(
 				{ allowConstantExport: true },
 			],
 			curly: ['error', 'all'],
+			'@typescript-eslint/consistent-type-definitions': ['error', 'type'],
 		},
 	}
 );

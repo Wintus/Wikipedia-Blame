@@ -3,17 +3,13 @@ import { type SearchState } from '../state';
 import { WikiSelector } from './WikiSelector';
 import { PageTitleInput } from './PageTitleInput';
 
-interface SearchFormProps {
+type Props = {
 	formAction: (formData: FormData) => void;
 	isPending: boolean;
 	searchState: SearchState;
-}
+};
 
-export function SearchForm({
-	formAction,
-	isPending,
-	searchState,
-}: SearchFormProps) {
+export function SearchForm({ formAction, isPending, searchState }: Props) {
 	const [wikiUrl, setWikiUrl] = useState(searchState.wikiUrl);
 
 	return (

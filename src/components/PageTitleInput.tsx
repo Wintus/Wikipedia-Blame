@@ -3,15 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 import { useDebouncedValue } from '@tanstack/react-pacer';
 import { fetchPageId, isNotFoundError } from '../services/MediaWikiAPIs';
 
-interface PageTitleInputProps {
+type Props = {
 	initialPageTitle: string;
 	wikiUrl: URL;
-}
+};
 
-export function PageTitleInput({
-	initialPageTitle,
-	wikiUrl,
-}: PageTitleInputProps) {
+export function PageTitleInput({ initialPageTitle, wikiUrl }: Props) {
 	const [pageTitle, setPageTitle] = useState(initialPageTitle);
 	const [debouncedTitle] = useDebouncedValue(pageTitle.trim(), { wait: 300 });
 
