@@ -30,7 +30,7 @@ The application uses React 19's `useActionState` for unified form submission and
 3. @src/actions/search.ts contains `searchAction` - the core orchestration function that:
    - Validates form inputs (wiki site, page ID, target text)
    - Calls `fetchAllRevisions` to get a stream of revisions
-   - Uses `genFindMap` to search through the stream efficiently
+   - Uses `findMap` to search through the stream efficiently
    - Returns a single final `SearchState` object
 
 ### AsyncGenerator Streaming Pattern (ADR-001)
@@ -45,9 +45,9 @@ the app uses a linear streaming search (sampling was removed in favor of simplic
   - Supports `order` ('asc' | 'desc'), `startRevId`, and `endRevId` options
   - Implements client-side caching with `maxage` parameter (ADR-002): 60s for recent revisions, 600s for historical data
 
-- @src/lib/async-generator.ts - Contains `genFindMap` utility:
-  - Generic function that applies a predicate to each item in an AsyncGenerator
-  - Returns the first item where predicate returns non-null
+- @src/lib/async-generator.ts - Contains `findMap` utility:
+  - Generic function that applies a mapper to each item in an AsyncGenerator
+  - Returns the first non-null value the mapper produces
   - Stops iteration once a match is found (efficient early exit)
 
 ### Data Flow
@@ -55,7 +55,7 @@ the app uses a linear streaming search (sampling was removed in favor of simplic
 ```
 User submits form → searchAction validates inputs
   → fetchAllRevisions (AsyncGenerator yields {rev, text})
-  → genFindMap applies search predicate
+  → findMap returns the first non-null mapping
   → First match returned
   → State updated via useActionState
   → UI renders result (ResultView.tsx)

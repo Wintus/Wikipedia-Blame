@@ -42,10 +42,10 @@ The application employs an action-state driven architecture centered around Reac
    - It initiates fetching revision IDs using the `fetchAllRevisions` async generator (`MediaWikiAPIs.ts`),
      optionally passing an `endRevId` to limit the search range based on form input.
    - `fetchAllRevisions` implements basic caching using the `maxage` parameter in the API request.
-   - It calls `genFindMap` (`async-generator.ts`), passing the revision generator and a predicate to check for the target text.
+   - It calls `findMap` (`async-generator.ts`), passing the revision generator and a mapper that checks for the target text.
 3. **Search Algorithm (`async-generator.ts`):**
-   - `genFindMap` consumes revisions from the generator.
-   - The predicate checks the fetched text content.
+   - `findMap` consumes revisions from the generator.
+   - The mapper checks the fetched text content.
 4. **State Update:** `searchAction` returns the new `SearchState` (including the found `revisionId`) or an error.
    `useActionState` updates the application state.
 5. **UI Rendering:** `App.tsx` passes the `searchState` (containing the found `revisionId`) and `isPending` status down to `SearchForm.tsx` (for default value population) and `ResultView.tsx` (for display).
