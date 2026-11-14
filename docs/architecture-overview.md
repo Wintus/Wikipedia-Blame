@@ -22,7 +22,7 @@ combined with internal use of `AsyncGenerator` for efficient data processing wit
 
 ### 3. Efficient Data Processing with Generators
 
-- Internal functions (`fetchAllRevisions`, `findOneOccurrence`) utilize `AsyncGenerator` extensively.
+- Internal functions (`fetchAllRevisions`, `findMap`) utilize `AsyncGenerator` extensively.
 - Revision IDs and content are fetched and processed in batches/streams, minimizing memory usage for large histories.
 - The action function consumes this generator pipeline, awaiting the final result.
 
@@ -43,7 +43,7 @@ graph TD
 
 > [!Note]
 > While the overall flow uses `useActionState` with a single final state update,
-> the "Search Action" internally uses an `AsyncGenerator` pipeline (`fetchAllRevisions`, `findOneOccurrence`)
+> the "Search Action" internally uses an `AsyncGenerator` pipeline (`fetchAllRevisions`, `findMap`)
 > to efficiently process potentially large revision histories in batches.
 
 ## Key Implementation Strategy
@@ -53,16 +53,16 @@ graph TD
 - Handles the complete search workflow orchestration:
   1.  Input validation.
   2.  Calls `fetchAllRevisions` (an `AsyncGenerator`) to get a stream of revisions.
-  3.  Passes the revision stream (which now includes content) to `genFindMap`.
-  4.  `genFindMap` consumes this generator, applying the search predicate to find the target text efficiently.
-  5.  Awaits the final result (found revision ID or null) from `genFindMap`.
+  3.  Passes the revision stream (which now includes content) to `findMap`.
+  4.  `findMap` consumes this generator, applying the search mapper to find the target text efficiently.
+  5.  Awaits the final result (found revision ID or null) from `findMap`.
 - Handles optional `startRevId` and `endRevId` form inputs to limit the revision range.
 - Returns a single, comprehensive final `SearchState` object compatible with `useActionState`.
 
-### Internal Generators (`fetchAllRevisions`, `genFindMap` helpers)
+### Internal Generators (`fetchAllRevisions`, `findMap` helpers)
 
 - **`fetchAllRevisions`:** Fetches revision IDs page by page from the API, yielding IDs as an `AsyncGenerator`.
-- **`genFindMap` & Helpers:** Consumes the revision generator (which includes content), applies the search predicate, and returns the first match found.
+- **`findMap` & Helpers:** Consumes the revision generator (which includes content), applies the search mapper, and returns the first match found.
 
 ### Component Responsibilities
 

@@ -1,5 +1,5 @@
 import { fetchAllRevisions } from '../services/MediaWikiAPIs';
-import { genFindMap } from '../lib/async-generator';
+import { findMap } from '../lib/async-generator';
 import { type SearchState } from '../state';
 import { WIKI_SITES } from '../wiki';
 
@@ -89,7 +89,7 @@ export async function searchAction(
 		const revisions = fetchAllRevisions(wikiUrl, pageId, options);
 
 		// Find occurrence of target text
-		const foundRevisionId = await genFindMap(
+		const foundRevisionId = await findMap(
 			(item) => (item.text.includes(targetText) ? item.rev : null),
 			revisions,
 		);
@@ -205,7 +205,7 @@ if (import.meta.vitest) {
 					{ rev: 3, text: 'More text' },
 				]),
 			);
-			vi.mocked(genFindMap).mockResolvedValue({
+			vi.mocked(findMap).mockResolvedValue({
 				rev: 2,
 				text: 'Contains Test Text',
 			});
@@ -247,7 +247,7 @@ if (import.meta.vitest) {
 					{ rev: 3, text: 'More text' },
 				]),
 			);
-			vi.mocked(genFindMap).mockResolvedValue(null);
+			vi.mocked(findMap).mockResolvedValue(null);
 
 			const formData = createFormData({ pageId: '123' });
 
@@ -312,7 +312,7 @@ if (import.meta.vitest) {
 					{ rev: 3, text: 'More text' },
 				]),
 			);
-			vi.mocked(genFindMap).mockResolvedValue({
+			vi.mocked(findMap).mockResolvedValue({
 				rev: 2,
 				text: 'Contains Test Text',
 			});
@@ -337,7 +337,7 @@ if (import.meta.vitest) {
 					{ rev: 3, text: 'More text' },
 				]),
 			);
-			vi.mocked(genFindMap).mockResolvedValue({
+			vi.mocked(findMap).mockResolvedValue({
 				rev: 2,
 				text: 'Contains Test Text',
 			});
@@ -362,7 +362,7 @@ if (import.meta.vitest) {
 					{ rev: 3, text: 'More text' },
 				]),
 			);
-			vi.mocked(genFindMap).mockResolvedValue({
+			vi.mocked(findMap).mockResolvedValue({
 				rev: 2,
 				text: 'Contains Test Text',
 			});
@@ -386,7 +386,7 @@ if (import.meta.vitest) {
 					{ rev: 3, text: 'More text' },
 				]),
 			);
-			vi.mocked(genFindMap).mockResolvedValue({
+			vi.mocked(findMap).mockResolvedValue({
 				rev: 2,
 				text: 'Contains Test Text',
 			});
@@ -415,7 +415,7 @@ if (import.meta.vitest) {
 					{ rev: 3, text: 'More text' },
 				]),
 			);
-			vi.mocked(genFindMap).mockResolvedValue({
+			vi.mocked(findMap).mockResolvedValue({
 				rev: 2,
 				text: 'Contains Test Text',
 			});
@@ -440,7 +440,7 @@ if (import.meta.vitest) {
 					{ rev: 3, text: 'More text' },
 				]),
 			);
-			vi.mocked(genFindMap).mockResolvedValue({
+			vi.mocked(findMap).mockResolvedValue({
 				rev: 2,
 				text: 'Contains Test Text',
 			});
