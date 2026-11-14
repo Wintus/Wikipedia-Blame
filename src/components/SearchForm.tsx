@@ -144,7 +144,7 @@ if (import.meta.vitest) {
 				defaultOptions: { queries: { retry: false } },
 			});
 			vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockImplementation(
-				mockFetchPageId
+				mockFetchPageId,
 			);
 		});
 
@@ -156,7 +156,7 @@ if (import.meta.vitest) {
 			return render(
 				<QueryClientProvider client={queryClient}>
 					{component}
-				</QueryClientProvider>
+				</QueryClientProvider>,
 			);
 		};
 
@@ -165,7 +165,7 @@ if (import.meta.vitest) {
 			expect(screen.getByLabelText(/Wiki Article Title:/i)).toBeInTheDocument();
 			expect(screen.getByLabelText(/Text to Find:/i)).toBeInTheDocument();
 			expect(
-				screen.getByRole('button', { name: /Find An Occurrence/i })
+				screen.getByRole('button', { name: /Find An Occurrence/i }),
 			).toBeInTheDocument();
 		});
 
@@ -199,14 +199,14 @@ if (import.meta.vitest) {
 		it('renders the startRevId input field', async () => {
 			await act(async () => renderWithQuery(<SearchForm {...defaultProps} />));
 			expect(
-				screen.getByLabelText(/Search from Rev ID \(optional\):/i)
+				screen.getByLabelText(/Search from Rev ID \(optional\):/i),
 			).toBeInTheDocument();
 		});
 
 		it('renders the endRevId input field', async () => {
 			await act(async () => renderWithQuery(<SearchForm {...defaultProps} />));
 			expect(
-				screen.getByLabelText(/End Rev ID \(optional\):/i)
+				screen.getByLabelText(/End Rev ID \(optional\):/i),
 			).toBeInTheDocument();
 		});
 
@@ -220,11 +220,11 @@ if (import.meta.vitest) {
 							...defaultSearchState,
 							revisionId: 12345,
 						}}
-					/>
-				)
+					/>,
+				),
 			);
 			const endRevIdInput = screen.getByLabelText(
-				/End Rev ID \(optional\):/i
+				/End Rev ID \(optional\):/i,
 			) as HTMLInputElement;
 			expect(endRevIdInput.value).not.toBe('12345');
 			expect(endRevIdInput.value).toBe('');
@@ -272,8 +272,8 @@ if (import.meta.vitest) {
 							pageTitle: '',
 							targetText: '',
 						}}
-					/>
-				)
+					/>,
+				),
 			);
 			const button = screen.getByRole('button', {
 				name: /Find An Occurrence/i,
@@ -289,8 +289,8 @@ if (import.meta.vitest) {
 						formAction={mockFormAction}
 						isPending={true}
 						searchState={defaultSearchState}
-					/>
-				)
+					/>,
+				),
 			);
 			const button = screen.getByRole('button');
 			expect(button).toBeDisabled();
@@ -331,7 +331,7 @@ if (import.meta.vitest) {
 			const user = userEvent.setup();
 			await act(async () => renderWithQuery(<SearchForm {...defaultProps} />));
 			const titleInput = screen.getByLabelText(
-				/Wiki Article Title:/i
+				/Wiki Article Title:/i,
 			) as HTMLInputElement;
 
 			// User types a different title
@@ -351,7 +351,7 @@ if (import.meta.vitest) {
 
 			// PageTitleInput remounts → title resets to initialPageTitle
 			const resetTitleInput = screen.getByLabelText(
-				/Wiki Article Title:/i
+				/Wiki Article Title:/i,
 			) as HTMLInputElement;
 			expect(resetTitleInput.value).toBe('Initial Title');
 		});
@@ -372,18 +372,18 @@ if (import.meta.vitest) {
 							error: null,
 							searchCount: 0,
 						}}
-					/>
-				)
+					/>,
+				),
 			);
 
 			const titleInput = screen.getByLabelText(
-				/Wiki Article Title:/i
+				/Wiki Article Title:/i,
 			) as HTMLInputElement;
 			const textArea = screen.getByLabelText(
-				/Text to Find:/i
+				/Text to Find:/i,
 			) as HTMLTextAreaElement;
 			const wikiSelector = screen.getByLabelText(
-				/Wiki Site:/i
+				/Wiki Site:/i,
 			) as HTMLSelectElement;
 
 			expect(titleInput.value).toBe('Initial Page Title');
@@ -394,10 +394,10 @@ if (import.meta.vitest) {
 		it('renders the order radio buttons', async () => {
 			await act(async () => renderWithQuery(<SearchForm {...defaultProps} />));
 			expect(
-				screen.getByLabelText(/Ascending \(Older First\)/i)
+				screen.getByLabelText(/Ascending \(Older First\)/i),
 			).toBeInTheDocument();
 			expect(
-				screen.getByLabelText(/Descending \(Newer First\)/i)
+				screen.getByLabelText(/Descending \(Newer First\)/i),
 			).toBeInTheDocument();
 		});
 
@@ -408,16 +408,16 @@ if (import.meta.vitest) {
 			};
 			const { rerender } = await act(async () =>
 				renderWithQuery(
-					<SearchForm {...emptySearchProps} searchState={searchStateAsc} />
-				)
+					<SearchForm {...emptySearchProps} searchState={searchStateAsc} />,
+				),
 			);
 
 			const radioAsc = screen.getByLabelText(
-				/Ascending \(Older First\)/i
+				/Ascending \(Older First\)/i,
 			) as HTMLInputElement;
 			expect(radioAsc.defaultChecked).toBe(true);
 			const radioDesc = screen.getByLabelText(
-				/Descending \(Newer First\)/i
+				/Descending \(Newer First\)/i,
 			) as HTMLInputElement;
 			expect(radioDesc.defaultChecked).toBe(false);
 
@@ -429,15 +429,15 @@ if (import.meta.vitest) {
 				rerender(
 					<QueryClientProvider client={queryClient}>
 						<SearchForm {...defaultProps} searchState={searchStateDesc} />
-					</QueryClientProvider>
-				)
+					</QueryClientProvider>,
+				),
 			);
 			const radioAsc2 = screen.getByLabelText(
-				/Ascending \(Older First\)/i
+				/Ascending \(Older First\)/i,
 			) as HTMLInputElement;
 			expect(radioAsc2.defaultChecked).toBe(false);
 			const radioDesc2 = screen.getByLabelText(
-				/Descending \(Newer First\)/i
+				/Descending \(Newer First\)/i,
 			) as HTMLInputElement;
 			expect(radioDesc2.defaultChecked).toBe(true);
 		});
@@ -448,7 +448,7 @@ if (import.meta.vitest) {
 			const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
 			const textArea = screen.getByLabelText(/Text to Find:/i);
 			const descendingRadio = screen.getByLabelText(
-				/Descending \(Newer First\)/i
+				/Descending \(Newer First\)/i,
 			);
 			const button = screen.getByRole('button', {
 				name: /Find An Occurrence/i,

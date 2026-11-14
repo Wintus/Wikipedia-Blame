@@ -18,7 +18,7 @@ const queryClient = new QueryClient({
 function App() {
 	const [searchState, formAction, isPending] = useActionState(
 		searchAction,
-		initSearchState
+		initSearchState,
 	);
 	const hasSearched = searchState.searchCount > 0;
 

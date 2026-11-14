@@ -35,5 +35,5 @@ export default defineConfig(
 		rules: {
 			'@typescript-eslint/consistent-type-definitions': 'off',
 		},
-	}
+	},
 );

@@ -104,7 +104,7 @@ if (import.meta.vitest) {
 			});
 			mockFetchPageId.mockReset();
 			vi.spyOn(MediaWikiAPIs, 'fetchPageId').mockImplementation(
-				mockFetchPageId
+				mockFetchPageId,
 			);
 		});
 
@@ -116,7 +116,7 @@ if (import.meta.vitest) {
 			return render(
 				<QueryClientProvider client={queryClient}>
 					{component}
-				</QueryClientProvider>
+				</QueryClientProvider>,
 			);
 		};
 
@@ -128,11 +128,11 @@ if (import.meta.vitest) {
 						<PageTitleInput
 							initialPageTitle="Test Title"
 							wikiUrl={stubWikiUrl}
-						/>
-					)
+						/>,
+					),
 				);
 				const inputElement = screen.getByLabelText(
-					/Wiki Article Title:/i
+					/Wiki Article Title:/i,
 				) as HTMLInputElement;
 				expect(inputElement).toBeInTheDocument();
 				expect(inputElement.value).toBe('Test Title');
@@ -141,12 +141,12 @@ if (import.meta.vitest) {
 			it('renders a hidden input field for pageId when title is empty', async () => {
 				await act(async () =>
 					renderWithQuery(
-						<PageTitleInput initialPageTitle="" wikiUrl={stubWikiUrl} />
-					)
+						<PageTitleInput initialPageTitle="" wikiUrl={stubWikiUrl} />,
+					),
 				);
 				expect(screen.getByTestId('pageId-input')).toBeInTheDocument();
 				const hiddenInput = screen.getByTestId(
-					'pageId-input'
+					'pageId-input',
 				) as HTMLInputElement;
 				expect(hiddenInput.value).toBe('');
 				expect(mockFetchPageId).not.toHaveBeenCalled();
@@ -165,11 +165,11 @@ if (import.meta.vitest) {
 						<PageTitleInput
 							initialPageTitle="Test Title"
 							wikiUrl={stubWikiUrl}
-						/>
-					)
+						/>,
+					),
 				);
 				const inputElement = screen.getByLabelText(
-					/Wiki Article Title:/i
+					/Wiki Article Title:/i,
 				) as HTMLInputElement;
 
 				// Wait for the initial API call
@@ -183,7 +183,7 @@ if (import.meta.vitest) {
 					{},
 					{
 						timeout: 350,
-					}
+					},
 				);
 				expect(loadingIndicator).toBeInTheDocument();
 
@@ -192,7 +192,7 @@ if (import.meta.vitest) {
 				await act(async () => secondFetch.resolve(456));
 
 				await waitForElementToBeRemoved(() =>
-					screen.getByText('Checking title...')
+					screen.getByText('Checking title...'),
 				);
 
 				expect(inputElement.value).toBe('New Title');
@@ -204,11 +204,11 @@ if (import.meta.vitest) {
 				mockFetchPageId.mockReturnValue(fetchDeferred.promise);
 				await act(async () =>
 					renderWithQuery(
-						<PageTitleInput initialPageTitle="" wikiUrl={stubWikiUrl} />
-					)
+						<PageTitleInput initialPageTitle="" wikiUrl={stubWikiUrl} />,
+					),
 				);
 				const inputElement = screen.getByLabelText(
-					/Wiki Article Title:/i
+					/Wiki Article Title:/i,
 				) as HTMLInputElement;
 
 				await user.clear(inputElement);
@@ -219,7 +219,7 @@ if (import.meta.vitest) {
 					{},
 					{
 						timeout: 350,
-					}
+					},
 				);
 				expect(loadingIndicator).toBeInTheDocument();
 
@@ -228,12 +228,12 @@ if (import.meta.vitest) {
 				expect(mockFetchPageId).toHaveBeenCalledWith(
 					stubWikiUrl,
 					'Test',
-					expect.any(Object)
+					expect.any(Object),
 				);
 
 				await act(async () => fetchDeferred.resolve(123));
 				await waitForElementToBeRemoved(() =>
-					screen.getByText('Checking title...')
+					screen.getByText('Checking title...'),
 				);
 			});
 		});
@@ -246,20 +246,20 @@ if (import.meta.vitest) {
 						<PageTitleInput
 							initialPageTitle="Test Title"
 							wikiUrl={stubWikiUrl}
-						/>
-					)
+						/>,
+					),
 				);
 				// Wait for the API call
 				await waitFor(() => expect(mockFetchPageId).toHaveBeenCalledTimes(1));
 				await waitFor(() =>
-					expect(screen.getByTestId('pageId-input')).toHaveValue('123')
+					expect(screen.getByTestId('pageId-input')).toHaveValue('123'),
 				);
 			});
 
 			it('displays 404 error message without retry button', async () => {
 				const mockResponse = new Response('Not Found', { status: 404 });
 				mockFetchPageId.mockRejectedValue(
-					new Error('Failed to fetch page ID', { cause: mockResponse })
+					new Error('Failed to fetch page ID', { cause: mockResponse }),
 				);
 				const consoleErrorSpy = vi
 					.spyOn(console, 'error')
@@ -270,8 +270,8 @@ if (import.meta.vitest) {
 						<PageTitleInput
 							initialPageTitle="Test Title"
 							wikiUrl={stubWikiUrl}
-						/>
-					)
+						/>,
+					),
 				);
 
 				const errorMessage = await screen.findByText('Page not found.');
@@ -279,11 +279,11 @@ if (import.meta.vitest) {
 
 				// Should NOT have a retry button for 404
 				expect(
-					screen.queryByRole('button', { name: /try again/i })
+					screen.queryByRole('button', { name: /try again/i }),
 				).not.toBeInTheDocument();
 
 				const hiddenInput = screen.getByTestId(
-					'pageId-input'
+					'pageId-input',
 				) as HTMLInputElement;
 				expect(hiddenInput.value).toBe('');
 				consoleErrorSpy.mockRestore();
@@ -295,7 +295,7 @@ if (import.meta.vitest) {
 				});
 				const mockResponse = new Response('Not Found', { status: 404 });
 				mockFetchPageId.mockRejectedValue(
-					new Error('Failed to fetch page ID', { cause: mockResponse })
+					new Error('Failed to fetch page ID', { cause: mockResponse }),
 				);
 				const consoleErrorSpy = vi
 					.spyOn(console, 'error')
@@ -308,8 +308,8 @@ if (import.meta.vitest) {
 								initialPageTitle="Missing Page"
 								wikiUrl={stubWikiUrl}
 							/>
-						</QueryClientProvider>
-					)
+						</QueryClientProvider>,
+					),
 				);
 
 				expect(await screen.findByText('Page not found.')).toBeInTheDocument();
@@ -328,12 +328,12 @@ if (import.meta.vitest) {
 						<PageTitleInput
 							initialPageTitle="Test Title"
 							wikiUrl={stubWikiUrl}
-						/>
-					)
+						/>,
+					),
 				);
 
 				const errorMessage = await screen.findByText(
-					/Error fetching page ID\./
+					/Error fetching page ID\./,
 				);
 				expect(errorMessage).toBeInTheDocument();
 
@@ -343,7 +343,7 @@ if (import.meta.vitest) {
 				expect(retryButton).toHaveAttribute('type', 'button');
 
 				const hiddenInput = screen.getByTestId(
-					'pageId-input'
+					'pageId-input',
 				) as HTMLInputElement;
 				expect(hiddenInput.value).toBe('');
 				consoleErrorSpy.mockRestore();
@@ -352,7 +352,7 @@ if (import.meta.vitest) {
 			it('displays error message with retry button for 5XX server errors', async () => {
 				const mockResponse = new Response('Server Error', { status: 500 });
 				mockFetchPageId.mockRejectedValue(
-					new Error('Failed to fetch page ID', { cause: mockResponse })
+					new Error('Failed to fetch page ID', { cause: mockResponse }),
 				);
 				const consoleErrorSpy = vi
 					.spyOn(console, 'error')
@@ -363,12 +363,12 @@ if (import.meta.vitest) {
 						<PageTitleInput
 							initialPageTitle="Test Title"
 							wikiUrl={stubWikiUrl}
-						/>
-					)
+						/>,
+					),
 				);
 
 				const errorMessage = await screen.findByText(
-					/Error fetching page ID\./
+					/Error fetching page ID\./,
 				);
 				expect(errorMessage).toBeInTheDocument();
 
@@ -377,7 +377,7 @@ if (import.meta.vitest) {
 				expect(retryButton).toBeInTheDocument();
 
 				const hiddenInput = screen.getByTestId(
-					'pageId-input'
+					'pageId-input',
 				) as HTMLInputElement;
 				expect(hiddenInput.value).toBe('');
 				consoleErrorSpy.mockRestore();
@@ -401,8 +401,8 @@ if (import.meta.vitest) {
 						<PageTitleInput
 							initialPageTitle="Test Title"
 							wikiUrl={stubWikiUrl}
-						/>
-					)
+						/>,
+					),
 				);
 
 				// Wait for error state
@@ -423,12 +423,12 @@ if (import.meta.vitest) {
 
 				// Wait for success state
 				await waitForElementToBeRemoved(() =>
-					screen.getByText('Checking title...')
+					screen.getByText('Checking title...'),
 				);
 
 				expect(mockFetchPageId).toHaveBeenCalledTimes(3);
 				await waitFor(() =>
-					expect(screen.getByTestId('pageId-input')).toHaveValue('456')
+					expect(screen.getByTestId('pageId-input')).toHaveValue('456'),
 				);
 				consoleErrorSpy.mockRestore();
 			});
@@ -451,13 +451,13 @@ if (import.meta.vitest) {
 						<PageTitleInput
 							initialPageTitle="Test Title"
 							wikiUrl={stubWikiUrl}
-						/>
-					)
+						/>,
+					),
 				);
 
 				// Wait for error state
 				const errorMessage = await screen.findByText(
-					/Error fetching page ID\./
+					/Error fetching page ID\./,
 				);
 				expect(errorMessage).toBeInTheDocument();
 				expect(mockFetchPageId).toHaveBeenCalledTimes(2);
@@ -471,7 +471,7 @@ if (import.meta.vitest) {
 				const loadingIndicator = await screen.findByText(
 					'Checking title...',
 					{},
-					{ timeout: 350 }
+					{ timeout: 350 },
 				);
 				expect(loadingIndicator).toBeInTheDocument();
 				await waitFor(() => expect(mockFetchPageId).toHaveBeenCalledTimes(3));
@@ -481,11 +481,11 @@ if (import.meta.vitest) {
 				// Wait for success state
 				await waitForElementToBeRemoved(
 					() => screen.getByText('Checking title...'),
-					{ timeout: 1000 }
+					{ timeout: 1000 },
 				);
 
 				await waitFor(() =>
-					expect(screen.getByTestId('pageId-input')).toHaveValue('789')
+					expect(screen.getByTestId('pageId-input')).toHaveValue('789'),
 				);
 				consoleErrorSpy.mockRestore();
 			});
@@ -498,8 +498,8 @@ if (import.meta.vitest) {
 
 				await act(async () =>
 					renderWithQuery(
-						<PageTitleInput initialPageTitle="Test" wikiUrl={stubWikiUrl} />
-					)
+						<PageTitleInput initialPageTitle="Test" wikiUrl={stubWikiUrl} />,
+					),
 				);
 
 				// Initial render should trigger one call for "Test"

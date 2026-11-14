@@ -13,11 +13,11 @@ export type Predicate<S, T extends NonNullish> = (item: S) => T | null;
  */
 export const genFindMap = async <S, T extends NonNullish>(
 	predicate: Predicate<S, T>,
-	items: AsyncGenerator<S, unknown, unknown>
+	items: AsyncGenerator<S, unknown, unknown>,
 ): Promise<T | null> => genFind(mapGen(predicate, items));
 
 const genFind = async <T extends NonNullish>(
-	items: AsyncGenerator<T | null, unknown, unknown>
+	items: AsyncGenerator<T | null, unknown, unknown>,
 ): Promise<T | null> => {
 	for await (const item of items) {
 		if (item != null) {
@@ -30,7 +30,7 @@ const genFind = async <T extends NonNullish>(
 
 async function* mapGen<T, U>(
 	functor: (item: T) => U,
-	items: AsyncGenerator<T, unknown, unknown>
+	items: AsyncGenerator<T, unknown, unknown>,
 ): AsyncGenerator<U, void, unknown> {
 	for await (const item of items) {
 		yield functor(item);
@@ -43,13 +43,13 @@ if (import.meta.vitest) {
 
 	const createTextDetector =
 		<T extends number, U extends { rev: T; text?: string }>(
-			targetText: string
+			targetText: string,
 		) =>
 		(item: U): T | null =>
 			item.text?.includes(targetText) ? item.rev : null;
 
 	async function* createAsyncGenerator<T>(
-		items: ReadonlyArray<T>
+		items: ReadonlyArray<T>,
 	): AsyncGenerator<T> {
 		yield* items;
 	}
@@ -60,7 +60,7 @@ if (import.meta.vitest) {
 				// Arrange
 				const result = await genFindMap(
 					createTextDetector('test'),
-					createAsyncGenerator([])
+					createAsyncGenerator([]),
 				);
 				// Assert
 				expect(result).toBeNull();
@@ -76,7 +76,7 @@ if (import.meta.vitest) {
 				// Act
 				const result = await genFindMap(
 					createTextDetector('test'),
-					createAsyncGenerator(items)
+					createAsyncGenerator(items),
 				);
 				// Assert
 				expect(result).toBe(54321);
@@ -92,7 +92,7 @@ if (import.meta.vitest) {
 				// Act
 				const result = await genFindMap(
 					createTextDetector('test'),
-					createAsyncGenerator(items)
+					createAsyncGenerator(items),
 				);
 				// Assert
 				expect(result).toBeNull();

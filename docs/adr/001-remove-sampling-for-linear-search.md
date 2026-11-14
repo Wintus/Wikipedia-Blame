@@ -29,18 +29,18 @@ The randomized sampling logic for searching revisions has been removed. The new,
 
 ### Positive
 
-* **Reduced Code Complexity:** The most significant benefit is the removal of the `src/utils/item-finder.ts` module and its intricate sampling and batching logic, leading to a much simpler and more maintainable codebase.
-* **Improved Predictability:** The search process is now a straightforward linear scan (either ascending or descending by revision date, as per user selection). While this might be slower for finding items very late in an extremely long history if sampling *had* been exceptionally lucky, the overall performance characteristics are more predictable and easier to reason about.
-* **More Efficient Use of Streaming:** Revision content is fetched and processed within a single, unified streaming pipeline. This can improve memory efficiency and potentially reduce the total number of API requests compared to the previous multi-step process of fetching IDs then content in batches.
-* **Simplified State Management:** The `searchAction` directly receives revisions complete with their content, simplifying the data flow to the search predicate.
-* **Adherence to Functional Principles:** The introduction of `src/utils/async-generator.ts` provides generic, reusable functional helper functions (`genFindMap`, `mapGen`, `genFind`) for working with async generators, aligning well with the project's functional programming style guide.
+- **Reduced Code Complexity:** The most significant benefit is the removal of the `src/utils/item-finder.ts` module and its intricate sampling and batching logic, leading to a much simpler and more maintainable codebase.
+- **Improved Predictability:** The search process is now a straightforward linear scan (either ascending or descending by revision date, as per user selection). While this might be slower for finding items very late in an extremely long history if sampling _had_ been exceptionally lucky, the overall performance characteristics are more predictable and easier to reason about.
+- **More Efficient Use of Streaming:** Revision content is fetched and processed within a single, unified streaming pipeline. This can improve memory efficiency and potentially reduce the total number of API requests compared to the previous multi-step process of fetching IDs then content in batches.
+- **Simplified State Management:** The `searchAction` directly receives revisions complete with their content, simplifying the data flow to the search predicate.
+- **Adherence to Functional Principles:** The introduction of `src/utils/async-generator.ts` provides generic, reusable functional helper functions (`genFindMap`, `mapGen`, `genFind`) for working with async generators, aligning well with the project's functional programming style guide.
 
 ### Negative
 
-* **Potential for Slower "Lucky Finds":** In scenarios where the target text was located in a revision that the previous sampling mechanism might have picked very early, the new linear search could take longer if that revision is far down the chronological history. However, the overhead and complexity of the sampling mechanism itself are now eliminated.
-* **Increased Data per Revision in Initial Fetch Stream:** Fetching content alongside IDs means that `fetchAllRevisions` processes more data per revision in its stream. However, given the use of streaming parsers and async generators, this should not significantly impact memory usage, provided consumers of the stream process items promptly.
+- **Potential for Slower "Lucky Finds":** In scenarios where the target text was located in a revision that the previous sampling mechanism might have picked very early, the new linear search could take longer if that revision is far down the chronological history. However, the overhead and complexity of the sampling mechanism itself are now eliminated.
+- **Increased Data per Revision in Initial Fetch Stream:** Fetching content alongside IDs means that `fetchAllRevisions` processes more data per revision in its stream. However, given the use of streaming parsers and async generators, this should not significantly impact memory usage, provided consumers of the stream process items promptly.
 
 ### Neutral
 
-* The core functionality of searching for text within Wikipedia page revisions is preserved.
-* The application continues to leverage `AsyncGenerator` for efficient handling of potentially large datasets from the MediaWiki API.
+- The core functionality of searching for text within Wikipedia page revisions is preserved.
+- The application continues to leverage `AsyncGenerator` for efficient handling of potentially large datasets from the MediaWiki API.

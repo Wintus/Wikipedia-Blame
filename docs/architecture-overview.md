@@ -51,11 +51,11 @@ graph TD
 ### Search Action Function (`searchAction`)
 
 - Handles the complete search workflow orchestration:
-	1. Input validation.
-	2. Calls `fetchAllRevisions` (an `AsyncGenerator`) to get a stream of revisions.
-	3. Passes the revision stream (which now includes content) to `genFindMap`.
-	4. `genFindMap` consumes this generator, applying the search predicate to find the target text efficiently.
-	5. Awaits the final result (found revision ID or null) from `genFindMap`.
+  1.  Input validation.
+  2.  Calls `fetchAllRevisions` (an `AsyncGenerator`) to get a stream of revisions.
+  3.  Passes the revision stream (which now includes content) to `genFindMap`.
+  4.  `genFindMap` consumes this generator, applying the search predicate to find the target text efficiently.
+  5.  Awaits the final result (found revision ID or null) from `genFindMap`.
 - Handles optional `startRevId` and `endRevId` form inputs to limit the revision range.
 - Returns a single, comprehensive final `SearchState` object compatible with `useActionState`.
 

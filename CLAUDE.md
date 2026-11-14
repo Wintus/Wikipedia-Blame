@@ -91,6 +91,7 @@ The application uses TanStack Query for page ID fetching with the following patt
 ### Page ID Fetching Pattern
 
 @src/components/PageTitleInput.tsx:
+
 - Uses TanStack Pacer's `useDebouncedValue` (300ms) for input debouncing
 - Uses `useQuery` with query key `['pageId', wikiUrl.href, debouncedTitle]` and handles loading and error states inline (ADR-005); no Suspense or error boundary
 - Handles an empty title inside `queryFn`: returns `null`, so no request is made
@@ -112,11 +113,9 @@ All components using queries must be wrapped in `QueryClientProvider`:
 
 ```tsx
 const renderWithQuery = (component: React.ReactElement) => {
-  return render(
-    <QueryClientProvider client={queryClient}>
-      {component}
-    </QueryClientProvider>
-  );
+	return render(
+		<QueryClientProvider client={queryClient}>{component}</QueryClientProvider>,
+	);
 };
 ```
 
