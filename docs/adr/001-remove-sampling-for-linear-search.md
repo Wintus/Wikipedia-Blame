@@ -44,3 +44,11 @@ The randomized sampling logic for searching revisions has been removed. The new,
 
 - The core functionality of searching for text within Wikipedia page revisions is preserved.
 - The application continues to leverage `AsyncGenerator` for efficient handling of potentially large datasets from the MediaWiki API.
+
+## Update (2026-11-14)
+
+The decision above stands unchanged. Some identifiers and the helper's location have since changed:
+
+- The helpers moved from `src/utils/async-generator.ts` to `src/lib/async-generator.ts`.
+- The `gen` affixes were dropped: `genFindMap` → `findMap`, `genFind` → `find`, `mapGen` → `map`.
+- The `Predicate` type was renamed `PartialMapper`, since it returns a mapped value or `null` rather than a boolean.
