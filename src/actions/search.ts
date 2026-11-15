@@ -205,10 +205,7 @@ if (import.meta.vitest) {
 					{ rev: 3, text: 'More text' },
 				]),
 			);
-			vi.mocked(findMap).mockResolvedValue({
-				rev: 2,
-				text: 'Contains Test Text',
-			});
+			vi.mocked(findMap).mockResolvedValue(2);
 
 			const formData = createFormData({ pageId: '123' });
 
@@ -219,7 +216,7 @@ if (import.meta.vitest) {
 				pageId: 123,
 				pageTitle: 'Test Page',
 				targetText: 'Test Text',
-				revisionId: { rev: 2, text: 'Contains Test Text' },
+				revisionId: 2,
 				error: null,
 			});
 		});
@@ -312,10 +309,7 @@ if (import.meta.vitest) {
 					{ rev: 3, text: 'More text' },
 				]),
 			);
-			vi.mocked(findMap).mockResolvedValue({
-				rev: 2,
-				text: 'Contains Test Text',
-			});
+			vi.mocked(findMap).mockResolvedValue(2);
 
 			const formData = createFormData({ endRevId: '456', pageId: '123' });
 
@@ -337,10 +331,7 @@ if (import.meta.vitest) {
 					{ rev: 3, text: 'More text' },
 				]),
 			);
-			vi.mocked(findMap).mockResolvedValue({
-				rev: 2,
-				text: 'Contains Test Text',
-			});
+			vi.mocked(findMap).mockResolvedValue(2);
 
 			const formData = createFormData({ pageId: '123' }); // No endRevId
 
@@ -362,10 +353,7 @@ if (import.meta.vitest) {
 					{ rev: 3, text: 'More text' },
 				]),
 			);
-			vi.mocked(findMap).mockResolvedValue({
-				rev: 2,
-				text: 'Contains Test Text',
-			});
+			vi.mocked(findMap).mockResolvedValue(2);
 
 			const formData = createFormData({ order: 'desc', pageId: '123' });
 
@@ -386,10 +374,7 @@ if (import.meta.vitest) {
 					{ rev: 3, text: 'More text' },
 				]),
 			);
-			vi.mocked(findMap).mockResolvedValue({
-				rev: 2,
-				text: 'Contains Test Text',
-			});
+			vi.mocked(findMap).mockResolvedValue(2);
 
 			const formDataAsc = createFormData({ order: 'asc', pageId: '123' });
 			const resultAsc = await searchAction(
@@ -415,10 +400,7 @@ if (import.meta.vitest) {
 					{ rev: 3, text: 'More text' },
 				]),
 			);
-			vi.mocked(findMap).mockResolvedValue({
-				rev: 2,
-				text: 'Contains Test Text',
-			});
+			vi.mocked(findMap).mockResolvedValue(2);
 
 			const formData = createFormData({ startRevId: '123', pageId: '456' });
 
@@ -440,10 +422,7 @@ if (import.meta.vitest) {
 					{ rev: 3, text: 'More text' },
 				]),
 			);
-			vi.mocked(findMap).mockResolvedValue({
-				rev: 2,
-				text: 'Contains Test Text',
-			});
+			vi.mocked(findMap).mockResolvedValue(2);
 
 			const formData = createFormData({
 				startRevId: '123',
