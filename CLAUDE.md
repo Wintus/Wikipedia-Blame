@@ -135,6 +135,7 @@ Uses **Vitest** with **in-source testing** pattern. All source files MUST includ
 3. Ensure all tests pass before committing
 4. When fixing bugs, first write a failing test that reproduces the issue
 5. Mock external dependencies (APIs, etc.)
+6. Type the expected state in assertions (`expect(result).toEqual<SearchState>({ ... })`). Generic mocks bypass return-type checks, so the assertion is the last place the contract can be enforced.
 
 Example test structure:
 
