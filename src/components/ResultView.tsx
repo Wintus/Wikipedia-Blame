@@ -45,25 +45,22 @@ export function ResultView({ result, isPending }: Props) {
 	return (
 		<div className="result-view success">
 			<h3>An Occurrence Found</h3>
-			<div className="result-details">
-				<p>
-					<strong>Article:</strong> {result.pageTitle.trim()}
-				</p>
-				<p>
-					<strong>Text:</strong> "{result.targetText}"
-				</p>
-				<p>
-					<strong>Revision ID:</strong> {result.revisionId}
-				</p>
-				<a
-					href={revisionUrl.toString()}
-					target="_blank"
-					rel="noopener noreferrer"
-					className="revision-link"
-				>
-					View Revision
-				</a>
-			</div>
+			<dl className="result-details">
+				<dt>Article</dt>
+				<dd>{result.pageTitle.trim()}</dd>
+				<dt>Text</dt>
+				<dd>"{result.targetText}"</dd>
+				<dt>Revision ID</dt>
+				<dd>{result.revisionId}</dd>
+			</dl>
+			<a
+				href={revisionUrl.toString()}
+				target="_blank"
+				rel="noopener noreferrer"
+				className="revision-link"
+			>
+				View Revision
+			</a>
 		</div>
 	);
 }
@@ -131,6 +128,29 @@ if (import.meta.vitest) {
 			expect(screen.getByText(/test article/i)).toBeTruthy();
 			expect(screen.getByText(/"test text"/i)).toBeTruthy();
 			expect(screen.getByText(/12345/)).toBeTruthy();
+		});
+
+		it('renders the details as a definition list', () => {
+			const successResult = createResult({
+				revisionId: 12345,
+				pageTitle: 'Test Article',
+				targetText: 'Test Text',
+			});
+			const { container } = render(<ResultView result={successResult} />);
+
+			const details = container.querySelector('dl.result-details');
+			expect(details).not.toBeNull();
+
+			const terms = screen.getAllByRole('term');
+			const definitions = screen.getAllByRole('definition');
+
+			expect(terms.map((term) => term.textContent)).toEqual([
+				'Article',
+				'Text',
+				'Revision ID',
+			]);
+			expect(definitions).toHaveLength(3);
+			expect(definitions[0]?.closest('dl')).toBe(details);
 		});
 
 		it('renders revision link', () => {

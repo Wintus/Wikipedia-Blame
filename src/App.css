@@ -151,9 +151,37 @@ button:disabled {
 	margin-block-end: 1.25rem;
 }
 
-.result-details p {
-	margin-block: 0.625em;
+.result-details {
+	display: grid;
+	grid-template-columns: max-content minmax(0, 1fr);
+	align-items: baseline;
+	column-gap: 1em;
+	row-gap: 0.625em;
+	margin-block: 0;
+}
+
+.result-details dt {
+	font-weight: bold;
+}
+
+.result-details dd {
+	margin-block: 0;
 	margin-inline: 0;
+}
+
+@media (max-width: 30rem) {
+	.result-details {
+		grid-template-columns: 1fr;
+		row-gap: 0.3125em;
+	}
+
+	.result-details dd {
+		margin-block-end: 0.625em;
+	}
+
+	.result-details dd:last-of-type {
+		margin-block-end: 0;
+	}
 }
 
 .revision-link {
