@@ -190,7 +190,7 @@ if (import.meta.vitest) {
 
 			const result = await searchAction(defaultPrevState, emptyFormData);
 
-			expect(result).toEqual({
+			expect(result).toEqual<SearchState>({
 				...defaultPrevState,
 				error: expect.any(String),
 				searchCount: 1,
@@ -211,7 +211,7 @@ if (import.meta.vitest) {
 
 			const result = await searchAction(defaultPrevState, formData);
 
-			expect(result).toEqual({
+			expect(result).toEqual<SearchState>({
 				...defaultExpectedState,
 				pageId: 123,
 				pageTitle: 'Test Page',
@@ -226,7 +226,7 @@ if (import.meta.vitest) {
 
 			const result = await searchAction(defaultPrevState, formData);
 
-			expect(result).toEqual({
+			expect(result).toEqual<SearchState>({
 				...defaultExpectedState,
 				pageId: null,
 				revisionId: null,
@@ -250,7 +250,7 @@ if (import.meta.vitest) {
 
 			const result = await searchAction(defaultPrevState, formData);
 
-			expect(result).toEqual({
+			expect(result).toEqual<SearchState>({
 				...defaultExpectedState,
 				pageId: 123,
 				pageTitle: 'Test Page',
@@ -270,7 +270,7 @@ if (import.meta.vitest) {
 
 			const result = await searchAction(defaultPrevState, formData);
 
-			expect(result).toEqual({
+			expect(result).toEqual<SearchState>({
 				...defaultExpectedState,
 				pageId: 123,
 				pageTitle: 'Test Page',
@@ -290,7 +290,7 @@ if (import.meta.vitest) {
 
 			const result = await searchAction(defaultPrevState, formData);
 
-			expect(result).toEqual({
+			expect(result).toEqual<SearchState>({
 				...defaultExpectedState,
 				pageId: 123,
 				pageTitle: 'Test Page',
