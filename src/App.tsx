@@ -20,7 +20,6 @@ function App() {
 		searchAction,
 		initSearchState,
 	);
-	const hasSearched = searchState.searchCount > 0;
 
 	return (
 		<QueryClientProvider client={queryClient}>
@@ -35,9 +34,7 @@ function App() {
 						isPending={isPending}
 						searchState={searchState}
 					/>
-					{hasSearched && (
-						<ResultView result={searchState} isPending={isPending} />
-					)}
+					<ResultView state={searchState} isPending={isPending} />
 				</main>
 			</div>
 			<ReactQueryDevtools initialIsOpen={false} />
