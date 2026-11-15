@@ -49,7 +49,9 @@ export function ResultView({ result, isPending }: Props) {
 				<dt>Article</dt>
 				<dd>{result.pageTitle.trim()}</dd>
 				<dt>Text</dt>
-				<dd>"{result.targetText}"</dd>
+				<dd>
+					<q>{result.targetText}</q>
+				</dd>
 				<dt>Revision ID</dt>
 				<dd>{result.revisionId}</dd>
 			</dl>
@@ -131,7 +133,7 @@ if (import.meta.vitest) {
 				}),
 			).toBeTruthy();
 			expect(screen.getByText(/test article/i)).toBeTruthy();
-			expect(screen.getByText(/"test text"/i)).toBeTruthy();
+			expect(screen.getByText('Test Text').closest('q')).not.toBeNull();
 			expect(screen.getByText(/12345/)).toBeTruthy();
 		});
 
