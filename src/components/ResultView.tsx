@@ -44,7 +44,7 @@ export function ResultView({ result, isPending }: Props) {
 
 	return (
 		<div className="result-view success">
-			<h3>An Occurrence Found</h3>
+			<h2>An Occurrence Found</h2>
 			<dl className="result-details">
 				<dt>Article</dt>
 				<dd>{result.pageTitle.trim()}</dd>
@@ -124,7 +124,12 @@ if (import.meta.vitest) {
 			});
 			render(<ResultView result={successResult} />);
 
-			expect(screen.getByText(/an occurrence found/i)).toBeTruthy();
+			expect(
+				screen.getByRole('heading', {
+					level: 2,
+					name: /an occurrence found/i,
+				}),
+			).toBeTruthy();
 			expect(screen.getByText(/test article/i)).toBeTruthy();
 			expect(screen.getByText(/"test text"/i)).toBeTruthy();
 			expect(screen.getByText(/12345/)).toBeTruthy();
