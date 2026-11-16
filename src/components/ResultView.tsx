@@ -31,7 +31,7 @@ const neverSearched = (state: SearchState): boolean => state.searchCount === 0;
  * Renders the card for the current search state, or nothing before the
  * first search.
  */
-export function ResultView({ state, isPending }: Props) {
+function ResultContent({ state, isPending }: Props) {
 	// guard
 	if (isPending) {
 		return <div className="result-view loading">Searching...</div>;
@@ -79,6 +79,19 @@ export function ResultView({ state, isPending }: Props) {
 	);
 }
 
+/**
+ * Displays the outcome of a search and owns the "no search yet" state, so it
+ * stays mounted from the start. The container is a status region: it exists
+ * before any result, so screen readers announce the card when it changes.
+ */
+export function ResultView({ state, isPending = false }: Props) {
+	return (
+		<div className="result-view-container" role="status">
+			<ResultContent state={state} isPending={isPending} />
+		</div>
+	);
+}
+
 // MARK: in-source tests
 if (import.meta.vitest) {
 	const { describe, it, expect } = import.meta.vitest;
@@ -100,11 +113,10 @@ if (import.meta.vitest) {
 		});
 
 		it('renders nothing before the first search', () => {
-			const { container } = render(
-				<ResultView state={createState({ searchCount: 0 })} />,
-			);
+			render(<ResultView state={createState({ searchCount: 0 })} />);
 
-			expect(container).toBeEmptyDOMElement();
+			expect(screen.queryByText(/an occurrence found/i)).toBeNull();
+			expect(screen.getByRole('status').textContent).toBe('');
 		});
 
 		it('displays pending state when isPending is true', () => {
@@ -208,6 +220,22 @@ if (import.meta.vitest) {
 			render(<ResultView state={stateWithoutRevision} />);
 
 			expect(screen.getByText(/text not found/i)).toBeTruthy();
+		});
+
+		it('exposes the card as a status region', () => {
+			const successState = createState({
+				revisionId: 12345,
+				pageTitle: 'Test Article',
+				targetText: 'Test Text',
+			});
+			render(<ResultView state={successState} />);
+
+			const region = screen.getByRole('status');
+
+			expect(region.querySelector('h2')?.textContent).toBe(
+				'An Occurrence Found',
+			);
+			expect(region.textContent).toContain('Test Article');
 		});
 	});
 }
