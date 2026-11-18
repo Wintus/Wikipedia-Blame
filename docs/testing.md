@@ -32,7 +32,7 @@ See the Vitest in-source testing guide for more information: https://vitest.dev/
 - Use meaningful test descriptions that document behavior
 - Focus on behavior, not implementation details
 - Aim for comprehensive but maintainable test coverage
-- Use `npm test:watch` during development for continuous feedback
+- Use `npm run test:watch` during development for continuous feedback
 
 ## Code Examples
 

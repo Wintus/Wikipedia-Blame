@@ -156,7 +156,7 @@ if (import.meta.vitest) {
 
 ### Functional Programming Style
 
-The project follows functional programming principles (see @.clinerules/functional-style-guide.md):
+The project follows functional programming principles (see @docs/functional-style.md):
 
 1. **Pure functions over classes** - Export individual functions rather than class methods
 2. **Dependency injection** - Pass dependencies as function parameters
