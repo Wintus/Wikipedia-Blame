@@ -16,11 +16,7 @@ export function SearchForm({ formAction, isPending, searchState }: Props) {
 		<form action={formAction} className="search-form" name="searchForm">
 			<WikiSelector selectedWiki={wikiUrl} onChange={setWikiUrl} />
 
-			<PageTitleInput
-				key={wikiUrl.href}
-				initialPageTitle={searchState.pageTitle}
-				wikiUrl={wikiUrl}
-			/>
+			<PageTitleInput wikiUrl={wikiUrl} />
 
 			<div className="form-group">
 				<label htmlFor="target-text">Text to Find:</label>
@@ -92,7 +88,8 @@ export function SearchForm({ formAction, isPending, searchState }: Props) {
 // MARK: in-source tests
 if (import.meta.vitest) {
 	const { describe, it, expect, vi, beforeEach, afterAll } = import.meta.vitest;
-	const { render, screen, act } = await import('@testing-library/react');
+	const { render, screen, act, waitFor } =
+		await import('@testing-library/react');
 	const { userEvent } = await import('@testing-library/user-event');
 	const MediaWikiAPIs = await import('../services/MediaWikiAPIs');
 	const { QueryClient, QueryClientProvider } =
@@ -140,6 +137,7 @@ if (import.meta.vitest) {
 
 		beforeEach(() => {
 			mockFormAction.mockClear();
+			mockFetchPageId.mockClear();
 			queryClient = new QueryClient({
 				defaultOptions: { queries: { retry: false } },
 			});
@@ -317,6 +315,12 @@ if (import.meta.vitest) {
 
 			expect(wikiSelector.value).toBe('https://ja.wikipedia.org/');
 
+			// The page title is required, so fill it before submitting
+			await user.type(
+				screen.getByLabelText(/Wiki Article Title:/i),
+				'Albert Einstein',
+			);
+
 			const button = screen.getByRole('button', {
 				name: /Find An Occurrence/i,
 			});
@@ -326,7 +330,7 @@ if (import.meta.vitest) {
 			expect(wikiSelector.value).toBe('https://ja.wikipedia.org/');
 		});
 
-		it('resets page title input when wiki site changes', async () => {
+		it('preserves the typed page title when wiki site changes', async () => {
 			const { fireEvent } = await import('@testing-library/react');
 			const user = userEvent.setup();
 			await act(async () => renderWithQuery(<SearchForm {...defaultProps} />));
@@ -334,7 +338,7 @@ if (import.meta.vitest) {
 				/Wiki Article Title:/i,
 			) as HTMLInputElement;
 
-			// User types a different title
+			// User types a title
 			await user.clear(titleInput);
 			await user.type(titleInput, 'Albert Einstein');
 			expect(titleInput.value).toBe('Albert Einstein');
@@ -349,14 +353,73 @@ if (import.meta.vitest) {
 				});
 			});
 
-			// PageTitleInput remounts → title resets to initialPageTitle
-			const resetTitleInput = screen.getByLabelText(
+			// PageTitleInput stays mounted → the typed title is preserved
+			const titleAfterSwitch = screen.getByLabelText(
 				/Wiki Article Title:/i,
 			) as HTMLInputElement;
-			expect(resetTitleInput.value).toBe('Initial Title');
+			expect(titleAfterSwitch.value).toBe('Albert Einstein');
 		});
 
-		it('renders initial values from searchState', async () => {
+		it('does not overwrite the typed page title when searchState changes', async () => {
+			const user = userEvent.setup();
+			const { rerender } = await act(async () =>
+				renderWithQuery(<SearchForm {...defaultProps} />),
+			);
+			const titleInput = screen.getByLabelText(
+				/Wiki Article Title:/i,
+			) as HTMLInputElement;
+
+			await user.type(titleInput, 'Albert Einstein');
+			expect(titleInput.value).toBe('Albert Einstein');
+
+			await act(async () =>
+				rerender(
+					<QueryClientProvider client={queryClient}>
+						<SearchForm
+							{...defaultProps}
+							searchState={{
+								...defaultSearchState,
+								pageTitle: 'Some Other Title',
+								searchCount: 1,
+							}}
+						/>
+					</QueryClientProvider>,
+				),
+			);
+
+			const titleAfterUpdate = screen.getByLabelText(
+				/Wiki Article Title:/i,
+			) as HTMLInputElement;
+			expect(titleAfterUpdate.value).toBe('Albert Einstein');
+		});
+
+		it('looks up the page ID using the currently selected wiki URL', async () => {
+			const { fireEvent } = await import('@testing-library/react');
+			const user = userEvent.setup();
+			await act(async () => renderWithQuery(<SearchForm {...defaultProps} />));
+			const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
+			const wikiSelector =
+				screen.getByLabelText<HTMLSelectElement>(/Wiki Site:/i);
+
+			await act(async () => {
+				// use fireEvent due to warning of act unsupported
+				fireEvent.change(wikiSelector, {
+					target: { value: 'https://ja.wikipedia.org/' },
+				});
+			});
+
+			await user.type(titleInput, 'Albert Einstein');
+
+			await waitFor(() => {
+				const call = mockFetchPageId.mock.calls.find(
+					([, title]) => title === 'Albert Einstein',
+				);
+				expect(call).toBeDefined();
+				expect((call?.[0] as URL).href).toBe('https://ja.wikipedia.org/');
+			});
+		});
+
+		it('renders initial values from searchState except the page title', async () => {
 			await act(async () =>
 				renderWithQuery(
 					<SearchForm
@@ -386,7 +449,7 @@ if (import.meta.vitest) {
 				/Wiki Site:/i,
 			) as HTMLSelectElement;
 
-			expect(titleInput.value).toBe('Initial Page Title');
+			expect(titleInput.value).toBe('');
 			expect(textArea.value).toBe('Initial Target Text');
 			expect(wikiSelector.value).toBe('https://ja.wikipedia.org/');
 		});

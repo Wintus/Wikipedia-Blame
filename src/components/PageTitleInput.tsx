@@ -4,12 +4,11 @@ import { useDebouncedValue } from '@tanstack/react-pacer';
 import { fetchPageId, isNotFoundError } from '../services/MediaWikiAPIs';
 
 type Props = {
-	initialPageTitle: string;
 	wikiUrl: URL;
 };
 
-export function PageTitleInput({ initialPageTitle, wikiUrl }: Props) {
-	const [pageTitle, setPageTitle] = useState(initialPageTitle);
+export function PageTitleInput({ wikiUrl }: Props) {
+	const [pageTitle, setPageTitle] = useState('');
 	const [debouncedTitle] = useDebouncedValue(pageTitle.trim(), { wait: 300 });
 
 	const {
@@ -33,7 +32,7 @@ export function PageTitleInput({ initialPageTitle, wikiUrl }: Props) {
 				type="search"
 				id="page-title"
 				name="pageTitle"
-				value={pageTitle}
+				defaultValue={pageTitle}
 				onChange={(e) => setPageTitle(e.target.value)}
 				placeholder="e.g. Albert Einstein"
 				required
@@ -120,29 +119,29 @@ if (import.meta.vitest) {
 			);
 		};
 
+		const enterTitle = async (title: string) => {
+			const user = userEvent.setup();
+			const inputElement = screen.getByLabelText(/Wiki Article Title:/i);
+			await user.clear(inputElement);
+			await user.type(inputElement, title);
+		};
+
 		describe('Rendering', () => {
-			it('renders the label and input with initial value', async () => {
-				mockFetchPageId.mockResolvedValue(123);
+			it('renders the label and input with an empty initial value', async () => {
 				await act(async () =>
-					renderWithQuery(
-						<PageTitleInput
-							initialPageTitle="Test Title"
-							wikiUrl={stubWikiUrl}
-						/>,
-					),
+					renderWithQuery(<PageTitleInput wikiUrl={stubWikiUrl} />),
 				);
 				const inputElement = screen.getByLabelText(
 					/Wiki Article Title:/i,
 				) as HTMLInputElement;
 				expect(inputElement).toBeInTheDocument();
-				expect(inputElement.value).toBe('Test Title');
+				expect(inputElement.value).toBe('');
+				expect(mockFetchPageId).not.toHaveBeenCalled();
 			});
 
 			it('renders a hidden input field for pageId when title is empty', async () => {
 				await act(async () =>
-					renderWithQuery(
-						<PageTitleInput initialPageTitle="" wikiUrl={stubWikiUrl} />,
-					),
+					renderWithQuery(<PageTitleInput wikiUrl={stubWikiUrl} />),
 				);
 				expect(screen.getByTestId('pageId-input')).toBeInTheDocument();
 				const hiddenInput = screen.getByTestId(
@@ -156,27 +155,17 @@ if (import.meta.vitest) {
 		describe('User Interaction', () => {
 			it('updates the input value on change', async () => {
 				const user = userEvent.setup();
-				const secondFetch = deferred<number>();
-				mockFetchPageId
-					.mockResolvedValueOnce(123)
-					.mockReturnValueOnce(secondFetch.promise);
+				const fetchDeferred = deferred<number>();
+				mockFetchPageId.mockReturnValue(fetchDeferred.promise);
 				await act(async () =>
-					renderWithQuery(
-						<PageTitleInput
-							initialPageTitle="Test Title"
-							wikiUrl={stubWikiUrl}
-						/>,
-					),
+					renderWithQuery(<PageTitleInput wikiUrl={stubWikiUrl} />),
 				);
 				const inputElement = screen.getByLabelText(
 					/Wiki Article Title:/i,
 				) as HTMLInputElement;
 
-				// Wait for the initial API call
-				await waitFor(() => expect(mockFetchPageId).toHaveBeenCalledTimes(1));
-
-				await user.clear(inputElement);
 				await user.type(inputElement, 'New Title');
+				expect(inputElement.value).toBe('New Title');
 
 				const loadingIndicator = await screen.findByText(
 					'Checking title...',
@@ -188,8 +177,14 @@ if (import.meta.vitest) {
 				expect(loadingIndicator).toBeInTheDocument();
 
 				// Wait for the debounce and API call
-				await waitFor(() => expect(mockFetchPageId).toHaveBeenCalledTimes(2));
-				await act(async () => secondFetch.resolve(456));
+				await waitFor(() =>
+					expect(mockFetchPageId).toHaveBeenCalledWith(
+						stubWikiUrl,
+						'New Title',
+						expect.any(Object),
+					),
+				);
+				await act(async () => fetchDeferred.resolve(456));
 
 				await waitForElementToBeRemoved(() =>
 					screen.getByText('Checking title...'),
@@ -203,9 +198,7 @@ if (import.meta.vitest) {
 				const fetchDeferred = deferred<number>();
 				mockFetchPageId.mockReturnValue(fetchDeferred.promise);
 				await act(async () =>
-					renderWithQuery(
-						<PageTitleInput initialPageTitle="" wikiUrl={stubWikiUrl} />,
-					),
+					renderWithQuery(<PageTitleInput wikiUrl={stubWikiUrl} />),
 				);
 				const inputElement = screen.getByLabelText(
 					/Wiki Article Title:/i,
@@ -242,13 +235,9 @@ if (import.meta.vitest) {
 			it('renders the hidden input with the correct pageId when fetch is successful', async () => {
 				mockFetchPageId.mockResolvedValue(123);
 				await act(async () =>
-					renderWithQuery(
-						<PageTitleInput
-							initialPageTitle="Test Title"
-							wikiUrl={stubWikiUrl}
-						/>,
-					),
+					renderWithQuery(<PageTitleInput wikiUrl={stubWikiUrl} />),
 				);
+				await enterTitle('Test Title');
 				// Wait for the API call
 				await waitFor(() => expect(mockFetchPageId).toHaveBeenCalledTimes(1));
 				await waitFor(() =>
@@ -266,13 +255,9 @@ if (import.meta.vitest) {
 					.mockImplementation(() => {});
 
 				await act(async () =>
-					renderWithQuery(
-						<PageTitleInput
-							initialPageTitle="Test Title"
-							wikiUrl={stubWikiUrl}
-						/>,
-					),
+					renderWithQuery(<PageTitleInput wikiUrl={stubWikiUrl} />),
 				);
+				await enterTitle('Test Title');
 
 				const errorMessage = await screen.findByText('Page not found.');
 				expect(errorMessage).toBeInTheDocument();
@@ -304,13 +289,11 @@ if (import.meta.vitest) {
 				await act(async () =>
 					render(
 						<QueryClientProvider client={retryClient}>
-							<PageTitleInput
-								initialPageTitle="Missing Page"
-								wikiUrl={stubWikiUrl}
-							/>
+							<PageTitleInput wikiUrl={stubWikiUrl} />
 						</QueryClientProvider>,
 					),
 				);
+				await enterTitle('Missing Page');
 
 				expect(await screen.findByText('Page not found.')).toBeInTheDocument();
 				expect(mockFetchPageId).toHaveBeenCalledTimes(1);
@@ -324,13 +307,9 @@ if (import.meta.vitest) {
 					.mockImplementation(() => {});
 
 				await act(async () =>
-					renderWithQuery(
-						<PageTitleInput
-							initialPageTitle="Test Title"
-							wikiUrl={stubWikiUrl}
-						/>,
-					),
+					renderWithQuery(<PageTitleInput wikiUrl={stubWikiUrl} />),
 				);
+				await enterTitle('Test Title');
 
 				const errorMessage = await screen.findByText(
 					/Error fetching page ID\./,
@@ -359,13 +338,9 @@ if (import.meta.vitest) {
 					.mockImplementation(() => {});
 
 				await act(async () =>
-					renderWithQuery(
-						<PageTitleInput
-							initialPageTitle="Test Title"
-							wikiUrl={stubWikiUrl}
-						/>,
-					),
+					renderWithQuery(<PageTitleInput wikiUrl={stubWikiUrl} />),
 				);
+				await enterTitle('Test Title');
 
 				const errorMessage = await screen.findByText(
 					/Error fetching page ID\./,
@@ -397,13 +372,9 @@ if (import.meta.vitest) {
 					.mockImplementation(() => {});
 
 				await act(async () =>
-					renderWithQuery(
-						<PageTitleInput
-							initialPageTitle="Test Title"
-							wikiUrl={stubWikiUrl}
-						/>,
-					),
+					renderWithQuery(<PageTitleInput wikiUrl={stubWikiUrl} />),
 				);
+				await enterTitle('Test Title');
 
 				// Wait for error state
 				const retryButton = await screen.findByRole('button', {
@@ -447,13 +418,9 @@ if (import.meta.vitest) {
 					.mockImplementation(() => {});
 
 				await act(async () =>
-					renderWithQuery(
-						<PageTitleInput
-							initialPageTitle="Test Title"
-							wikiUrl={stubWikiUrl}
-						/>,
-					),
+					renderWithQuery(<PageTitleInput wikiUrl={stubWikiUrl} />),
 				);
+				await enterTitle('Test Title');
 
 				// Wait for error state
 				const errorMessage = await screen.findByText(
@@ -491,21 +458,48 @@ if (import.meta.vitest) {
 			});
 		});
 
+		describe('Form Reset Behavior', () => {
+			it('preserves the typed title when a form action resets the form', async () => {
+				const user = userEvent.setup();
+				const formAction = vi.fn();
+				mockFetchPageId.mockResolvedValue(123);
+
+				await act(async () =>
+					renderWithQuery(
+						<form action={formAction}>
+							<PageTitleInput wikiUrl={stubWikiUrl} />
+							<button type="submit">Submit</button>
+						</form>,
+					),
+				);
+
+				const inputElement = screen.getByLabelText(
+					/Wiki Article Title:/i,
+				) as HTMLInputElement;
+				await user.type(inputElement, 'Albert Einstein');
+				expect(inputElement.value).toBe('Albert Einstein');
+
+				await user.click(screen.getByRole('button', { name: /submit/i }));
+
+				await waitFor(() => expect(formAction).toHaveBeenCalledTimes(1));
+				expect(inputElement.value).toBe('Albert Einstein');
+			});
+		});
+
 		describe('Debounce Behavior', () => {
 			it('does not trigger fetch when debounced value has not changed', async () => {
 				const user = userEvent.setup();
 				mockFetchPageId.mockResolvedValue(123);
 
 				await act(async () =>
-					renderWithQuery(
-						<PageTitleInput initialPageTitle="Test" wikiUrl={stubWikiUrl} />,
-					),
+					renderWithQuery(<PageTitleInput wikiUrl={stubWikiUrl} />),
 				);
 
-				// Initial render should trigger one call for "Test"
-				await waitFor(() => expect(mockFetchPageId).toHaveBeenCalledTimes(1));
-
 				const inputElement = screen.getByLabelText(/Wiki Article Title:/i);
+				await user.type(inputElement, 'Test');
+
+				// Typing "Test" should trigger one call after the debounce
+				await waitFor(() => expect(mockFetchPageId).toHaveBeenCalledTimes(1));
 
 				// Type a character - this triggers setPageTitle and a re-render,
 				// but debouncedTitle hasn't changed yet (debounce delay is 300ms)
