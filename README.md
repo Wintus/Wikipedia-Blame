@@ -25,10 +25,12 @@ The application utilizes modern React features, specifically the `useActionState
 ## Technical Stack
 
 - React v19 (`useActionState`)
+- React Compiler
 - TypeScript
 - Vite for build tooling
 - MediaWiki APIs (REST API for page ID, Query API for revisions)
-- CSS Modules / Standard CSS for styling
+- TanStack Query and Pacer (page ID lookup, input debouncing)
+- Standard CSS for styling
 - GitHub Pages for hosting
 
 ## Technical Overview
@@ -38,8 +40,8 @@ The application employs an action-state driven architecture centered around Reac
 1. **Form Submission:** The `SearchForm` component uses a form action (`searchAction`) provided by `useActionState`.
 2. **Action Execution (`search.ts`):**
    - The `searchAction` function receives form data and the previous state.
-   - It validates input and fetches the Wikipedia page ID using `fetchPageId` (`MediaWikiAPIs.ts`).
-   - It initiates fetching revision IDs using the `fetchAllRevisions` async generator (`MediaWikiAPIs.ts`),
+   - It validates input and reads the Wikipedia page ID from the form: `PageTitleInput` fetches it ahead of time with `fetchPageId` (`MediaWikiAPIs.ts`) and submits it through a hidden input.
+   - It initiates fetching revisions (ID and content) using the `fetchAllRevisions` async generator (`MediaWikiAPIs.ts`),
      optionally passing an `endRevId` to limit the search range based on form input.
    - `fetchAllRevisions` implements basic caching using the `maxage` parameter in the API request.
    - It calls `findMap` (`async-generator.ts`), passing the revision generator and a mapper that checks for the target text.
