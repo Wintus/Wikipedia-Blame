@@ -14,7 +14,7 @@ This guide outlines the preferred functional programming practices for this proj
 
    - Pass dependencies explicitly as function parameters
    - Avoid direct imports within functions when the dependency can be injected
-   - Example: `function findOneOccurrence(targetText, fetcher, revisions)` instead of directly using MediaWikiAPIs
+   - Example: `findMap(mapper, revisions)` receives the stream of revisions instead of fetching them itself
 
 3. **Function Composition**
 
@@ -40,7 +40,7 @@ This guide outlines the preferred functional programming practices for this proj
 
    - Each function should do one thing and do it well
    - Extract helper functions for reusable logic
-   - Example: Splitting sampling logic into its own function
+   - Example: `fetchAllRevisions` handles fetching and streaming; `findMap` handles searching the stream
 
 7. **Generator Functions**
 

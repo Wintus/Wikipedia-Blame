@@ -61,7 +61,7 @@ graph TD
 
 ### Internal Generators (`fetchAllRevisions`, `findMap` helpers)
 
-- **`fetchAllRevisions`:** Fetches revision IDs page by page from the API, yielding IDs as an `AsyncGenerator`.
+- **`fetchAllRevisions`:** Fetches revisions page by page from the API, yielding `RevisionResult` objects (`{ rev, text }`) as an `AsyncGenerator`.
 - **`findMap` & Helpers:** Consumes the revision generator (which includes content), applies the search mapper, and returns the first match found.
 
 ### Component Responsibilities
@@ -73,16 +73,17 @@ graph TD
 ## Technical Stack
 
 - React v19 (`useActionState`)
+- React Compiler
 - TypeScript
 - `AsyncGenerator` for internal data processing
 - Fetch API (with streaming JSON parsing)
+- TanStack Query and Pacer (page ID lookup, input debouncing)
 
 ## Benefits
 
 - Improved state collocation via `useActionState`.
 - Simplified async handling at the component level.
 - Built-in pending/loading states from `useActionState`.
-- **Optimistic UI updates** managed by `useActionState`.
 - **Efficient handling of large revision histories** via internal `AsyncGenerator` pipelines, minimizing memory footprint.
 - Enhanced user experience through clear state transitions.
 
