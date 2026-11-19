@@ -1,98 +1,97 @@
-# Wikipedia Blame: Data Fetching Architecture
+# Wikipedia Blame: Architecture Overview
 
-## Overview
+How one search travels from the form to a revision ID. Decisions and their
+rationale live in `docs/adr/`.
 
-This document outlines the current architecture,
-leveraging React v19's `useActionState` hook for form handling and state management,
-combined with internal use of `AsyncGenerator` for efficient data processing within the search action.
-
-## Core Architectural Principles
-
-### 1. Form-Action Integration
-
-- Use `useActionState` for unified form submission and state management.
-- Eliminate manual loading state handling at the component level.
-- Collocate primary data fetching orchestration logic within the action function.
-
-### 2. Streamlined Data Flow
-
-- The main action function manages the overall search lifecycle orchestration.
-- `useActionState` provides a single point for final state updates to the UI.
-- Clear, unidirectional data progression from user input to final result state.
-
-### 3. Efficient Data Processing with Generators
-
-- Internal functions (`fetchAllRevisions`, `findMap`) utilize `AsyncGenerator` extensively.
-- Revision IDs and content are fetched and processed in batches/streams, minimizing memory usage for large histories.
-- The action function consumes this generator pipeline, awaiting the final result.
-
-## Component Interaction Flow
+## Flow
 
 ```mermaid
 graph TD
-	A[App] -->|useActionState| B(Search State)
-	B --> C[SearchForm]
-	C -->|form action| D{Search Action}
-	D -->|orchestrates| E[Internal Generator Pipeline]
-	E -->|fetches/processes| F[MediaWiki APIs]
-	F -->|results| E
-	E -->|final result| D
-	D -->|returns final state| G(Search State Update)
-	G --> H[ResultView]
+	A[PageTitleInput] -->|300ms debounce| B[useQuery: fetchPageId]
+	B -->|hidden pageId input| C[SearchForm]
+	C -->|form action| D[searchAction]
+	D -->|pageId, order, range| E[fetchAllRevisions]
+	E -->|rev and text| F[findMap]
+	F -->|first matching rev| D
+	D -->|one final SearchState| G[App: useActionState]
+	G -->|state, isPending| C
+	G -->|state| H[ResultView]
 ```
 
-> [!Note]
-> While the overall flow uses `useActionState` with a single final state update,
-> the "Search Action" internally uses an `AsyncGenerator` pipeline (`fetchAllRevisions`, `findMap`)
-> to efficiently process potentially large revision histories in batches.
+1. `PageTitleInput` resolves the article title to a page ID before the form is
+   submitted.
+2. Submitting the form runs `searchAction` with the page ID, the target text
+   and the optional range.
+3. The action streams revisions through `fetchAllRevisions` and asks `findMap`
+   for the first revision whose text contains the target.
+4. The action returns a single `SearchState`; `useActionState` re-renders the
+   form and `ResultView` from it.
 
-## Key Implementation Strategy
+## Components
 
-### Search Action Function (`searchAction`)
+- `App` owns `useActionState` and provides the `QueryClient`.
+- `SearchForm` holds the selected wiki and composes the title input, the text
+  field and the optional range and order controls.
+- `PageTitleInput` resolves the title to a page ID with `useQuery`.
+- `ResultView` renders the pending, error, not-found and success states inside a
+  persistent status region.
 
-- Handles the complete search workflow orchestration:
-  1.  Input validation.
-  2.  Calls `fetchAllRevisions` (an `AsyncGenerator`) to get a stream of revisions.
-  3.  Passes the revision stream (which now includes content) to `findMap`.
-  4.  `findMap` consumes this generator, applying the search mapper to find the target text efficiently.
-  5.  Awaits the final result (found revision ID or null) from `findMap`.
-- Handles optional `startRevId` and `endRevId` form inputs to limit the revision range.
-- Returns a single, comprehensive final `SearchState` object compatible with `useActionState`.
+## Page ID lookup (`PageTitleInput`)
 
-### Internal Generators (`fetchAllRevisions`, `findMap` helpers)
+- The title is trimmed and debounced by 300ms with `useDebouncedValue`.
+- `useQuery` is keyed by `['pageId', wikiUrl.href, debouncedTitle]` and calls
+  `fetchPageId` (REST API, `/w/rest.php/v1/page/{title}/bare`).
+- A 404 is not retried: `isNotFoundError` reads the response attached as the
+  error cause. Other failures retry once.
+- The resolved ID is submitted through a hidden `pageId` input that is rendered
+  unconditionally, including while loading and on error, so the form can never
+  submit an ID that belongs to a different title (ADR-005).
+- "Checking title...", "Page not found." and the retry button are local to this
+  component; `searchAction` only reads the ID from the form.
 
-- **`fetchAllRevisions`:** Fetches revisions page by page from the API, yielding `RevisionResult` objects (`{ rev, text }`) as an `AsyncGenerator`.
-- **`findMap` & Helpers:** Consumes the revision generator (which includes content), applies the search mapper, and returns the first match found.
+## Search action (`src/actions/search.ts`)
 
-### Component Responsibilities
+- Validates the wiki URL, the page ID, the title and the target text. Every
+  failure returns the previous state plus an error and bumps `searchCount`.
+- Builds the options object from the form: `order` (`asc` by default, which
+  means older first), `startRevId` and `endRevId`, each optional.
+- Hands the generator to `findMap` with a mapper that tests
+  `item.text.includes(targetText)` and returns `item.rev`.
+- Returns one `SearchState`. The search is linear and stops at the first match;
+  sampling was removed on purpose (ADR-001).
 
-- **App:** Manages state via `useActionState` hook, consuming the final state from `searchAction`.
-- **SearchForm:** Collects user input (wiki, title, text, order, optional 'start revision ID', optional 'end revision ID'), triggers the action.
-- **ResultView:** Renders the final search result or error state.
+## Revision stream (`fetchAllRevisions`)
 
-## Technical Stack
+- Calls the Action API (`prop=revisions`, `rvprop=ids|content`,
+  `rvslots=main`, `rvlimit=max`) and follows `rvcontinue` in a loop.
+- Pipes each response body through `@streamparser/json-whatwg` with paths for
+  `batchcomplete`, `continue.rvcontinue` and the slot content. Every content
+  match is yielded as `{ rev, text }`, so a long history is never held in
+  memory at once.
+- `maxage` is 600s for the first page in ascending order and for every
+  continuation page, and 60s only for the first page in descending order, so
+  recent edits stay visible (ADR-002).
+- Downloading `pages-meta-history` dumps was rejected because the download
+  alone is too slow for an interactive search (ADR-003).
+- A failed request is logged inside the generator and ends the stream, which
+  the action then reports as "text not found".
 
-- React v19 (`useActionState`)
-- React Compiler
-- TypeScript
-- `AsyncGenerator` for internal data processing
-- Fetch API (with streaming JSON parsing)
-- TanStack Query and Pacer (page ID lookup, input debouncing)
+## Rendering (`ResultView`)
 
-## Benefits
+- The container is a `role="status"` region that stays mounted, so the result
+  card is announced when it changes.
+- A missing revision renders the not-found message. A found revision links to
+  `oldid=<rev>&diff=prev` when ascending and `diff=next` when descending.
 
-- Improved state collocation via `useActionState`.
-- Simplified async handling at the component level.
-- Built-in pending/loading states from `useActionState`.
-- **Efficient handling of large revision histories** via internal `AsyncGenerator` pipelines, minimizing memory footprint.
-- Enhanced user experience through clear state transitions.
+## Caching
 
-## Future Considerations
+- TanStack Query keeps page IDs for one hour (`staleTime` in `src/App.tsx`)
+  because page IDs never change (ADR-004).
+- Revision responses are not cached by TanStack Query; the browser may reuse
+  them within the `maxage` window described above.
 
-- Exposing intermediate progress states (would require changing `searchAction` to be a generator itself and adapting state management).
-- Advanced caching strategies.
-- More robust error handling granularity.
-- Internationalization support.
-- **Server and client rendering compatibility** exploration.
-- Ensuring **graceful degradation** in various scenarios (e.g., JavaScript disabled, API errors).
-- Potential use of Server Components.
+## Further reading
+
+- `docs/adr/` — architecture decision records.
+- `docs/testing.md` — test conventions.
+- `docs/functional-style.md` — code style.
