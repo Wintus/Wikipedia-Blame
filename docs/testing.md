@@ -1,114 +1,87 @@
-# TDD Workflow Rule
+# Testing
 
-## Overview
+Tests live in the same file as the code they cover, inside an
+`if (import.meta.vitest)` block. See the
+[Vitest in-source testing guide](https://vitest.dev/guide/in-source).
 
-This rule enforces Test-Driven Development (TDD) practices by ensuring every source file has corresponding tests that follow our naming convention.
-See the Vitest in-source testing guide for more information: https://vitest.dev/guide/in-source
+## Rules
 
-## Test File Pattern
+1. Every source file carries a test block; new files need one.
+2. Write the failing test first, then the implementation.
+3. Import test-only dependencies with `await import(...)` inside the block so
+   they never reach the production bundle.
+4. Start the block with `// MARK: in-source tests`; editors use it as a
+   navigation marker.
+5. Pin the contract on the assertion side, e.g.
+   `expect(result).toEqual<SearchState>({ ... })`. A generic mock checks
+   nothing, so the explicit type argument is what keeps the shape honest.
+6. `npm test` runs once, `npm run test:watch` gives feedback while editing and
+   `npm run test:coverage` reports coverage.
 
-- Tests must be located in the same file as the source code, within an `if (import.meta.vitest)` block.
+## Components that read query data
 
-## Workflow Requirements
-
-1. Every new source file should have a corresponding test block
-2. Tests should be written before or alongside implementation (TDD approach)
-3. Run tests after every significant code change using `npm test`
-4. Tests must pass before committing changes
-5. When fixing bugs, first write a failing test that reproduces the issue
-
-## Test Content Requirements
-
-- Descriptive test cases using `describe` and `it` blocks
-- Coverage for all public methods/functions
-- Edge cases and error handling tests
-- Appropriate mocks for dependencies
-
-## Best Practices
-
-- Start with failing tests to verify test correctness
-- Keep tests isolated and independent
-- Mock external dependencies and APIs
-- Use meaningful test descriptions that document behavior
-- Focus on behavior, not implementation details
-- Aim for comprehensive but maintainable test coverage
-- Use `npm run test:watch` during development for continuous feedback
-
-## Code Examples
-
-### Component Example (In-Source Test)
+Wrap the component in a fresh `QueryClientProvider` for every test and turn
+retries off. When a request has to stay pending, control it with a deferred
+promise instead of timers.
 
 ```tsx
-// src/components/YourComponent.tsx
-
-export function YourComponent(/* props */) {
-	// Component implementation
-	return <div>Your Component Content</div>;
-}
-
 // MARK: in-source tests
 if (import.meta.vitest) {
-	const { describe, it, expect } = import.meta.vitest;
-	const { render, screen } = await import('@testing-library/react');
+	const { describe, it, expect, beforeEach } = import.meta.vitest;
+	const { render, screen, act } = await import('@testing-library/react');
+	const { QueryClient, QueryClientProvider } =
+		await import('@tanstack/react-query');
 
-	describe('YourComponent', () => {
-		it('renders correctly with default props', () => {
-			render(<YourComponent />);
-			expect(screen.getByText('Your Component Content')).toBeInTheDocument();
-			// Add more assertions here
+	describe('PageTitleInput', () => {
+		const wikiUrl = new URL('https://en.wikipedia.org');
+		let queryClient: InstanceType<typeof QueryClient>;
+
+		beforeEach(() => {
+			queryClient = new QueryClient({
+				defaultOptions: { queries: { retry: false, retryDelay: 0 } },
+			});
 		});
 
-		it('handles user interactions correctly', () => {
-			// Test interactions within the component file
-		});
+		const renderWithQuery = (ui: React.ReactElement) =>
+			render(
+				<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
+			);
 
-		it('displays error states appropriately', () => {
-			// Test error states within the component file
+		it('always renders the hidden pageId input', async () => {
+			await act(async () =>
+				renderWithQuery(<PageTitleInput wikiUrl={wikiUrl} />),
+			);
+			expect(screen.getByTestId('pageId-input')).toBeInTheDocument();
 		});
 	});
 }
 ```
 
-### Service/Utility Example (In-Source Test)
+## Pure functions and generators
+
+No provider is involved. Build the input inside the test and assert the value
+the caller receives.
 
 ```ts
-// src/utils/yourModule.ts
-
-export function yourFunction(input: string): string {
-	if (!input) {
-		throw new Error('Input cannot be empty');
-	}
-	// Function implementation
-	return `Processed: ${input}`;
-}
-
 // MARK: in-source tests
 if (import.meta.vitest) {
-	const { describe, it, expect, beforeEach, afterEach, vi } = import.meta
-		.vitest;
+	const { describe, it, expect } = import.meta.vitest;
 
-	describe('yourFunction', () => {
-		beforeEach(() => {
-			// Setup specific to tests in this file
-		});
+	async function* from<T>(items: ReadonlyArray<T>): AsyncGenerator<T> {
+		yield* items;
+	}
 
-		afterEach(() => {
-			// Teardown specific to tests in this file
-			vi.restoreAllMocks();
-		});
-
-		it('returns expected result for valid input', () => {
-			expect(yourFunction('test')).toBe('Processed: test');
-			// Test normal case
-		});
-
-		it('handles edge cases correctly', () => {
-			// Test edge cases within the utility file
-		});
-
-		it('throws appropriate error for invalid input', () => {
-			expect(() => yourFunction('')).toThrow('Input cannot be empty');
-			// Test error handling
+	describe('findMap', () => {
+		it('returns the first matching revision', async () => {
+			const revisions = [
+				{ rev: 1, text: 'Some text' },
+				{ rev: 2, text: 'Contains the target' },
+			];
+			const result = await findMap(
+				(item) => (item.text.includes('target') ? item.rev : null),
+				from(revisions),
+			);
+			expect(result).toBe(2);
 		});
 	});
 }
