@@ -1,16 +1,16 @@
 import { useState } from 'react';
-import { type SearchState } from '../state';
+import { type QueryState } from '../state';
 import { WikiSelector } from './WikiSelector';
 import { PageTitleInput } from './PageTitleInput';
 
 type Props = {
 	formAction: (formData: FormData) => void;
 	isPending: boolean;
-	searchState: SearchState;
+	state: QueryState;
 };
 
-export function SearchForm({ formAction, isPending, searchState }: Props) {
-	const [wikiUrl, setWikiUrl] = useState(searchState.wikiUrl);
+export function SearchForm({ formAction, isPending, state }: Props) {
+	const [wikiUrl, setWikiUrl] = useState(state.wikiUrl);
 
 	return (
 		<form action={formAction} className="search-form" name="searchForm">
@@ -23,7 +23,7 @@ export function SearchForm({ formAction, isPending, searchState }: Props) {
 				<textarea
 					id="target-text"
 					name="targetText"
-					defaultValue={searchState.targetText}
+					defaultValue={state.targetText}
 					placeholder="Enter text to search for in the article's history"
 					required
 				/>
@@ -54,14 +54,14 @@ export function SearchForm({ formAction, isPending, searchState }: Props) {
 					/>
 				</div>
 
-				<fieldset className="form-group" key={searchState.order}>
+				<fieldset className="form-group" key={state.order}>
 					<legend>Search Order:</legend>
 					<label>
 						<input
 							type="radio"
 							name="order"
 							value="asc"
-							defaultChecked={searchState.order === 'asc'}
+							defaultChecked={state.order === 'asc'}
 						/>
 						Ascending (Older First)
 					</label>
@@ -71,7 +71,7 @@ export function SearchForm({ formAction, isPending, searchState }: Props) {
 							type="radio"
 							name="order"
 							value="desc"
-							defaultChecked={searchState.order === 'desc'}
+							defaultChecked={state.order === 'desc'}
 						/>
 						Descending (Newer First)
 					</label>
@@ -99,38 +99,30 @@ if (import.meta.vitest) {
 	describe('SearchForm', () => {
 		const mockFormAction = vi.fn();
 		let queryClient: QueryClientType;
-		const defaultSearchState = {
+		const defaultQueryState = {
 			wikiUrl: new URL('https://en.wikipedia.org'),
-			pageId: null,
 			pageTitle: 'Initial Title',
 			targetText: 'Initial Text',
-			revisionId: null,
 			order: 'asc',
-			error: null,
-			searchCount: 0,
-		} as const satisfies SearchState;
+		} as const satisfies QueryState;
 
-		const emptySearchState = {
+		const emptyQueryState = {
 			wikiUrl: new URL('https://en.wikipedia.org'),
-			pageId: null,
 			pageTitle: '',
 			targetText: 'Initial Text',
-			revisionId: null,
 			order: 'asc',
-			error: null,
-			searchCount: 0,
-		} as const satisfies SearchState;
+		} as const satisfies QueryState;
 
 		const emptySearchProps = {
 			formAction: mockFormAction,
 			isPending: false,
-			searchState: emptySearchState,
+			state: emptyQueryState,
 		};
 
 		const defaultProps = {
 			formAction: mockFormAction,
 			isPending: false,
-			searchState: defaultSearchState,
+			state: defaultQueryState,
 		};
 
 		const mockFetchPageId = vi.fn().mockResolvedValue(123);
@@ -208,26 +200,6 @@ if (import.meta.vitest) {
 			).toBeInTheDocument();
 		});
 
-		it('does not populate the endRevId input with the revisionId from searchState', async () => {
-			await act(async () =>
-				renderWithQuery(
-					<SearchForm
-						formAction={mockFormAction}
-						isPending={false}
-						searchState={{
-							...defaultSearchState,
-							revisionId: 12345,
-						}}
-					/>,
-				),
-			);
-			const endRevIdInput = screen.getByLabelText(
-				/End Rev ID \(optional\):/i,
-			) as HTMLInputElement;
-			expect(endRevIdInput.value).not.toBe('12345');
-			expect(endRevIdInput.value).toBe('');
-		});
-
 		it('submits form with correct FormData including endRevId', async () => {
 			const user = userEvent.setup();
 			await act(async () => renderWithQuery(<SearchForm {...defaultProps} />));
@@ -265,8 +237,8 @@ if (import.meta.vitest) {
 				renderWithQuery(
 					<SearchForm
 						{...defaultProps}
-						searchState={{
-							...defaultSearchState,
+						state={{
+							...defaultQueryState,
 							pageTitle: '',
 							targetText: '',
 						}}
@@ -286,7 +258,7 @@ if (import.meta.vitest) {
 					<SearchForm
 						formAction={mockFormAction}
 						isPending={true}
-						searchState={defaultSearchState}
+						state={defaultQueryState}
 					/>,
 				),
 			);
@@ -360,7 +332,7 @@ if (import.meta.vitest) {
 			expect(titleAfterSwitch.value).toBe('Albert Einstein');
 		});
 
-		it('does not overwrite the typed page title when searchState changes', async () => {
+		it('does not overwrite the typed page title when state changes', async () => {
 			const user = userEvent.setup();
 			const { rerender } = await act(async () =>
 				renderWithQuery(<SearchForm {...defaultProps} />),
@@ -377,10 +349,9 @@ if (import.meta.vitest) {
 					<QueryClientProvider client={queryClient}>
 						<SearchForm
 							{...defaultProps}
-							searchState={{
-								...defaultSearchState,
+							state={{
+								...defaultQueryState,
 								pageTitle: 'Some Other Title',
-								searchCount: 1,
 							}}
 						/>
 					</QueryClientProvider>,
@@ -419,21 +390,17 @@ if (import.meta.vitest) {
 			});
 		});
 
-		it('renders initial values from searchState except the page title', async () => {
+		it('renders initial values from state except the page title', async () => {
 			await act(async () =>
 				renderWithQuery(
 					<SearchForm
 						formAction={mockFormAction}
 						isPending={false}
-						searchState={{
+						state={{
 							wikiUrl: new URL('https://ja.wikipedia.org'),
-							pageId: null,
 							pageTitle: 'Initial Page Title',
 							targetText: 'Initial Target Text',
-							revisionId: null,
 							order: 'asc',
-							error: null,
-							searchCount: 0,
 						}}
 					/>,
 				),
@@ -464,14 +431,14 @@ if (import.meta.vitest) {
 			).toBeInTheDocument();
 		});
 
-		it('sets radio defaultChecked from searchState and updates on rerender', async () => {
-			const searchStateAsc = {
-				...defaultProps.searchState,
+		it('sets radio defaultChecked from state and updates on rerender', async () => {
+			const queryStateAsc = {
+				...defaultProps.state,
 				order: 'asc' as const,
 			};
 			const { rerender } = await act(async () =>
 				renderWithQuery(
-					<SearchForm {...emptySearchProps} searchState={searchStateAsc} />,
+					<SearchForm {...emptySearchProps} state={queryStateAsc} />,
 				),
 			);
 
@@ -484,14 +451,14 @@ if (import.meta.vitest) {
 			) as HTMLInputElement;
 			expect(radioDesc.defaultChecked).toBe(false);
 
-			const searchStateDesc = {
-				...defaultProps.searchState,
+			const queryStateDesc = {
+				...defaultProps.state,
 				order: 'desc' as const,
 			};
 			await act(async () =>
 				rerender(
 					<QueryClientProvider client={queryClient}>
-						<SearchForm {...defaultProps} searchState={searchStateDesc} />
+						<SearchForm {...defaultProps} state={queryStateDesc} />
 					</QueryClientProvider>,
 				),
 			);

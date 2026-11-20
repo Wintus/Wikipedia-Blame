@@ -32,7 +32,7 @@ function App() {
 					<SearchForm
 						formAction={formAction}
 						isPending={isPending}
-						searchState={searchState}
+						state={searchState}
 					/>
 					<ResultView state={searchState} isPending={isPending} />
 				</main>
