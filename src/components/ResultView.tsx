@@ -1,7 +1,7 @@
-import { type SearchState } from '../state';
+import { type ResultViewState } from '../state';
 
 type Props = {
-	state: SearchState;
+	state: ResultViewState;
 	isPending?: boolean;
 };
 
@@ -25,7 +25,8 @@ const getRevisionUrl = (
 /**
  * True until a search has produced a state to display.
  */
-const neverSearched = (state: SearchState): boolean => state.searchCount === 0;
+const neverSearched = (state: ResultViewState): boolean =>
+	state.searchCount === 0;
 
 /**
  * Renders the card for the current search state, or nothing before the
@@ -99,10 +100,9 @@ if (import.meta.vitest) {
 
 	describe('ResultView', () => {
 		const createState = (
-			overrides: Partial<SearchState> = {},
-		): SearchState => ({
+			overrides: Partial<ResultViewState> = {},
+		): ResultViewState => ({
 			wikiUrl: new URL('https://en.wikipedia.org'),
-			pageId: null,
 			pageTitle: '',
 			targetText: '',
 			revisionId: null,
