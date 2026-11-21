@@ -70,6 +70,8 @@ export const isNotFoundError = (error: unknown): boolean =>
  *
  * see https://www.mediawiki.org/wiki/API:Revisions
  *
+ * Paging and parser contracts: `docs/implementation-notes.md`.
+ *
  * note: `rvcontentformat-main=text/plain` is unavailable for regular pages
  */
 export async function* fetchAllRevisions(
