@@ -7,7 +7,9 @@ type Props = {
 
 /**
  * Gets the URL for a specific revision.
- * Links to the previous or next revision based on the order.
+ * `oldid` selects the revision; `diff=prev` (ascending) shows the change that
+ * introduced the found text, `diff=next` (descending) the change that removed
+ * it.
  */
 const getRevisionUrl = (
 	wikiUrl: URL | string,

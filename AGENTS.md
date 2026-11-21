@@ -1,7 +1,6 @@
 # Wikipedia-Blame
 
-Finds the first revision of a Wikipedia article whose text contains a given string
-(git blame for Wikipedia). React 19 SPA: TypeScript, Vite, TanStack Query, GitHub Pages.
+Finds the first revision of a Wikipedia article whose text contains a given string (git blame for Wikipedia). React 19 SPA: TypeScript, Vite, TanStack Query, GitHub Pages.
 
 ## Commands
 
@@ -9,32 +8,15 @@ Use the npm scripts in `package.json` (`dev`, `build`, `test`, `test:watch`, `li
 
 ## Architecture
 
-Form → `searchAction` (`src/actions/search.ts`) → `fetchAllRevisions` (async generator
-yielding `{ rev, text }`) → `findMap` (first match, early exit) → one final `SearchState`
-via `useActionState`.
-Flow: `docs/architecture-overview.md`. Decisions: `docs/adr/`.
-
-## Invariants
-
-- Page IDs are immutable → `staleTime` is 1h in `src/App.tsx`.
-- `PageTitleInput` always renders the hidden `pageId` input, even while loading or on
-  error, so a form can never submit a stale ID.
-- `maxage` is 60s only for the first, newest batch of revisions and 600s otherwise,
-  so recent edits stay visible.
-- Sampling was removed on purpose; the search is linear and predictable (ADR-001).
-- Revisions stream through a JSON parser so a long history never lands in memory at once.
-- React Compiler is enabled in `vite.config.ts`; do not add manual `useMemo`/`useCallback`.
+Form → `searchAction` (`src/actions/search.ts`) → `fetchAllRevisions` (async generator yielding `{ rev, text }`) → `findMap` (first match, early exit) → one final `SearchState` via `useActionState`. Flow and architecture invariants: `docs/architecture-overview.md`. Decisions: `docs/adr/`. Implementation contracts: `docs/implementation-notes.md`.
 
 ## Tests
 
-In-source Vitest blocks (`if (import.meta.vitest)`) in every source file — see
-`docs/testing.md`. Pin contracts in the assertion, e.g.
-`expect(result).toEqual<SearchState>({ ... })`; generic mocks bypass return-type checks.
+In-source Vitest blocks (`if (import.meta.vitest)`) in every source file — see `docs/testing.md`. Pin contracts in the assertion, e.g. `expect(result).toEqual<SearchState>({ ... })`; generic mocks bypass return-type checks.
 
 ## Style
 
-Pure functions, injected dependencies, immutable data, explicit types — see
-`docs/functional-style.md`.
+Pure functions, injected dependencies, immutable data, explicit types — see `docs/functional-style.md`. React Compiler is enabled in `vite.config.ts`; do not add manual `useMemo`/`useCallback`.
 
 ## Docs
 
