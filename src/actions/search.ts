@@ -106,6 +106,7 @@ export async function searchAction(
 			searchCount: prevState.searchCount + 1,
 		};
 	} catch (error) {
+		console.error('Search failed:', error);
 		return {
 			...prevState,
 			wikiUrl,
@@ -133,9 +134,13 @@ export const initSearchState = {
 
 // MARK: in-source tests
 if (import.meta.vitest) {
-	const { describe, it, expect, vi, beforeEach } = import.meta.vitest;
+	const { describe, it, expect, vi, beforeEach, afterAll } = import.meta.vitest;
 
 	vi.mock(import('../services/MediaWikiAPIs'), { spy: true });
+
+	const consoleErrorSpy = vi
+		.spyOn(console, 'error')
+		.mockImplementation(() => {});
 
 	async function* createAsyncGenerator<T>(
 		items: ReadonlyArray<T>,
@@ -169,6 +174,11 @@ if (import.meta.vitest) {
 
 		beforeEach(() => {
 			vi.resetAllMocks();
+			consoleErrorSpy.mockImplementation(() => {});
+		});
+
+		afterAll(() => {
+			consoleErrorSpy.mockRestore();
 		});
 
 		const createFormData = (overrides: Record<string, string> = {}) => {
@@ -275,6 +285,10 @@ if (import.meta.vitest) {
 				revisionId: null,
 				error: 'Network error',
 			});
+			expect(consoleErrorSpy).toHaveBeenCalledWith(
+				'Search failed:',
+				expect.any(Error),
+			);
 		});
 
 		it('handles non-Error exceptions', async () => {
@@ -295,6 +309,10 @@ if (import.meta.vitest) {
 				revisionId: null,
 				error: 'An unknown error occurred',
 			});
+			expect(consoleErrorSpy).toHaveBeenCalledWith(
+				'Search failed:',
+				'Unknown error',
+			);
 		});
 
 		it('calls fetchAllRevisions with endRevId when provided in form data', async () => {

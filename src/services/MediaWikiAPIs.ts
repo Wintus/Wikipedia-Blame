@@ -83,70 +83,64 @@ export async function* fetchAllRevisions(
 	const startRevId = options?.startRevId;
 	const endRevId = options?.endRevId;
 	const dir = direction[order];
-	try {
-		let continueParam: string | null = null;
-		do {
-			const params = new URLSearchParams({
-				action: 'query',
-				prop: 'revisions',
-				pageids: pageId.toString(),
-				rvprop: 'ids|content',
-				rvslots: 'main',
-				rvlimit: 'max',
-				rvdir: dir,
-				formatversion: '2',
-				format: 'json',
-				origin: '*',
-			});
-			if (startRevId != null) {
-				params.set('rvstartid', startRevId.toString());
-			}
-			if (endRevId != null) {
-				params.set('rvendid', endRevId.toString());
-			}
-			if (continueParam) {
-				params.set('rvcontinue', continueParam);
-			}
-			// cache longer for continuations or earliest
-			params.set('maxage', continueParam || order === 'asc' ? '600' : '60'); // in seconds
-			const url = new URL('/w/api.php', baseUrl);
-			url.search = params.toString();
-			// request
-			const response = await fetch(url);
-			if (!response.ok || !response.body) {
-				throw new Error(
-					`Failed to fetch revision texts: ${response.statusText}`,
-				);
-			}
+	let continueParam: string | null = null;
+	do {
+		const params = new URLSearchParams({
+			action: 'query',
+			prop: 'revisions',
+			pageids: pageId.toString(),
+			rvprop: 'ids|content',
+			rvslots: 'main',
+			rvlimit: 'max',
+			rvdir: dir,
+			formatversion: '2',
+			format: 'json',
+			origin: '*',
+		});
+		if (startRevId != null) {
+			params.set('rvstartid', startRevId.toString());
+		}
+		if (endRevId != null) {
+			params.set('rvendid', endRevId.toString());
+		}
+		if (continueParam) {
+			params.set('rvcontinue', continueParam);
+		}
+		// cache longer for continuations or earliest
+		params.set('maxage', continueParam || order === 'asc' ? '600' : '60'); // in seconds
+		const url = new URL('/w/api.php', baseUrl);
+		url.search = params.toString();
+		// request
+		const response = await fetch(url);
+		if (!response.ok || !response.body) {
+			throw new Error(`Failed to fetch revision texts: ${response.statusText}`);
+		}
 
-			// Create a JSON parser to handle the streaming response
-			const parser = new JSONParser({
-				paths: [
-					'$.batchcomplete',
-					'$.continue.rvcontinue',
-					'$.query.pages.*.revisions.*.slots.main.content',
-				],
-			});
-			const elemStream = response.body.pipeThrough(parser);
-			// unset the cursor
-			continueParam = null;
-			for await (const { key, value, stack } of elemStream) {
-				if (value == null) {
-					continue;
-				} else if (key === 'batchcomplete') {
-					// unset the cursor
-					continueParam = null;
-				} else if (key === 'rvcontinue') {
-					// update the cursor
-					continueParam = value as string;
-				} else if (key === 'content') {
-					yield convert(stack[6]?.value as Revision);
-				}
+		// Create a JSON parser to handle the streaming response
+		const parser = new JSONParser({
+			paths: [
+				'$.batchcomplete',
+				'$.continue.rvcontinue',
+				'$.query.pages.*.revisions.*.slots.main.content',
+			],
+		});
+		const elemStream = response.body.pipeThrough(parser);
+		// unset the cursor
+		continueParam = null;
+		for await (const { key, value, stack } of elemStream) {
+			if (value == null) {
+				continue;
+			} else if (key === 'batchcomplete') {
+				// unset the cursor
+				continueParam = null;
+			} else if (key === 'rvcontinue') {
+				// update the cursor
+				continueParam = value as string;
+			} else if (key === 'content') {
+				yield convert(stack[6]?.value as Revision);
 			}
-		} while (continueParam);
-	} catch (error) {
-		console.error('Error fetching all revisions:', error);
-	}
+		}
+	} while (continueParam);
 }
 
 // MARK: in-source tests
@@ -157,11 +151,9 @@ if (import.meta.vitest) {
 	describe('WikipediaAPI', () => {
 		const baseUrl = new URL('https://en.wikipedia.org');
 		const mockFetch = vi.fn();
-		const mockConsoleError = vi.fn();
 
 		beforeEach(() => {
 			vi.stubGlobal('fetch', mockFetch);
-			vi.stubGlobal('console', { ...console, error: mockConsoleError });
 		});
 
 		afterEach(() => {
@@ -234,6 +226,16 @@ if (import.meta.vitest) {
 		});
 
 		describe('fetchAllRevisions', () => {
+			const createMockStream = (jsonPayload: object) => {
+				const jsonString = JSON.stringify(jsonPayload);
+				return new ReadableStream({
+					start(controller) {
+						controller.enqueue(jsonString);
+						controller.close();
+					},
+				});
+			};
+
 			it('fetches all revisions successfully', async () => {
 				const mockJsonPage1 = {
 					query: {
@@ -266,16 +268,6 @@ if (import.meta.vitest) {
 					// No continue for the last page
 				};
 
-				const createMockStream = (jsonPayload: object) => {
-					const jsonString = JSON.stringify(jsonPayload);
-					return new ReadableStream({
-						start(controller) {
-							controller.enqueue(jsonString);
-							controller.close();
-						},
-					});
-				};
-
 				mockFetch
 					.mockImplementationOnce(async () => ({
 						ok: true,
@@ -298,12 +290,10 @@ if (import.meta.vitest) {
 			});
 
 			it('includes rvendid when order is asc and endRevId is provided', async () => {
-				const mockResponse = {
-					json: vi
-						.fn()
-						.mockResolvedValue({ query: { pages: [{ revisions: [] }] } }),
-				};
-				mockFetch.mockResolvedValue(mockResponse);
+				mockFetch.mockResolvedValue({
+					ok: true,
+					body: createMockStream({}),
+				});
 
 				const all = fetchAllRevisions(baseUrl, 1234, {
 					order: 'asc',
@@ -332,12 +322,10 @@ if (import.meta.vitest) {
 			});
 
 			it('includes rvendid when order is desc and endRevId is provided', async () => {
-				const mockResponse = {
-					json: vi
-						.fn()
-						.mockResolvedValue({ query: { pages: [{ revisions: [] }] } }),
-				};
-				mockFetch.mockResolvedValue(mockResponse);
+				mockFetch.mockResolvedValue({
+					ok: true,
+					body: createMockStream({}),
+				});
 
 				const all = fetchAllRevisions(baseUrl, 1234, {
 					order: 'desc',
@@ -366,12 +354,10 @@ if (import.meta.vitest) {
 			});
 
 			it('does not include boundary params when endRevId is not provided', async () => {
-				const mockResponse = {
-					json: vi
-						.fn()
-						.mockResolvedValue({ query: { pages: [{ revisions: [] }] } }),
-				};
-				mockFetch.mockResolvedValue(mockResponse);
+				mockFetch.mockResolvedValue({
+					ok: true,
+					body: createMockStream({}),
+				});
 
 				const all = fetchAllRevisions(baseUrl, 1234, { order: 'desc' }); // No endRevId
 				await Array.fromAsync(all); // Consume the generator
@@ -381,26 +367,20 @@ if (import.meta.vitest) {
 				expect(actualUrl.searchParams.has('rvendid')).toBe(false);
 			});
 
-			it('returns empty array on network error', async () => {
-				mockFetch.mockRejectedValue(new Error('Network error'));
+			it('throws on network error', async () => {
+				const networkError = new Error('Network error');
+				mockFetch.mockRejectedValue(networkError);
 
 				const all = fetchAllRevisions(baseUrl, 1234);
-				const revisions = await Array.fromAsync(all);
 
-				expect(revisions).toEqual([]);
-				expect(console.error).toHaveBeenCalledWith(
-					'Error fetching all revisions:',
-					expect.any(Error),
-				);
+				await expect(Array.fromAsync(all)).rejects.toBe(networkError);
 			});
 
 			it('includes rvstartid when order is asc and startRevId is provided', async () => {
-				const mockResponse = {
-					json: vi
-						.fn()
-						.mockResolvedValue({ query: { pages: [{ revisions: [] }] } }),
-				};
-				mockFetch.mockResolvedValue(mockResponse);
+				mockFetch.mockResolvedValue({
+					ok: true,
+					body: createMockStream({}),
+				});
 
 				const all = fetchAllRevisions(baseUrl, 1234, {
 					order: 'asc',
@@ -429,12 +409,10 @@ if (import.meta.vitest) {
 			});
 
 			it('includes rvstartid and rvendid when order is asc, startRevId and endRevId are provided', async () => {
-				const mockResponse = {
-					json: vi
-						.fn()
-						.mockResolvedValue({ query: { pages: [{ revisions: [] }] } }),
-				};
-				mockFetch.mockResolvedValue(mockResponse);
+				mockFetch.mockResolvedValue({
+					ok: true,
+					body: createMockStream({}),
+				});
 
 				const all = fetchAllRevisions(baseUrl, 1234, {
 					order: 'asc',
