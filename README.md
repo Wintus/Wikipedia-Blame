@@ -46,6 +46,8 @@ npm run build
 
 - [Architecture overview](docs/architecture-overview.md) — how a search travels
   from the form to a revision ID.
+- [Implementation notes](docs/implementation-notes.md) — cross-module contracts
+  below the architecture level.
 - [Architecture decision records](docs/adr/) — why the search, caching and data
   fetching look the way they do.
 - [Testing](docs/testing.md) — in-source test conventions.
