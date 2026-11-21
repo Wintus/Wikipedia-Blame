@@ -22,3 +22,5 @@ Each response body is piped through `@streamparser/json-whatwg` with three paths
 - `$.query.pages.*.revisions.*.slots.main.content` yields one text per revision.
 
 A `content` event is converted with the revision that encloses it, so the generator yields `{ rev: revid, text: content }` without materialising a whole response body.
+
+A failure inside the loop (request or parser) propagates out of the generator, which stays free of logging. `findMap` stops at the first match, so a match found before the failure still wins; a failure before any match reaches `searchAction`, which logs it and returns the error state.
