@@ -11,7 +11,7 @@ graph TD
 	C -->|page ID, range, order| D[fetchAllRevisions]
 	D -->|rev and text| E[findMap]
 	E -->|first match| C
-	C -->|one SearchState| F[App: useActionState]
+	C -->|one SearchOutcomeState| F[App: useActionState]
 	F -->|query| B
 	F -->|outcome| G[ResultView]
 ```
@@ -19,7 +19,7 @@ graph TD
 1. `PageTitleInput` resolves the article title to a page ID before the form is submitted.
 2. Submitting the form runs `searchAction` with the resolved page ID and the query.
 3. The action streams revisions through `fetchAllRevisions` and asks `findMap` for the first revision whose text contains the target.
-4. The action returns a single `SearchState`; `useActionState` re-renders the form and `ResultView` from it.
+4. The action returns a single `SearchOutcomeState`; `useActionState` stores it in the `SearchState` union and re-renders the form and `ResultView` from it.
 
 ## Components
 
@@ -30,7 +30,7 @@ graph TD
 
 ## State
 
-`SearchState` is assembled from `QueryState` (what the user asked for), `ResultState` (what the search produced) and the resolved `pageId`. `App` forwards that one state; each component's props narrow it to the slice it needs, so the form cannot read the outcome and the view cannot read `pageId`.
+`SearchState` is `QueryState` (what the user asked for), `OutcomeState` (what the search produced, keyed by `status`) and the resolved `pageId`. `InitialState` is the `useActionState` initial value; `searchAction` returns `SearchOutcomeState`, which excludes it. `isPending` owns the running state. `App` forwards that one state; each component's props narrow it to the slice it needs, so the form cannot read the outcome and the view cannot read `pageId`.
 
 ## Page ID lookup (`PageTitleInput`)
 
@@ -38,7 +38,7 @@ Resolves the title with `useQuery`; the debounce, messages and retry UI stay loc
 
 ## Search action (`searchAction`)
 
-Validates the form, builds the revision options and returns one `SearchState`. Validation failures echo the previous query so the form keeps what the user entered.
+Validates the form, builds the revision options and returns one `SearchOutcomeState` assembled from the submitted query. Validation failures and search errors share the `error` outcome; a complete search with no match is `not-found`; `initial` is never returned.
 
 ## Revision stream (`fetchAllRevisions`)
 
@@ -46,7 +46,7 @@ An async generator that pages through the Action API and yields `{ rev, text }` 
 
 ## Rendering (`ResultView`)
 
-Renders pending, error, not-found and success inside a status region that stays mounted from the first render, so screen readers announce each result.
+`isPending` wins first; otherwise the view switches on `status` and renders `initial` as nothing, `error`, `not-found` or `found` inside a status region that stays mounted from the first render, so screen readers announce each result. The not-found copy belongs to the view.
 
 ## Invariants
 

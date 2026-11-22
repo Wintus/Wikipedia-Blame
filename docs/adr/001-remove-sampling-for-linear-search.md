@@ -47,7 +47,7 @@ The randomized sampling logic for searching revisions has been removed. The new,
 
 ## Correction (2025-05-20)
 
-Decision item 4's rationale does not match the implementation: `SearchState.revisionId` is `number | null` in `src/state.ts`, and `searchAction` keeps only `item.rev` from each `RevisionResult` in `src/actions/search.ts`, so `RevisionResult` objects never reach state. The behavior the item describes still holds—the "Search up to Rev ID" field is not pre-populated from `searchState.revisionId`—so the decision itself is unchanged.
+Decision item 4's rationale does not match the implementation: the `found` outcome in `src/state.ts` carries `revisionId: number`, and `searchAction` keeps only `item.rev` from each `RevisionResult` in `src/actions/search.ts`, so `RevisionResult` objects never reach state. The behavior the item describes still holds—the "Search up to Rev ID" field is not pre-populated from the found revision ID—so the decision itself is unchanged.
 
 ## Update (2026-11-14)
 
