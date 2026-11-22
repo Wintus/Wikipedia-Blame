@@ -1,68 +1,73 @@
 import { fetchAllRevisions } from '../services/MediaWikiAPIs';
 import { findMap } from '../lib/async-generator';
-import { type SearchState } from '../state';
+import { type SearchOutcomeState, type SearchState } from '../state';
 import { WIKI_SITES } from '../wiki';
 
 export async function searchAction(
 	prevState: SearchState,
 	formData: FormData,
-): Promise<SearchState> {
+): Promise<SearchOutcomeState> {
 	// Parse form data
 	const wikiUrlStr = formData.get('wikiUrl')?.toString();
 	const pageIdStr = formData.get('pageId')?.toString();
-	const pageTitle = formData.get('pageTitle')?.toString().trim();
-	const targetText = formData.get('targetText')?.toString();
+	const pageTitle = formData.get('pageTitle')?.toString().trim() ?? '';
+	const targetText = formData.get('targetText')?.toString() ?? '';
 	const order = formData.get('order')?.toString();
 	const startRevIdStr = formData.get('startRevId')?.toString();
 	const endRevIdStr = formData.get('endRevId')?.toString();
 
+	// Build the query from the submitted values, falling back only where parsing fails
+	const submittedWikiUrl =
+		wikiUrlStr && URL.canParse(wikiUrlStr) ? new URL(wikiUrlStr) : null;
+	const wikiUrl = submittedWikiUrl ?? prevState.wikiUrl;
+	const parsedPageId = pageIdStr ? Number.parseInt(pageIdStr, 10) : NaN;
+	const query = {
+		wikiUrl,
+		pageId: Number.isSafeInteger(parsedPageId) ? parsedPageId : null,
+		pageTitle,
+		targetText,
+		order: order === 'asc' || order === 'desc' ? order : prevState.order,
+	};
+
 	// Validate inputs
-	if (!wikiUrlStr || !URL.canParse(wikiUrlStr)) {
+	if (submittedWikiUrl == null) {
 		return {
-			...prevState,
-			error: `Invalid wiki site selected: ${wikiUrlStr}`,
-			searchCount: prevState.searchCount + 1,
+			...query,
+			status: 'error',
+			message: `Invalid wiki site selected: ${wikiUrlStr}`,
 		};
 	}
-	const wikiUrl = new URL(wikiUrlStr);
 
 	if (!pageIdStr) {
 		return {
-			...prevState,
-			wikiUrl,
-			pageId: null,
-			revisionId: null,
-			error:
+			...query,
+			status: 'error',
+			message:
 				'Page ID not found. Please wait for it to load or check the title.',
-			searchCount: prevState.searchCount + 1,
 		};
 	}
 
-	const pageId = Number.parseInt(pageIdStr, 10);
-	if (!Number.isSafeInteger(pageId)) {
+	if (!Number.isSafeInteger(parsedPageId)) {
 		return {
-			...prevState,
-			wikiUrl,
-			pageId: null,
-			revisionId: null,
-			error: 'Invalid Page ID. Please check the title.',
-			searchCount: prevState.searchCount + 1,
+			...query,
+			status: 'error',
+			message: 'Invalid Page ID. Please check the title.',
 		};
 	}
 
 	if (!pageTitle) {
 		return {
-			...prevState,
-			error: 'Please provide a page title to search for',
-			searchCount: prevState.searchCount + 1,
+			...query,
+			status: 'error',
+			message: 'Please provide a page title to search for',
 		};
 	}
 
 	if (!targetText) {
 		return {
-			...prevState,
-			error: 'Please provide a text to search for',
-			searchCount: prevState.searchCount + 1,
+			...query,
+			status: 'error',
+			message: 'Please provide a text to search for',
 		};
 	}
 
@@ -86,7 +91,7 @@ export async function searchAction(
 
 	try {
 		// Fetch all revisions
-		const revisions = fetchAllRevisions(wikiUrl, pageId, options);
+		const revisions = fetchAllRevisions(wikiUrl, parsedPageId, options);
 
 		// Find occurrence of target text
 		const foundRevisionId = await findMap(
@@ -94,29 +99,16 @@ export async function searchAction(
 			revisions,
 		);
 
-		// Return updated search result
-		return {
-			wikiUrl,
-			pageId,
-			pageTitle,
-			targetText,
-			revisionId: foundRevisionId,
-			order: options?.order ?? prevState.order,
-			error: foundRevisionId ? null : 'Text not found in any revision',
-			searchCount: prevState.searchCount + 1,
-		};
+		return foundRevisionId == null
+			? { ...query, status: 'not-found' }
+			: { ...query, status: 'found', revisionId: foundRevisionId };
 	} catch (error) {
 		console.error('Search failed:', error);
 		return {
-			...prevState,
-			wikiUrl,
-			pageId,
-			pageTitle,
-			targetText,
-			revisionId: null,
-			error:
+			...query,
+			status: 'error',
+			message:
 				error instanceof Error ? error.message : 'An unknown error occurred',
-			searchCount: prevState.searchCount + 1,
 		};
 	}
 }
@@ -126,10 +118,8 @@ export const initSearchState = {
 	pageId: null,
 	pageTitle: '',
 	targetText: '',
-	revisionId: null,
 	order: 'asc',
-	error: null,
-	searchCount: 0,
+	status: 'initial',
 } as const satisfies SearchState;
 
 // MARK: in-source tests
@@ -162,14 +152,15 @@ if (import.meta.vitest) {
 			pageId: null,
 			pageTitle: '',
 			targetText: '',
-			revisionId: null,
 			order: 'asc',
-			error: null,
-			searchCount: 0,
+			status: 'initial',
 		} as const satisfies SearchState;
-		const defaultExpectedState = {
-			...defaultPrevState,
-			searchCount: 1,
+		const submittedQuery = {
+			wikiUrl: new URL('https://en.wikipedia.org/'),
+			pageId: 123,
+			pageTitle: 'Test Page',
+			targetText: 'Test Text',
+			order: 'asc',
 		} as const;
 
 		beforeEach(() => {
@@ -199,10 +190,10 @@ if (import.meta.vitest) {
 
 			const result = await searchAction(defaultPrevState, emptyFormData);
 
-			expect(result).toEqual<SearchState>({
+			expect(result).toEqual<SearchOutcomeState>({
 				...defaultPrevState,
-				error: expect.any(String),
-				searchCount: 1,
+				status: 'error',
+				message: expect.any(String),
 			});
 		});
 
@@ -219,13 +210,10 @@ if (import.meta.vitest) {
 
 			const result = await searchAction(defaultPrevState, formData);
 
-			expect(result).toEqual<SearchState>({
-				...defaultExpectedState,
-				pageId: 123,
-				pageTitle: 'Test Page',
-				targetText: 'Test Text',
+			expect(result).toEqual<SearchOutcomeState>({
+				...submittedQuery,
+				status: 'found',
 				revisionId: 2,
-				error: null,
 			});
 		});
 
@@ -234,13 +222,98 @@ if (import.meta.vitest) {
 
 			const result = await searchAction(defaultPrevState, formData);
 
-			expect(result).toEqual<SearchState>({
-				...defaultExpectedState,
+			expect(result).toEqual<SearchOutcomeState>({
+				...submittedQuery,
 				pageId: null,
-				revisionId: null,
-				error:
+				status: 'error',
+				message:
 					'Page ID not found. Please wait for it to load or check the title.',
 			});
+		});
+
+		it('falls back to the previous wiki URL when the submitted URL is invalid', async () => {
+			const formData = createFormData({
+				wikiUrl: 'not a url',
+				pageId: '123',
+			});
+
+			const result = await searchAction(defaultPrevState, formData);
+
+			expect(result).toEqual<SearchOutcomeState>({
+				...submittedQuery,
+				wikiUrl: defaultPrevState.wikiUrl,
+				status: 'error',
+				message: 'Invalid wiki site selected: not a url',
+			});
+		});
+
+		it('clears the page ID when the submitted page ID is invalid', async () => {
+			const formData = createFormData({ pageId: 'not-a-number' });
+
+			const result = await searchAction(defaultPrevState, formData);
+
+			expect(result).toEqual<SearchOutcomeState>({
+				...submittedQuery,
+				pageId: null,
+				status: 'error',
+				message: 'Invalid Page ID. Please check the title.',
+			});
+		});
+
+		it('keeps an empty page title from the submission', async () => {
+			const formData = createFormData({ pageId: '123', pageTitle: '' });
+
+			const result = await searchAction(defaultPrevState, formData);
+
+			expect(result).toEqual<SearchOutcomeState>({
+				...submittedQuery,
+				pageTitle: '',
+				status: 'error',
+				message: 'Please provide a page title to search for',
+			});
+		});
+
+		it('keeps an empty target text from the submission', async () => {
+			const formData = createFormData({ pageId: '123', targetText: '' });
+
+			const result = await searchAction(defaultPrevState, formData);
+
+			expect(result).toEqual<SearchOutcomeState>({
+				...submittedQuery,
+				targetText: '',
+				status: 'error',
+				message: 'Please provide a text to search for',
+			});
+		});
+
+		it('falls back to the previous order when the submitted order is invalid', async () => {
+			vi.mocked(fetchAllRevisions).mockImplementation(() =>
+				createAsyncGenerator([
+					{ rev: 1, text: 'Some text' },
+					{ rev: 2, text: 'Contains Test Text' },
+				]),
+			);
+			const formData = createFormData({
+				pageId: '123',
+				order: 'sideways',
+			});
+
+			const result = await searchAction(
+				{ ...defaultPrevState, order: 'desc' },
+				formData,
+			);
+
+			expect(result).toEqual<SearchOutcomeState>({
+				...submittedQuery,
+				order: 'desc',
+				status: 'found',
+				revisionId: 2,
+			});
+			expect(vi.mocked(fetchAllRevisions)).toHaveBeenCalledWith(
+				expect.anything(),
+				expect.anything(),
+				{},
+			);
 		});
 
 		it('handles text not found in revisions', async () => {
@@ -257,13 +330,9 @@ if (import.meta.vitest) {
 
 			const result = await searchAction(defaultPrevState, formData);
 
-			expect(result).toEqual<SearchState>({
-				...defaultExpectedState,
-				pageId: 123,
-				pageTitle: 'Test Page',
-				targetText: 'Test Text',
-				revisionId: null,
-				error: 'Text not found in any revision',
+			expect(result).toEqual<SearchOutcomeState>({
+				...submittedQuery,
+				status: 'not-found',
 			});
 		});
 
@@ -277,13 +346,10 @@ if (import.meta.vitest) {
 
 			const result = await searchAction(defaultPrevState, formData);
 
-			expect(result).toEqual<SearchState>({
-				...defaultExpectedState,
-				pageId: 123,
-				pageTitle: 'Test Page',
-				targetText: 'Test Text',
-				revisionId: null,
-				error: 'Network error',
+			expect(result).toEqual<SearchOutcomeState>({
+				...submittedQuery,
+				status: 'error',
+				message: 'Network error',
 			});
 			expect(consoleErrorSpy).toHaveBeenCalledWith(
 				'Search failed:',
@@ -301,13 +367,10 @@ if (import.meta.vitest) {
 
 			const result = await searchAction(defaultPrevState, formData);
 
-			expect(result).toEqual<SearchState>({
-				...defaultExpectedState,
-				pageId: 123,
-				pageTitle: 'Test Page',
-				targetText: 'Test Text',
-				revisionId: null,
-				error: 'An unknown error occurred',
+			expect(result).toEqual<SearchOutcomeState>({
+				...submittedQuery,
+				status: 'error',
+				message: 'An unknown error occurred',
 			});
 			expect(consoleErrorSpy).toHaveBeenCalledWith(
 				'Search failed:',

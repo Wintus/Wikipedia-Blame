@@ -10,21 +10,28 @@ export type QueryState = {
 	order: 'asc' | 'desc';
 };
 
-/** What a completed search produced. */
-export type ResultState = {
-	revisionId: number | null;
-	error: string | null;
+/** The `useActionState` initial value: no search has run yet. */
+export type InitialState = {
+	status: 'initial';
 };
+
+/** What a completed search produced. */
+export type OutcomeState =
+	| { status: 'not-found' }
+	| { status: 'found'; revisionId: number }
+	| { status: 'error'; message: string };
 
 /** The whole action state: query, the page it resolved to, and the outcome. */
 export type SearchState = QueryState &
-	ResultState & {
+	(InitialState | OutcomeState) & {
 		pageId: number | null;
-		searchCount: number;
+	};
+
+/** What `searchAction` returns: a completed search, never `initial`. */
+export type SearchOutcomeState = QueryState &
+	OutcomeState & {
+		pageId: number | null;
 	};
 
 /** What the result view renders. */
-export type ResultViewState = QueryState &
-	ResultState & {
-		searchCount: number;
-	};
+export type ResultViewState = QueryState & (InitialState | OutcomeState);
