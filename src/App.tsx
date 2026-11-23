@@ -5,6 +5,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { SearchForm } from './components/SearchForm';
 import { ResultView } from './components/ResultView';
 import { searchAction, initSearchState } from './actions/search';
+import { type SearchState } from './state';
 
 const queryClient = new QueryClient({
 	defaultOptions: {
@@ -16,10 +17,10 @@ const queryClient = new QueryClient({
 });
 
 function App() {
-	const [searchState, formAction, isPending] = useActionState(
-		searchAction,
-		initSearchState,
-	);
+	const [searchState, formAction, isPending] = useActionState<
+		SearchState,
+		FormData
+	>(searchAction, initSearchState);
 
 	return (
 		<QueryClientProvider client={queryClient}>
