@@ -12,21 +12,22 @@ export async function searchAction(
 	const pageIdStr = formData.get('pageId')?.toString();
 	const pageTitle = formData.get('pageTitle')?.toString().trim() ?? '';
 	const targetText = formData.get('targetText')?.toString() ?? '';
-	const order = formData.get('order')?.toString();
+	const orderStr = formData.get('order')?.toString();
 	const startRevIdStr = formData.get('startRevId')?.toString();
 	const endRevIdStr = formData.get('endRevId')?.toString();
 
-	// Build the query from the submitted values, falling back only where parsing fails
 	const submittedWikiUrl =
 		wikiUrlStr && URL.canParse(wikiUrlStr) ? new URL(wikiUrlStr) : null;
 	const wikiUrl = submittedWikiUrl ?? prevState.wikiUrl;
 	const parsedPageId = pageIdStr ? Number.parseInt(pageIdStr, 10) : NaN;
+	const order =
+		orderStr === 'asc' || orderStr === 'desc' ? orderStr : prevState.order;
 	const query = {
 		wikiUrl,
 		pageId: Number.isSafeInteger(parsedPageId) ? parsedPageId : null,
 		pageTitle,
 		targetText,
-		order: order === 'asc' || order === 'desc' ? order : prevState.order,
+		order,
 	};
 
 	// Validate inputs
@@ -73,13 +74,10 @@ export async function searchAction(
 
 	// build options for fetching revisions
 	const options: {
-		order?: 'asc' | 'desc';
+		order: 'asc' | 'desc';
 		startRevId?: number;
 		endRevId?: number;
-	} = {};
-	if (order === 'asc' || order === 'desc') {
-		options.order = order;
-	}
+	} = { order };
 	const startRevId = startRevIdStr ? Number.parseInt(startRevIdStr, 10) : NaN;
 	if (Number.isSafeInteger(startRevId)) {
 		options.startRevId = startRevId;
@@ -286,7 +284,7 @@ if (import.meta.vitest) {
 			});
 		});
 
-		it('falls back to the previous order when the submitted order is invalid', async () => {
+		it('uses the previous order for both the state and the fetch when the submitted order is invalid', async () => {
 			vi.mocked(fetchAllRevisions).mockImplementation(() =>
 				createAsyncGenerator([
 					{ rev: 1, text: 'Some text' },
@@ -312,7 +310,7 @@ if (import.meta.vitest) {
 			expect(vi.mocked(fetchAllRevisions)).toHaveBeenCalledWith(
 				expect.anything(),
 				expect.anything(),
-				{},
+				{ order: 'desc' },
 			);
 		});
 
@@ -395,7 +393,7 @@ if (import.meta.vitest) {
 			expect(mockedFetchAllRevisions).toHaveBeenCalledWith(
 				expect.anything(), // baseUrl
 				expect.anything(), // pageId
-				{ endRevId: 456 },
+				{ order: 'asc', endRevId: 456 },
 			);
 		});
 
@@ -416,7 +414,7 @@ if (import.meta.vitest) {
 			expect(mockedFetchAllRevisions).toHaveBeenCalledWith(
 				expect.anything(), // baseUrl
 				expect.anything(), // pageId
-				{}, // Should be empty object
+				{ order: 'asc' }, // No endRevId
 			);
 		});
 
@@ -482,7 +480,7 @@ if (import.meta.vitest) {
 			expect(mockedFetchAllRevisions).toHaveBeenCalledWith(
 				expect.anything(), // baseUrl
 				expect.anything(), // pageId
-				{ startRevId: 123 },
+				{ order: 'asc', startRevId: 123 },
 			);
 		});
 
@@ -507,7 +505,7 @@ if (import.meta.vitest) {
 			expect(mockedFetchAllRevisions).toHaveBeenCalledWith(
 				expect.anything(), // baseUrl
 				expect.anything(), // pageId
-				{ startRevId: 123, endRevId: 789 },
+				{ order: 'asc', startRevId: 123, endRevId: 789 },
 			);
 		});
 	});
