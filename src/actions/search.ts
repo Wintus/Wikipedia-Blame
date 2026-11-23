@@ -19,12 +19,15 @@ export async function searchAction(
 	const submittedWikiUrl =
 		wikiUrlStr && URL.canParse(wikiUrlStr) ? new URL(wikiUrlStr) : null;
 	const wikiUrl = submittedWikiUrl ?? prevState.wikiUrl;
-	const parsedPageId = pageIdStr ? Number.parseInt(pageIdStr, 10) : NaN;
+	const submittedPageId = pageIdStr ? Number.parseInt(pageIdStr, 10) : NaN;
+	const pageId = Number.isSafeInteger(submittedPageId)
+		? submittedPageId
+		: null;
 	const order =
 		orderStr === 'asc' || orderStr === 'desc' ? orderStr : prevState.order;
 	const query = {
 		wikiUrl,
-		pageId: Number.isSafeInteger(parsedPageId) ? parsedPageId : null,
+		pageId,
 		pageTitle,
 		targetText,
 		order,
@@ -48,7 +51,7 @@ export async function searchAction(
 		};
 	}
 
-	if (!Number.isSafeInteger(parsedPageId)) {
+	if (pageId == null) {
 		return {
 			...query,
 			status: 'error',
@@ -89,7 +92,7 @@ export async function searchAction(
 
 	try {
 		// Fetch all revisions
-		const revisions = fetchAllRevisions(wikiUrl, parsedPageId, options);
+		const revisions = fetchAllRevisions(wikiUrl, pageId, options);
 
 		// Find occurrence of target text
 		const foundRevisionId = await findMap(
