@@ -3,17 +3,7 @@
  * using both the Action API and the REST API
  */
 
-import { JSONParser } from '@streamparser/json-whatwg';
-
-export type RevisionResult = {
-	rev: number;
-	text: string;
-};
-
-type Revision<Slot extends string = 'main'> = {
-	revid: number;
-	slots: { [key in Slot]: { content: string } };
-};
+import { decodeRevisions, type RevisionResult } from './revisionStream';
 
 type Order = 'asc' | 'desc';
 
@@ -21,11 +11,6 @@ const direction = {
 	asc: 'newer',
 	desc: 'older',
 } as const satisfies Record<Order, string>;
-
-const convert = (revision: Revision<'main'>): RevisionResult => ({
-	rev: revision.revid,
-	text: revision.slots.main.content,
-});
 
 /**
  * Fetches the page ID for a given title using the REST API
@@ -72,6 +57,9 @@ export const isNotFoundError = (error: unknown): boolean =>
  *
  * Paging and parser contracts: `docs/implementation-notes.md`.
  *
+ * The body is decoded by `decodeRevisions` (`src/services/revisionStream.ts`);
+ * this function only pages and folds.
+ *
  * note: `rvcontentformat-main=text/plain` is unavailable for regular pages
  */
 export async function* fetchAllRevisions(
@@ -116,28 +104,14 @@ export async function* fetchAllRevisions(
 			throw new Error(`Failed to fetch revision texts: ${response.statusText}`);
 		}
 
-		// Create a JSON parser to handle the streaming response
-		const parser = new JSONParser({
-			paths: [
-				'$.batchcomplete',
-				'$.continue.rvcontinue',
-				'$.query.pages.*.revisions.*.slots.main.content',
-			],
-		});
-		const elemStream = response.body.pipeThrough(parser);
-		// unset the cursor
+		// Decode the response into revisions and the next cursor. The cursor is
+		// cleared first: the batch ends when no cursor event arrives.
 		continueParam = null;
-		for await (const { key, value, stack } of elemStream) {
-			if (value == null) {
-				continue;
-			} else if (key === 'batchcomplete') {
-				// unset the cursor
-				continueParam = null;
-			} else if (key === 'rvcontinue') {
-				// update the cursor
-				continueParam = value as string;
-			} else if (key === 'content') {
-				yield convert(stack[6]?.value as Revision);
+		for await (const event of decodeRevisions(response.body)) {
+			if (event.type === 'cursor') {
+				continueParam = event.token;
+			} else {
+				yield { rev: event.rev, text: event.text };
 			}
 		}
 	} while (continueParam);
@@ -226,11 +200,13 @@ if (import.meta.vitest) {
 		});
 
 		describe('fetchAllRevisions', () => {
+			const encoder = new TextEncoder();
+
 			const createMockStream = (jsonPayload: object) => {
-				const jsonString = JSON.stringify(jsonPayload);
-				return new ReadableStream({
+				const body = encoder.encode(JSON.stringify(jsonPayload));
+				return new ReadableStream<Uint8Array>({
 					start(controller) {
-						controller.enqueue(jsonString);
+						controller.enqueue(body);
 						controller.close();
 					},
 				});
@@ -365,6 +341,37 @@ if (import.meta.vitest) {
 				expect(mockFetch).toHaveBeenCalled();
 				const actualUrl: URL = mockFetch.mock.calls[0]?.[0];
 				expect(actualUrl.searchParams.has('rvendid')).toBe(false);
+			});
+
+			it('cancels the response body when the consumer stops early', async () => {
+				let cancelled = false;
+				// Cut after the first revision: the array is still open, so the
+				// parser cannot finish the document and only stopping can cancel.
+				const firstRevision = {
+					revid: 1,
+					slots: { main: { content: 'first' } },
+				};
+				const partialBody = `{"query":{"pages":[{"revisions":[${JSON.stringify(firstRevision)},`;
+				const body = new ReadableStream<Uint8Array>({
+					start(controller) {
+						controller.enqueue(encoder.encode(partialBody));
+						// stay open: the rest of the batch is still downloading
+					},
+					cancel() {
+						cancelled = true;
+					},
+				});
+				mockFetch.mockResolvedValue({ ok: true, body });
+
+				const revisions = fetchAllRevisions(baseUrl, 1234);
+				const first = await revisions.next();
+
+				expect(first.value).toEqual<RevisionResult>({ rev: 1, text: 'first' });
+				expect(cancelled).toBe(false);
+
+				await revisions.return(undefined);
+
+				expect(cancelled).toBe(true);
 			});
 
 			it('throws on network error', async () => {
