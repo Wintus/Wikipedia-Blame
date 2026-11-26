@@ -20,9 +20,7 @@ export async function searchAction(
 		wikiUrlStr && URL.canParse(wikiUrlStr) ? new URL(wikiUrlStr) : null;
 	const wikiUrl = submittedWikiUrl ?? prevState.wikiUrl;
 	const submittedPageId = pageIdStr ? Number.parseInt(pageIdStr, 10) : NaN;
-	const pageId = Number.isSafeInteger(submittedPageId)
-		? submittedPageId
-		: null;
+	const pageId = Number.isSafeInteger(submittedPageId) ? submittedPageId : null;
 	const order =
 		orderStr === 'asc' || orderStr === 'desc' ? orderStr : prevState.order;
 	const query = {
