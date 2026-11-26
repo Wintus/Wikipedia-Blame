@@ -14,7 +14,14 @@ export function SearchForm({ formAction, isPending, state }: Props) {
 
 	return (
 		<form action={formAction} className="search-form" name="searchForm">
-			<WikiSelector selectedWiki={wikiUrl} onChange={setWikiUrl} />
+			{/* React resets uncontrolled fields after the action, and a select resets
+			    to its mount-time default. Re-seed it when an outcome arrives so the
+			    reset cannot revert the user's pick. */}
+			<WikiSelector
+				key={state.wikiUrl.href}
+				defaultWiki={wikiUrl}
+				onChange={setWikiUrl}
+			/>
 
 			<PageTitleInput wikiUrl={wikiUrl} />
 
@@ -271,10 +278,12 @@ if (import.meta.vitest) {
 			expect(screen.getByLabelText(/Wiki Site:/i)).toBeInTheDocument();
 		});
 
-		it('the selected option remains selected after form submission', async () => {
+		it('keeps the selected option after form submission', async () => {
 			const { fireEvent } = await import('@testing-library/react');
 			const user = userEvent.setup();
-			await act(async () => renderWithQuery(<SearchForm {...defaultProps} />));
+			const { rerender } = await act(async () =>
+				renderWithQuery(<SearchForm {...defaultProps} />),
+			);
 			const wikiSelector =
 				await screen.findByLabelText<HTMLSelectElement>(/Wiki Site:/i);
 
@@ -299,7 +308,25 @@ if (import.meta.vitest) {
 			await user.click(button);
 
 			expect(mockFormAction).toHaveBeenCalledTimes(1);
-			expect(wikiSelector.value).toBe('https://ja.wikipedia.org/');
+
+			// The action resets the form, then useActionState rerenders with the query
+			await act(async () =>
+				rerender(
+					<QueryClientProvider client={queryClient}>
+						<SearchForm
+							{...defaultProps}
+							state={{
+								...defaultQueryState,
+								wikiUrl: new URL('https://ja.wikipedia.org'),
+							}}
+						/>
+					</QueryClientProvider>,
+				),
+			);
+
+			expect(
+				screen.getByLabelText<HTMLSelectElement>(/Wiki Site:/i).value,
+			).toBe('https://ja.wikipedia.org/');
 		});
 
 		it('preserves the typed page title when wiki site changes', async () => {

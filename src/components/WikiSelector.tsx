@@ -1,11 +1,18 @@
 import { WIKI_SITES } from '../wiki';
 
+/**
+ * Props for the uncontrolled wiki picker.
+ *
+ * `defaultWiki` seeds the selection on mount; afterwards the DOM owns it, so a
+ * new `defaultWiki` does not move the selection. `onChange` reports picks for
+ * values that feed derived queries.
+ */
 type Props = {
-	selectedWiki: URL;
+	defaultWiki: URL;
 	onChange: (wiki: URL) => void;
 };
 
-export function WikiSelector({ selectedWiki, onChange }: Props) {
+export function WikiSelector({ defaultWiki, onChange }: Props) {
 	const handleChange = (wikiUrl: string) => {
 		const wiki = WIKI_SITES.find((w) => w.url.href === wikiUrl);
 		if (wiki == null) {
@@ -20,8 +27,7 @@ export function WikiSelector({ selectedWiki, onChange }: Props) {
 			<select
 				id="wiki-url"
 				name="wikiUrl"
-				key={selectedWiki.href}
-				defaultValue={selectedWiki.href}
+				defaultValue={defaultWiki.href}
 				onChange={(e) => handleChange(e.target.value)}
 			>
 				{WIKI_SITES.map((wiki) => (
@@ -44,8 +50,8 @@ if (import.meta.vitest) {
 	const JAWP_URL = new URL('https://ja.wikipedia.org');
 
 	describe('WikiSelector', () => {
-		const renderComponent = (selectedWiki = ENWP_URL, onChange = vi.fn()) =>
-			render(<WikiSelector selectedWiki={selectedWiki} onChange={onChange} />);
+		const renderComponent = (defaultWiki = ENWP_URL, onChange = vi.fn()) =>
+			render(<WikiSelector defaultWiki={defaultWiki} onChange={onChange} />);
 
 		it('renders the component with correct label', () => {
 			renderComponent();
@@ -59,18 +65,21 @@ if (import.meta.vitest) {
 			expect(selectElement).toHaveAttribute('id', 'wiki-url');
 		});
 
-		it('displays correct default wiki', () => {
-			renderComponent(ENWP_URL);
-			const selectElement =
-				screen.getByLabelText<HTMLSelectElement>('Wiki Site:');
-			expect(selectElement.value).toBe(ENWP_URL.href);
-		});
-
-		it('displays correct alternative wiki when provided', () => {
+		it('seeds the selection from defaultWiki', () => {
 			renderComponent(JAWP_URL);
 			const selectElement =
 				screen.getByLabelText<HTMLSelectElement>('Wiki Site:');
 			expect(selectElement.value).toBe(JAWP_URL.href);
+		});
+
+		it('ignores defaultWiki changes after mount', () => {
+			const { rerender } = render(
+				<WikiSelector defaultWiki={ENWP_URL} onChange={vi.fn()} />,
+			);
+			rerender(<WikiSelector defaultWiki={JAWP_URL} onChange={vi.fn()} />);
+			const selectElement =
+				screen.getByLabelText<HTMLSelectElement>('Wiki Site:');
+			expect(selectElement.value).toBe(ENWP_URL.href);
 		});
 
 		it('calls onChange with correct wiki when changed', async () => {

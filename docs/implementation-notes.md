@@ -29,3 +29,7 @@ A revision without `slots.main.content` (deleted or suppressed text) is skipped 
 Stopping the iteration early cancels the body stream, so a match found before the end of a batch also stops the download.
 
 A failure inside the loop (request or parser) propagates out of the generator, which stays free of logging. `findMap` stops at the first match, so a match found before the failure still wins; a failure before any match reaches `searchAction`, which logs it and returns the `error` outcome.
+
+## Form state
+
+Form controls are uncontrolled: the DOM owns what the user typed or picked, and `defaultValue` / `defaultChecked` only seed the first render. `SearchForm` keeps one React mirror, the selected wiki, because `PageTitleInput` keys its page ID query by it. `WikiSelector` seeds the `<select>` from `defaultWiki` and reports picks through `onChange`; a later `defaultWiki` change does not move the selection, because the user's pick is the source of truth. React resets uncontrolled fields after a form action, and a `<select>` resets to its mount-time default, so `SearchForm` keys the selector by `state.wikiUrl` to re-seed it when an outcome arrives. The form parts stay components rather than render hooks: the parent needs the value itself, so a hook would return it unchanged and only hide the lookup and the markup.
