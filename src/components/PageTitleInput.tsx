@@ -25,6 +25,12 @@ export function PageTitleInput({ wikiUrl }: Props) {
 		retry: (failureCount, err) => !isNotFoundError(err) && failureCount < 1,
 	});
 
+	// The query is keyed by the debounced title, so its data still belongs to
+	// the previous title until the debounce fires. Hide it in that window: a
+	// submission must never carry a page ID for a title the user has replaced.
+	const resolvedTitle = pageTitle.trim();
+	const isCurrentPageId = resolvedTitle === debouncedTitle;
+
 	return (
 		<div className="form-group">
 			<label htmlFor="page-title">Wiki Article Title:</label>
@@ -64,7 +70,7 @@ export function PageTitleInput({ wikiUrl }: Props) {
 			<input
 				type="hidden"
 				name="pageId"
-				value={pageId ?? ''}
+				value={isCurrentPageId ? (pageId ?? '') : ''}
 				data-testid="pageId-input"
 			/>
 		</div>
@@ -74,7 +80,7 @@ export function PageTitleInput({ wikiUrl }: Props) {
 // MARK: in-source tests
 if (import.meta.vitest) {
 	const { describe, it, expect, vi, beforeEach, afterAll } = import.meta.vitest;
-	const { render, screen, act, waitFor, waitForElementToBeRemoved } =
+	const { render, screen, act, waitFor, waitForElementToBeRemoved, fireEvent } =
 		await import('@testing-library/react');
 	const { userEvent } = await import('@testing-library/user-event');
 	const { QueryClient, QueryClientProvider } =
@@ -508,6 +514,28 @@ if (import.meta.vitest) {
 				// Immediately after typing (before debounce completes), fetchPageId
 				// should NOT be called again because debouncedTitle is still "Test"
 				expect(mockFetchPageId).toHaveBeenCalledTimes(1);
+			});
+
+			it('clears the hidden pageId while a newer title is still debouncing', async () => {
+				const user = userEvent.setup();
+				mockFetchPageId.mockResolvedValue(123);
+
+				await act(async () =>
+					renderWithQuery(<PageTitleInput wikiUrl={stubWikiUrl} />),
+				);
+
+				const inputElement = screen.getByLabelText(/Wiki Article Title:/i);
+				await user.type(inputElement, 'Old Title');
+				await waitFor(() =>
+					expect(screen.getByTestId('pageId-input')).toHaveValue('123'),
+				);
+
+				// Replace the title without waiting for the debounce. The query data
+				// still belongs to "Old Title", so it must not be exposed as the
+				// page ID for "New Title".
+				fireEvent.change(inputElement, { target: { value: 'New Title' } });
+
+				expect(screen.getByTestId('pageId-input')).toHaveValue('');
 			});
 		});
 	});

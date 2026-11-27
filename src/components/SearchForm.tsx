@@ -186,6 +186,34 @@ if (import.meta.vitest) {
 			expect(wikiUrl).toEqual('https://en.wikipedia.org/');
 		});
 
+		it('submits an empty pageId when the title changes during the debounce', async () => {
+			const { fireEvent } = await import('@testing-library/react');
+			const user = userEvent.setup();
+			await act(async () => renderWithQuery(<SearchForm {...defaultProps} />));
+
+			const titleInput = screen.getByLabelText(/Wiki Article Title:/i);
+			const button = screen.getByRole('button', {
+				name: /Find An Occurrence/i,
+			});
+
+			await user.clear(titleInput);
+			await user.type(titleInput, 'Old Title');
+			await waitFor(() =>
+				expect(screen.getByTestId('pageId-input')).toHaveValue('123'),
+			);
+
+			// Replace the title and submit before the 300 ms debounce fires. The
+			// cached page ID still belongs to "Old Title", so the submission must
+			// not carry it as the page ID for "New Title".
+			fireEvent.change(titleInput, { target: { value: 'New Title' } });
+			await user.click(button);
+
+			expect(mockFormAction).toHaveBeenCalledTimes(1);
+			const formDataArg = mockFormAction.mock.calls[0]?.[0];
+			expect(formDataArg.get('pageTitle')).toBe('New Title');
+			expect(formDataArg.get('pageId')).toBe('');
+		});
+
 		it('renders the startRevId input field', async () => {
 			await act(async () => renderWithQuery(<SearchForm {...defaultProps} />));
 			expect(
