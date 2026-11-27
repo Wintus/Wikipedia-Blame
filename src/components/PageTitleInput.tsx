@@ -530,11 +530,11 @@ if (import.meta.vitest) {
 					expect(screen.getByTestId('pageId-input')).toHaveValue('123'),
 				);
 
-				// Replace the title without waiting for the debounce. The query data
-				// still belongs to "Old Title", so it must not be exposed as the
-				// page ID for "New Title".
+				// Replace the title without waiting for the debounce.
 				fireEvent.change(inputElement, { target: { value: 'New Title' } });
 
+				// The query data still belongs to "Old Title", so it must not be
+				// exposed as the page ID for "New Title".
 				expect(screen.getByTestId('pageId-input')).toHaveValue('');
 			});
 		});

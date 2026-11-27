@@ -202,12 +202,12 @@ if (import.meta.vitest) {
 				expect(screen.getByTestId('pageId-input')).toHaveValue('123'),
 			);
 
-			// Replace the title and submit before the 300 ms debounce fires. The
-			// cached page ID still belongs to "Old Title", so the submission must
-			// not carry it as the page ID for "New Title".
+			// Replace the title and submit before the 300 ms debounce fires.
 			fireEvent.change(titleInput, { target: { value: 'New Title' } });
 			await user.click(button);
 
+			// The cached page ID still belongs to "Old Title", so the submission
+			// must not carry it as the page ID for "New Title".
 			expect(mockFormAction).toHaveBeenCalledTimes(1);
 			const formDataArg = mockFormAction.mock.calls[0]?.[0];
 			expect(formDataArg.get('pageTitle')).toBe('New Title');
